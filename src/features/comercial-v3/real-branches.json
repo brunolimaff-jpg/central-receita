@@ -1,0 +1,239 @@
+{
+  "source": "forecast mes.xlsx",
+  "sheet": "Export",
+  "period": "2026-09",
+  "unit": "BRL_millions",
+  "realizadoMeaning": "pedidos integrados",
+  "total": {
+    "branch": "Total",
+    "meta": 119.04799047,
+    "realizado": 14.6646808,
+    "forecastOficial": 29.09482156,
+    "forecastAtual": 10.32537226,
+    "pipeline": 329.80736399,
+    "forecastAnterior": 9.292835034000005,
+    "realizadoAnterior": 23.957515834000006
+  },
+  "branches": [
+    {
+      "branch": "Inside Sales",
+      "meta": 31.34419653,
+      "realizado": 3.767756840000001,
+      "forecastOficial": null,
+      "forecastAtual": 0.50652242,
+      "pipeline": 13.309251840000009,
+      "forecastAnterior": 0.4558701780000003,
+      "realizadoAnterior": 4.223627018000001
+    },
+    {
+      "branch": "Senior Filial SP",
+      "meta": 17.7846937,
+      "realizado": 1.9227817700000005,
+      "forecastOficial": 3.19324883,
+      "forecastAtual": 0.58955458,
+      "pipeline": 50.896849419999995,
+      "forecastAnterior": 0.5305991220000005,
+      "realizadoAnterior": 2.453380892000001
+    },
+    {
+      "branch": "Senior Filial Minas",
+      "meta": 11.07037801,
+      "realizado": 1.5363399999999996,
+      "forecastOficial": 2.60147547,
+      "forecastAtual": 1.8404830999999997,
+      "pipeline": 35.266061950000015,
+      "forecastAnterior": 1.6564347900000007,
+      "realizadoAnterior": 3.19277479
+    },
+    {
+      "branch": "Senior Filial SPI",
+      "meta": 10.018482039999999,
+      "realizado": 1.3483520700000002,
+      "forecastOficial": 3.3511929300000003,
+      "forecastAtual": 1.39462149,
+      "pipeline": 39.81671388999998,
+      "forecastAnterior": 1.2551593410000008,
+      "realizadoAnterior": 2.6035114110000013
+    },
+    {
+      "branch": "Senior Filial RS",
+      "meta": 8.54245333,
+      "realizado": 0.6334977399999999,
+      "forecastOficial": 2.74190055,
+      "forecastAtual": 0.80435628,
+      "pipeline": 41.84154976,
+      "forecastAnterior": 0.7239206520000004,
+      "realizadoAnterior": 1.3574183920000005
+    },
+    {
+      "branch": "Senior GAtec",
+      "meta": 7.701594269999999,
+      "realizado": 0.6739089099999999,
+      "forecastOficial": 4.24925421,
+      "forecastAtual": 0.5557934299999999,
+      "pipeline": 16.267824870000002,
+      "forecastAnterior": 0.5002140870000003,
+      "realizadoAnterior": 1.1741229970000002
+    },
+    {
+      "branch": "Senior Filial SC",
+      "meta": 5.683033320000001,
+      "realizado": 0.8893582799999998,
+      "forecastOficial": 3.34812456,
+      "forecastAtual": 0.9037931299999998,
+      "pipeline": 24.605512529999974,
+      "forecastAnterior": 0.8134138170000004,
+      "realizadoAnterior": 1.702772097
+    },
+    {
+      "branch": "Senior Filial PR",
+      "meta": 5.58324518,
+      "realizado": 0.43688871,
+      "forecastOficial": 1.14463731,
+      "forecastAtual": 0.6527869100000001,
+      "pipeline": 29.546097930000034,
+      "forecastAnterior": 0.5875082190000005,
+      "realizadoAnterior": 1.0243969290000006
+    },
+    {
+      "branch": "Senior Filial NE",
+      "meta": 5.30830711,
+      "realizado": 1.4433236600000001,
+      "forecastOficial": 1.97358229,
+      "forecastAtual": 0.34781028,
+      "pipeline": 22.706746380000016,
+      "forecastAnterior": 0.3130292520000002,
+      "realizadoAnterior": 1.7563529120000005
+    },
+    {
+      "branch": "Senior Filial RJ",
+      "meta": 4.58480522,
+      "realizado": 0.46414568999999994,
+      "forecastOficial": 0.9002994200000001,
+      "forecastAtual": 0.10962574,
+      "pipeline": 9.453591890000002,
+      "forecastAnterior": 0.09866316600000007,
+      "realizadoAnterior": 0.5628088560000001
+    },
+    {
+      "branch": "Senior Filial DF",
+      "meta": 3.8512237099999997,
+      "realizado": 0.29105728999999997,
+      "forecastOficial": 1.93846878,
+      "forecastAtual": 0.9278837899999999,
+      "pipeline": 29.711937689999974,
+      "forecastAnterior": 0.8350954110000004,
+      "realizadoAnterior": 1.1261527010000003
+    },
+    {
+      "branch": "Senior Filial MT",
+      "meta": 2.35946759,
+      "realizado": 0.37178943,
+      "forecastOficial": 1.70614677,
+      "forecastAtual": 0.4967564100000001,
+      "pipeline": 6.059608180000003,
+      "forecastAnterior": 0.4470807690000004,
+      "realizadoAnterior": 0.8188701990000004
+    },
+    {
+      "branch": "Senior Filial MS",
+      "meta": 1.85048517,
+      "realizado": 0.76122159,
+      "forecastOficial": 0.60291152,
+      "forecastAtual": 0.4712734900000001,
+      "pipeline": 3.530536180000001,
+      "forecastAnterior": 0.4241461410000003,
+      "realizadoAnterior": 1.1853677310000001
+    },
+    {
+      "branch": "Senior Konviva",
+      "meta": 1.78842569,
+      "realizado": 0.06235407999999999,
+      "forecastOficial": 0.77675672,
+      "forecastAtual": 0.44670713,
+      "pipeline": 3.7328345799999987,
+      "forecastAnterior": 0.40203641700000026,
+      "realizadoAnterior": 0.4643904970000003
+    },
+    {
+      "branch": "Senior Hypnobox",
+      "meta": 0.92642436,
+      "realizado": 0.0351,
+      "forecastOficial": 0.0384,
+      "forecastAtual": 0.07138639999999999,
+      "pipeline": 0.20262790000000003,
+      "forecastAnterior": 0.06424776000000004,
+      "realizadoAnterior": 0.09934776000000003
+    },
+    {
+      "branch": "Senior Flow",
+      "meta": 0.47909453999999996,
+      "realizado": null,
+      "forecastOficial": 0.05680788,
+      "forecastAtual": 0.00814588,
+      "pipeline": 0.08209867,
+      "forecastAnterior": 0.007331292000000005,
+      "realizadoAnterior": 0.007331292000000005
+    },
+    {
+      "branch": "Senior Jobconvo",
+      "meta": 0.17168070000000002,
+      "realizado": 0.019430830000000003,
+      "forecastOficial": 0.01253031,
+      "forecastAtual": null,
+      "pipeline": 0.37756930999999994,
+      "forecastAnterior": null,
+      "realizadoAnterior": 0.019430830000000003
+    },
+    {
+      "branch": "ETN - GATec",
+      "meta": null,
+      "realizado": null,
+      "forecastOficial": null,
+      "forecastAtual": null,
+      "pipeline": 0.0259587,
+      "forecastAnterior": null,
+      "realizadoAnterior": null
+    },
+    {
+      "branch": "Geração de Demandas",
+      "meta": null,
+      "realizado": null,
+      "forecastOficial": null,
+      "forecastAtual": null,
+      "pipeline": 1.3653039,
+      "forecastAnterior": null,
+      "realizadoAnterior": null
+    },
+    {
+      "branch": "Senior Cigam",
+      "meta": null,
+      "realizado": null,
+      "forecastOficial": 0.41063189,
+      "forecastAtual": 0.14866821,
+      "pipeline": 0.4050045599999999,
+      "forecastAnterior": 0.13380138900000008,
+      "realizadoAnterior": 0.13380138900000008
+    },
+    {
+      "branch": "Senior Matriz",
+      "meta": null,
+      "realizado": 0.0,
+      "forecastOficial": null,
+      "forecastAtual": null,
+      "pipeline": 0.56222534,
+      "forecastAnterior": null,
+      "realizadoAnterior": 0.0
+    },
+    {
+      "branch": "Sythex",
+      "meta": null,
+      "realizado": null,
+      "forecastOficial": null,
+      "forecastAtual": null,
+      "pipeline": 0.018,
+      "forecastAnterior": null,
+      "realizadoAnterior": null
+    }
+  ]
+}
