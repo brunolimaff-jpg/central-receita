@@ -23,12 +23,13 @@ type BranchScreenProps = {
   model: BranchModel | null
   branch: string
   filiais: FilialRow[]
+  agregadoReal?: FilialRow
   detalhes: Map<string, OpportunityDetail>
   from?: CommercialView
   nav: CommercialNav
 }
 
-export function BranchScreen({ model, branch, filiais, detalhes, from, nav }: BranchScreenProps) {
+export function BranchScreen({ model, branch, filiais, agregadoReal, detalhes, from, nav }: BranchScreenProps) {
   const voltar = {
     label: VOLTAR_POR_ORIGEM[from ?? 'home'],
     href: nav.href(from ?? 'home'),
@@ -46,7 +47,7 @@ export function BranchScreen({ model, branch, filiais, detalhes, from, nav }: Br
           voltar={voltar}
         />
 
-        <BranchSummary model={model} />
+        <BranchSummary model={model} agregadoReal={agregadoReal} />
         <BranchOpportunityTable
           rows={model.oportunidades}
           detalhes={detalhes}

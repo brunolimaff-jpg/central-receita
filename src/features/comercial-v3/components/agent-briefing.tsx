@@ -1,4 +1,5 @@
 import { AGENTE_COPY } from '../copy'
+import { weekForecastValue } from '../demo-display'
 import { formatarComSinal, formatarMilhoes, formatarPercentualInteiro } from '../format'
 import type { AgentBriefingModel } from '../model'
 
@@ -84,7 +85,9 @@ export function AgentBriefing({ briefing }: { briefing: AgentBriefingModel }) {
       </div>
 
       <div aria-label="Resumo semanal" className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
-        {briefing.semanas.map((semana) => (
+        {briefing.semanas.map((semana) => {
+          const forecast = weekForecastValue(semana)
+          return (
           <div
             key={semana.week}
             className={`min-h-[74px] rounded-[10px] border px-2.5 py-2.5 ${
@@ -99,10 +102,11 @@ export function AgentBriefing({ briefing }: { briefing: AgentBriefingModel }) {
             </strong>
             <span className="num mt-0.5 block text-[11px] text-[#63748a]">{semana.rangeLabel}</span>
             <b className="num mt-1.5 block text-[14px] font-extrabold text-[#0d2340]">
-              {formatarMilhoes(semana.forecast)}
+              {forecast === null ? 'Pendente' : formatarMilhoes(forecast)}
             </b>
           </div>
-        ))}
+          )
+        })}
         {briefing.semanas.length === 0 && (
           <p className="col-span-full rounded-[10px] border border-[#dfe8ef] bg-white px-3 py-2.5 text-[12px] text-[#63748a]">
             A leitura semanal existe na visão mensal; o recorte atual não tem semanas.

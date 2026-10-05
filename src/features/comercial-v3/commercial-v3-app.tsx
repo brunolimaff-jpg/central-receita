@@ -277,6 +277,7 @@ export function CommercialV3App() {
           model={filial}
           branch={branch}
           filiais={home.filiais}
+          agregadoReal={period === 'month' ? home.filiais.find((filial) => filial.branch === branch) : undefined}
           detalhes={detalhes}
           from={from}
           nav={nav}

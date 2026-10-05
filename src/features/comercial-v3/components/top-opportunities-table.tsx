@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { FORECAST_OFFICIAL_LABEL } from '../demo-display'
 import { formatarComSinal, formatarMilhoes } from '../format'
 import type { Top10Row } from '../model'
 import type { CommercialNav } from '../nav'
@@ -33,7 +34,7 @@ const COLUNAS = [
   'Δ valor',
   'Receita recorrente',
   'Valor atual',
-  'Previsão',
+  FORECAST_OFFICIAL_LABEL,
   'Estágio',
   'Origem',
 ]

@@ -5,7 +5,8 @@ import {
   formatarOportunidades,
   formatarPercentualInteiro,
 } from '../format'
-import type { BranchModel } from '../model'
+import { branchSummaryValues } from '../demo-display'
+import type { BranchModel, FilialRow } from '../model'
 import { FORECAST_MOVEMENTS } from '../types'
 
 /**
@@ -16,8 +17,9 @@ import { FORECAST_MOVEMENTS } from '../types'
  * HEAD não substitui filial em nenhum nível (spec §2, l.42-48).
  */
 
-export function BranchSummary({ model }: { model: BranchModel }) {
-  const percentualMeta = formatarPercentualInteiro(model.atingimento)
+export function BranchSummary({ model, agregadoReal }: { model: BranchModel; agregadoReal?: FilialRow }) {
+  const valores = branchSummaryValues(model, agregadoReal)
+  const percentualMeta = valores.atingimento === null ? 'Indisponível' : formatarPercentualInteiro(valores.atingimento)
   const participacaoNewNames =
     model.origem.realizado > 0 ? model.origem.newNames / model.origem.realizado : 0
   const movimentos = FORECAST_MOVEMENTS.map((movimento) => ({
@@ -38,39 +40,61 @@ export function BranchSummary({ model }: { model: BranchModel }) {
         <article className="rounded-[12px] border border-[#dfe8ef] bg-[#fbfdfe] px-3.5 py-3.5">
           <p className="text-[12px] text-[#6b7d91]">Meta da filial</p>
           <b className="num mt-1.5 block text-[24px] font-extrabold text-[#0d2340]">
-            {formatarMilhoes(model.meta)}
+            {valores.meta === null ? 'Indisponível' : formatarMilhoes(valores.meta)}
           </b>
-          <span className="num mt-1 block text-[11px] text-[#63748a]">100%</span>
+          <span className="num mt-1 block text-[11px] text-[#63748a]">
+            {valores.meta === null ? 'Sem valor na exportação' : '100%'}
+          </span>
         </article>
 
         <article className="rounded-[12px] border border-[#dfe8ef] bg-[#fbfdfe] px-3.5 py-3.5">
           <p className="text-[12px] text-[#6b7d91]">Realizado</p>
           <b className="num mt-1.5 block text-[24px] font-extrabold text-[#0d2340]">
-            {formatarMilhoes(model.realizado)}
+            {valores.realizado === null ? 'Indisponível' : formatarMilhoes(valores.realizado)}
           </b>
-          <span className="num mt-1 block text-[11px] text-[#63748a]">{percentualMeta} da meta</span>
+          <span className="num mt-1 block text-[11px] text-[#63748a]">
+            {valores.atingimento === null ? percentualMeta : `${percentualMeta} da meta`}
+          </span>
         </article>
 
         <article className="rounded-[12px] border border-[#dfe8ef] bg-[#fbfdfe] px-3.5 py-3.5">
           <p className="text-[12px] text-[#6b7d91]">Forecast atual</p>
           <b className="num mt-1.5 block text-[24px] font-extrabold text-[#0d2340]">
-            {formatarMilhoes(model.forecastAtual)}
+            {valores.forecastAtual === null ? 'Indisponível' : formatarMilhoes(valores.forecastAtual)}
           </b>
           <span className="num mt-1 block text-[11px] text-[#63748a]">
-            {formatarComSinal(model.movimentos.net)} vs. fotografia oficial
+            {valores.source === 'real'
+              ? valores.forecastAtual === null ? 'Sem valor na exportação' : 'Agregado real da exportação'
+              : `${formatarComSinal(model.movimentos.net)} vs. fotografia oficial`}
           </span>
         </article>
 
         <article className="rounded-[12px] border border-[#dfe8ef] bg-[#fbfdfe] px-3.5 py-3.5">
-          <p className="text-[12px] text-[#6b7d91]">New Names × Cross</p>
-          <b className="num mt-1.5 block text-[24px] font-extrabold text-[#0d2340]">
-            {formatarMilhoes(model.origem.newNames)} / {formatarMilhoes(model.origem.cross)}
-          </b>
-          <span className="num mt-1 block text-[11px] text-[#63748a]">
-            {formatarPercentualInteiro(participacaoNewNames)} New Names do realizado
-          </span>
+          {valores.source === 'real' ? (
+            <>
+              <p className="text-[12px] text-[#6b7d91]">Origem dos totais</p>
+              <b className="mt-1.5 block text-[20px] font-extrabold text-[#0d2340]">Exportação mensal</b>
+              <span className="mt-1 block text-[11px] text-[#63748a]">Oportunidades abaixo são demonstrativas</span>
+            </>
+          ) : (
+            <>
+              <p className="text-[12px] text-[#6b7d91]">New Names × Cross</p>
+              <b className="num mt-1.5 block text-[24px] font-extrabold text-[#0d2340]">
+                {formatarMilhoes(model.origem.newNames)} / {formatarMilhoes(model.origem.cross)}
+              </b>
+              <span className="num mt-1 block text-[11px] text-[#63748a]">
+                {formatarPercentualInteiro(participacaoNewNames)} New Names do realizado
+              </span>
+            </>
+          )}
         </article>
       </div>
+
+      {valores.source === 'real' && (
+        <p className="mt-3 rounded-[10px] border border-[#dfe8ef] bg-[#f8fbfd] px-3 py-2 text-[11px] leading-relaxed text-[#63748a]">
+          Os totais acima vêm da exportação mensal. Movimentos e oportunidades abaixo pertencem ao cenário demonstrativo e não reconciliam com esses totais.
+        </p>
+      )}
 
       <div className="mt-3 flex flex-wrap gap-2">
         {movimentos.map(({ movimento, resumo }) => (

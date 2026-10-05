@@ -9,6 +9,7 @@
 
 import type { CommercialPeriod, CommercialView, ForecastMovement, SupportedQuestion } from './types'
 import type { KpiKey } from './model'
+import { AGENT_DEMO_FOOTER, AGENT_DEMO_SNAPSHOT } from './demo-display'
 
 export const HOME_COPY = {
   greeting: 'Bom dia, Giovanne',
@@ -93,11 +94,11 @@ export const AGENTE_COPY = {
   entrada: 'Pergunte sobre o mês, uma filial ou uma conta.',
   acompanhando: 'Filiais que estou acompanhando para você',
   briefingEyebrow: 'Briefing do dia',
-  briefingSnapshot: 'snapshot local',
+  briefingSnapshot: AGENT_DEMO_SNAPSHOT,
   sinaisTitulo: 'O que mais explica o retrato de hoje',
   sinaisSubtitulo: 'Sinais derivados do mesmo mock usado pela Home.',
   conversaTitulo: 'Pergunte sobre o retrato',
-  conversaSubtitulo: 'Interação local simulada. Nenhum writeback é realizado.',
+  conversaSubtitulo: 'Interação simulada. Nenhum writeback é realizado.',
   abertura:
     'Seu briefing está carregado. Posso aprofundar forecast, semana atual, New Names × Cross, filiais ou as oportunidades que mais explicam o mês.',
   inputLabel: 'Pergunta para o agente',
@@ -105,7 +106,7 @@ export const AGENTE_COPY = {
   enviar: 'Enviar',
   voltar: 'Voltar à visão executiva',
   /** Divulgação permanente de estado local (plano Task 6 Step 4, l.597-600). */
-  rodape: 'Preview local · respostas simuladas · nenhuma alteração é gravada.',
+  rodape: AGENT_DEMO_FOOTER,
   /** Resposta para pergunta fora do retrato (plano Task 6 Step 1, l.573-574). */
   limitacao:
     'Não encontrei essa resposta no retrato atual. Posso detalhar forecast, oportunidades, filiais, New Names x Cross ou a semana corrente.',
