@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { formatarMilhoes, formatarPercentualInteiro } from '../format'
+import { formatarMilhoes, formatarMilhoesExpandido, formatarPercentualInteiro } from '../format'
 import type { SemanaRow } from '../model'
 
 const WIDTH = 820
@@ -51,7 +51,7 @@ export function WeeklyForecastScene({
   const semanaSelecionada = semanas[indiceSelecionado]
   const viewportRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
-  const [tooltipPosition, setTooltipPosition] = useState({ left: 8, width: 184 })
+  const [tooltipPosition, setTooltipPosition] = useState({ left: 8, width: 264 })
   const shouldReduceMotion = useReducedMotion()
   const transition = shouldReduceMotion ? { duration: 0 } : { type: 'spring' as const, stiffness: 300, damping: 34 }
   const maiorValor = Math.max(meta, forecastAtual, ...semanas.map((semana) => Math.max(semana.forecast, semana.pace)), 1)
@@ -72,7 +72,7 @@ export function WeeklyForecastScene({
     const viewport = viewportRef.current
     if (!viewport) return
     const updatePosition = () => {
-      const width = Math.min(184, Math.max(0, viewport.clientWidth - 16))
+      const width = Math.min(264, Math.max(0, viewport.clientWidth - 16))
       const viewportRect = viewport.getBoundingClientRect()
       const svgRect = svgRef.current?.getBoundingClientRect()
       const scrollLeft = viewport.scrollLeft
@@ -96,6 +96,10 @@ export function WeeklyForecastScene({
   return (
     <div className="grid min-w-0 items-stretch gap-2.5 min-[1550px]:grid-cols-[minmax(0,1fr)_150px]">
       <div className="min-w-0">
+        <div className="mb-2 flex flex-wrap gap-x-5 gap-y-1 text-sm text-[#33466c]" aria-label="Significado das linhas">
+          <span className="flex items-center gap-2"><span aria-hidden className="w-6 border-t-[3px] border-[#009b83]" />Forecast no corte fechado</span>
+          <span className="flex items-center gap-2"><span aria-hidden className="w-6 border-t-2 border-dashed border-[#8299b3]" />Ritmo proporcional da meta</span>
+        </div>
         <div
           ref={viewportRef}
           role="region"
@@ -206,17 +210,18 @@ export function WeeklyForecastScene({
               >
                 <small className="block break-words text-[11px] leading-4 text-[#52677f]">{semanaSelecionada.rangeLabel}</small>
                 <strong className="num mt-0.5 block break-words text-[16px] font-bold leading-5 text-[#10294c]">
-                  {semanaSelecionada.closed ? formatarMilhoes(valorSelecionado) : 'Corte pendente'}
+                  {semanaSelecionada.closed ? formatarMilhoesExpandido(valorSelecionado) : 'Corte pendente'}
                 </strong>
                 <span className={'num mt-0.5 block break-words text-[11px] font-bold leading-4 ' + (semanaSelecionada.closed ? (desvioMeta < 0 ? 'text-[#d33d54]' : 'text-[#00856f]') : 'text-[#8a5a00]')}>
                   {semanaSelecionada.closed ? formatarPercentualInteiro(desvioMeta) + ' vs. meta' : 'Aguardando fechamento de sexta'}
                 </span>
-                <small className="mt-0.5 block break-words text-[11px] leading-4 text-[#43556b]">Ritmo da meta: {formatarMilhoes(semanaSelecionada.pace)}</small>
+                <small className="mt-0.5 block break-words text-[12px] leading-4 text-[#43556b]">Ritmo da meta: {formatarMilhoesExpandido(semanaSelecionada.pace)}</small>
                 <small className="block break-words text-[11px] leading-4 text-[#52677f]">Realizado integrado: posição atual, sem série semanal.</small>
               </motion.div>
             </motion.div>
           )}
         </div>
+        <p className="mt-2 text-xs leading-5 text-[#52677f]">Demonstração · linha verde: previsão nos cortes concluídos. Tracejada: progresso esperado da meta, não o congelado. Passe o mouse, use Tab ou selecione uma sexta-feira para comparar os valores.</p>
         <div aria-label="Inspecionar cortes semanais" className="grid grid-cols-4 gap-0.5 px-1">
           {semanas.map((semana, indice) => (
             <button

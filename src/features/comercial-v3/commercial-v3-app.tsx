@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { CommercialShell } from './components/commercial-shell'
 import { buildCommercialHref, commercialReturnHref, parseCommercialContext } from './context'
@@ -22,6 +22,8 @@ import { AccountsScreen } from './screens/accounts-screen'
 import { BranchScreen } from './screens/branch-screen'
 import { CrossScreen } from './screens/cross-screen'
 import { ForecastScreen } from './screens/forecast-screen'
+import { ImportScreen, ImportedDataScreen } from './screens/import-screen'
+import { loadImportDraft, sharedImportEnabled, type ImportDraft } from './manual-import-client'
 import { HomeScreen } from './screens/home-screen'
 import { JourneyScreen } from './screens/journey-screen'
 import { NewNameScreen } from './screens/new-name-screen'
@@ -41,15 +43,38 @@ import {
  * Estado de navegação e filtro vive na URL (`/?view=...&period=...&solution=...&branch=...`),
  * nunca em store local: assim Home, Agente, Forecast, Oportunidades, Filial e Oportunidade
  * compartilham o mesmo snapshot e o mesmo contexto, e voltar não reseta nada.
- * Toda métrica sai de `COMMERCIAL_SNAPSHOT` por seletores puros — a raiz só roteia.
+ * Métricas demonstrativas usam `COMMERCIAL_SNAPSHOT`. Configurações, Forecast e
+ * New Name também permitem revisar a prévia local importada, explicitamente separada.
  */
 export function CommercialV3App() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [importDraft, setImportDraft] = useState<ImportDraft | null>(null)
+  const [canImport, setCanImport] = useState(!sharedImportEnabled)
+  const [importLoading, setImportLoading] = useState(true)
+  const [importError, setImportError] = useState('')
+  const importEpoch = useRef(0)
+  useEffect(() => {
+    let active = true
+    const refresh = () => {
+      const epoch = ++importEpoch.current
+      return loadImportDraft().then(access => { if (active && epoch === importEpoch.current) { setImportDraft(access.draft); setCanImport(access.canImport); setImportError('') } })
+        .catch(error => { if (active && epoch === importEpoch.current) { setImportError(error instanceof Error ? error.message : 'Prévia local indisponível.'); if (sharedImportEnabled) { setCanImport(false); setImportDraft(null) } } })
+        .finally(() => { if (active && epoch === importEpoch.current) setImportLoading(false) })
+    }
+    void refresh()
+    // Do not replace the revision being reviewed while an import is being prepared.
+    const canRefresh = () => sharedImportEnabled && new URLSearchParams(window.location.search).get('view') !== 'config'
+    const onFocus = () => { if (canRefresh()) void refresh() }
+    window.addEventListener('focus', onFocus)
+    const timer = sharedImportEnabled ? window.setInterval(() => { if (canRefresh() && document.visibilityState === 'visible') void refresh() }, 60000) : undefined
+    return () => { active = false; window.removeEventListener('focus', onFocus); if (timer) window.clearInterval(timer) }
+  }, [])
 
   const consulta = searchParams.toString()
   const contexto = useMemo(() => parseCommercialContext(new URLSearchParams(consulta)), [consulta])
   const { view, period, solution, branch, from, opportunityId } = contexto
+  const importedView = (view === 'forecast' && importDraft?.opportunities) || (view === 'new-name' && importDraft?.orders)
 
   // Estado transitório do recorte: nenhum salvamento ou dado externo.
   const posicoes = useRef(new Map<string, {
@@ -130,7 +155,7 @@ export function CommercialV3App() {
   const href = useCallback(
     (destino: CommercialView, extra?: CommercialHrefExtra) => {
       if (view === 'opportunity' && destino === (from ?? 'home') && !extra) return commercialReturnHref(contexto)
-      return buildCommercialHref(
+      const destination = buildCommercialHref(
         destino,
         { period, solution, branch, query, busca, movement },
         {
@@ -139,6 +164,12 @@ export function CommercialV3App() {
           ...extra,
         },
       )
+      const params = new URLSearchParams(destination.slice(2))
+      const current = new URLSearchParams(consulta)
+      for (const key of ['importMonth', 'importRepresentative', 'importUnit']) {
+        if (current.has(key)) params.set(key, current.get(key)!)
+      }
+      return `/?${params.toString()}`
     },
     [period, solution, branch, query, busca, movement, view, from, contexto, consulta],
   )
@@ -215,7 +246,9 @@ export function CommercialV3App() {
       branches={filiais}
       from={from}
       nav={nav}
+      importPreview={view === 'config' || Boolean(importedView)}
     >
+      {view === 'config' && <ImportScreen draft={importDraft} canImport={canImport} onSaved={draft => { importEpoch.current++; setImportDraft(draft); setImportError('') }} loading={importLoading} loadError={importError} nav={nav} />}
       {view === 'home' && (
         <HomeScreen
           model={home}
@@ -237,7 +270,10 @@ export function CommercialV3App() {
         <SystemScreen model={home} filiaisReais={period === 'month'} nav={nav} />
       )}
 
-      {view === 'forecast' && (
+      {(view === 'forecast' || view === 'new-name') && (importLoading || importError) && <p role={importError ? 'alert' : 'status'} className="rounded-xl border border-[#dfe8ef] bg-white p-4 text-sm">{importError || 'Carregando a última carga…'}{importError && <button className="ml-3 underline" onClick={() => window.location.reload()}>Tentar novamente</button>}</p>}
+      {(view === 'forecast' || view === 'new-name') && sharedImportEnabled && !importedView && !importLoading && !importError && <p className="rounded-xl border border-[#dfe8ef] bg-white p-4 text-sm">Nenhuma carga desta fonte foi confirmada. A importação está disponível em Configurações.</p>}
+      {view === 'forecast' && importDraft?.opportunities && <ImportedDataScreen batch={importDraft.opportunities} canImport={canImport} lastSavedAt={importDraft.history?.find(entry => entry.sources.includes(importDraft.opportunities!.filename ?? ''))?.at} kind="forecast" nav={nav} />}
+      {view === 'forecast' && !sharedImportEnabled && !importDraft?.opportunities && !importLoading && !importError && (
         <ForecastScreen
           model={forecast}
           meta={home.kpis.find((kpi) => kpi.key === 'meta')?.value ?? 0}
@@ -264,7 +300,8 @@ export function CommercialV3App() {
         <AccountsScreen rows={forecast.oportunidades} detalhes={detalhes} query={query} nav={nav} />
       )}
 
-      {view === 'new-name' && (
+      {view === 'new-name' && importDraft?.orders && <ImportedDataScreen batch={importDraft.orders} canImport={canImport} lastSavedAt={importDraft.history?.find(entry => entry.sources.includes(importDraft.orders!.filename ?? ''))?.at} kind="new-name" nav={nav} />}
+      {view === 'new-name' && !sharedImportEnabled && !importDraft?.orders && !importLoading && !importError && (
         <NewNameScreen rows={forecast.oportunidades} detalhes={detalhes} query={query} nav={nav} />
       )}
 
@@ -287,7 +324,7 @@ export function CommercialV3App() {
       {view === 'opportunity' && (
         <OpportunityScreen oportunidade={vida ? oportunidade : null} life={vida} from={from} nav={nav} />
       )}
-      <details className="mt-3 px-1 text-[11px] leading-4 text-[#62748b]">
+      {view !== 'config' && !importedView && <details className="mt-3 px-1 text-[11px] leading-4 text-[#62748b]">
         <summary className="w-fit cursor-pointer rounded-sm underline decoration-dotted underline-offset-2 focus-visible:outline-2 focus-visible:outline-[#086b6b]">
           Cenário demonstrativo · escopo e origem dos dados
         </summary>
@@ -297,7 +334,7 @@ export function CommercialV3App() {
             : 'Este período usa dados demonstrativos. Os agregados reais de filial estão disponíveis apenas na Visão Comercial e no Sistema de Receita para setembro/2026.'}
           {' '}Contas e oportunidades usam exemplos demonstrativos; o recorte da carteira acompanha período, solução e filial.
         </p>
-      </details>
+      </details>}
     </CommercialShell>
   )
 }

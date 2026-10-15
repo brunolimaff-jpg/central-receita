@@ -28,6 +28,11 @@ export function formatarValorOportunidade(valorEmMilhoes: number): string {
   return VALOR_OPORTUNIDADE.format(valorEmMilhoes * 1_000_000)
 }
 
+/** Expand the fixture's millions into BRL without the compact display rounding. */
+export function formatarMilhoesExpandido(valorEmMilhoes: number): string {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valorEmMilhoes * 1_000_000)
+}
+
 /** `R$ 12,0 mi` — o sinal nunca aparece aqui; use `formatarComSinal` para deltas. */
 export function formatarMilhoes(valor: number): string {
   const absoluto = Math.abs(valor)

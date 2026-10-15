@@ -3,8 +3,9 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Building2, Compass, FileText, GitBranch, Layers, LayoutDashboard, List, PackagePlus, Target, TrendingUp } from 'lucide-react'
+import { Building2, Compass, FileText, GitBranch, Layers, LayoutDashboard, List, PackagePlus, Settings2, Target, TrendingUp } from 'lucide-react'
 import { VIEW_LABELS } from '../copy'
+import { sharedImportEnabled } from '../manual-import-client'
 import { sidebarViewFor, type CommercialNav } from '../nav'
 import type { CommercialView } from '../types'
 
@@ -26,6 +27,7 @@ const ITENS: ItemNav[] = [
   { key: 'forecast', label: VIEW_LABELS.forecast, icon: TrendingUp, view: 'forecast' },
   { key: 'reports', label: 'Relatórios', icon: FileText },
   { key: 'explore', label: 'Explorar', icon: Compass },
+  { key: 'config', label: VIEW_LABELS.config, icon: Settings2, view: 'config' },
 ]
 
 const PENDENTE = 'Disponível na próxima fase do V3'
@@ -38,10 +40,12 @@ export function CommercialSidebar({
   view,
   from,
   nav,
+  importPreview = false,
 }: {
   view: CommercialView
   from?: CommercialView
   nav: CommercialNav
+  importPreview?: boolean
 }) {
   const [secao, mudarSecao] = useState<CommercialView>('home')
   useEffect(() => {
@@ -126,7 +130,7 @@ export function CommercialSidebar({
       </nav>
 
       <p className="mt-auto whitespace-nowrap border-t border-[#e4eaed] px-1.5 pt-3 text-[11px] leading-4 text-[#708097]">
-        Cenário demonstrativo · set/2026
+        {importPreview ? (sharedImportEnabled ? 'Carga compartilhada' : 'Prévia local · importação') : 'Cenário demonstrativo · set/2026'}
       </p>
     </aside>
   )

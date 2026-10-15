@@ -39,6 +39,7 @@ export const VIEW_LABELS: Record<CommercialView, string> = {
   cross: 'Cross',
   branch: 'Filiais',
   opportunity: 'Oportunidade',
+  config: 'Configurações',
 }
 
 export const PERIOD_LABELS: Record<CommercialPeriod, string> = {
@@ -63,6 +64,7 @@ export const VOLTAR_POR_ORIGEM: Record<CommercialView, string> = {
   cross: 'Voltar ao Cross',
   branch: 'Voltar à filial',
   opportunity: 'Voltar à visão executiva',
+  config: 'Voltar às configurações',
 }
 
 export const FILTER_LABELS = {

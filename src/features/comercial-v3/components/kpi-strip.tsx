@@ -1,5 +1,6 @@
 import { KPI_LABELS } from '../copy'
-import { formatarComSinal, formatarMilhoes } from '../format'
+import { formatarComSinal, formatarMilhoes, formatarMilhoesExpandido } from '../format'
+import { MetricDetail } from './metric-detail'
 import type { Kpi, KpiKey } from '../model'
 import { CircleDollarSign, Target, TrendingUp, TriangleAlert } from 'lucide-react'
 
@@ -58,6 +59,14 @@ const TONS: Record<KpiKey, Tom> = {
   },
 }
 
+const MEANINGS: Record<KpiKey, string> = {
+  meta: 'Objetivo financeiro do período e dos filtros selecionados.',
+  realizado: 'Pedidos integrados com data, na posição do recorte. Assinatura e conferência ainda não representam integração.',
+  forecastOficial: 'Fotografia congelada validada para o período. A referência permanece fixa durante a comparação.',
+  forecastAtual: 'Previsão revisada na posição atual do recorte.',
+  deltaMeta: 'Forecast atual menos a meta. Um valor negativo indica quanto falta na previsão para atingir o objetivo.',
+}
+
 export function KpiStrip({ kpis, resumo = false, overview = false }: { kpis: Kpi[]; resumo?: boolean; overview?: boolean }) {
   const meta = kpis.find((kpi) => kpi.key === 'meta')?.value ?? 0
   if (overview) {
@@ -75,15 +84,15 @@ export function KpiStrip({ kpis, resumo = false, overview = false }: { kpis: Kpi
           const tone = key === 'deltaMeta' ? 'text-[#c93249]' : key === 'forecastAtual' ? 'text-[#008c77]' : 'text-[#10294c]'
           const iconTone = key === 'deltaMeta' ? 'bg-[#fff0f2] text-[#db5261]' : key === 'forecastAtual' ? 'bg-[#eaf8f5] text-[#009b83]' : key === 'realizado' ? 'bg-[#edf3ff] text-[#3576de]' : 'bg-[#eaf8f5] text-[#009b83]'
           return (
-            <article key={key} className="revenue-overview-kpi-card relative flex min-h-[96px] min-w-0 items-center gap-2 overflow-hidden rounded-[14px] border border-white/90 bg-white/90 px-2.5 py-2 shadow-[0_8px_25px_rgba(36,65,78,0.08)] backdrop-blur-[12px]">
+            <article key={key} className="revenue-overview-kpi-card relative flex min-h-[96px] min-w-0 items-center gap-2 rounded-[14px] border border-white/90 bg-white/90 px-2.5 py-2 shadow-[0_8px_25px_rgba(36,65,78,0.08)] backdrop-blur-[12px]">
               <span aria-hidden className={'revenue-overview-kpi-icon grid h-[30px] w-[30px] shrink-0 place-items-center rounded-[9px] ' + iconTone}>
                 <Icon className="h-[16px] w-[16px]" strokeWidth={1.9} />
               </span>
               <div className="min-w-0">
                 <span className="block truncate text-[11.5px] font-medium text-[#536781]">{title}</span>
-                <strong className={'revenue-overview-kpi-value num mt-1 block truncate text-[18px] font-bold leading-none tracking-[-0.035em] ' + tone}>
+                <MetricDetail label={title} value={metric ? formatarMilhoesExpandido(value) : 'Indisponível'} description={'Demonstração · ' + MEANINGS[key]}><strong className={'revenue-overview-kpi-value num mt-1 block truncate text-[18px] font-bold leading-none tracking-[-0.035em] ' + tone}>
                   {key === 'deltaMeta' ? formatarComSinal(value) : formatarMilhoes(value)}
-                </strong>
+                </strong></MetricDetail>
                 <small className="mt-1.5 block truncate text-[10.5px] font-semibold text-[#61728a]">{metric?.caption ?? '—'}</small>
               </div>
             </article>
@@ -129,11 +138,11 @@ export function KpiStrip({ kpis, resumo = false, overview = false }: { kpis: Kpi
               {KPI_LABELS[kpi.key]}
             </p>
 
-            <p
+            <MetricDetail label={KPI_LABELS[kpi.key]} value={formatarMilhoesExpandido(kpi.value)} description={'Demonstração · ' + MEANINGS[kpi.key]}><span
               className={`num my-2.5 text-[26px] font-extrabold leading-none tracking-[-0.035em] ${tom.valor}`}
             >
               {kpi.key === 'deltaMeta' ? formatarComSinal(kpi.value) : formatarMilhoes(kpi.value)}
-            </p>
+            </span></MetricDetail>
 
             <p className="flex items-center gap-2 text-[12px] text-[#62748b]">
               {comBarra && (
