@@ -1,6 +1,6 @@
 # Shared manual import Worker
 
-`worker.js` implements `GET` and `PUT /api/imports/current`. It forwards every other non-API request to the native `ASSETS` binding. Site version 2 is published with the `DB` binding and the three import tables. `import_current` is empty; no real CSV has been loaded.
+`worker.js` implements `GET` and `PUT /api/imports/current`. It forwards every other non-API request to the native `ASSETS` binding. The published Site uses the `DB` binding and the three import tables. `import_current` is empty; no real CSV has been loaded.
 
 ## Storage contract
 

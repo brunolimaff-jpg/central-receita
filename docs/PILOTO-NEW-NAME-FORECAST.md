@@ -50,7 +50,7 @@ A implementação desta etapa fica em `central-receita-sites`. Há dois seletore
 
 O preview local usa IndexedDB e não é autoritativo. No Site publicado, a versão 2 grava registros normalizados e metadados em D1; cada atualização cria uma versão imutável e mantém um ponteiro para a versão atual. O arquivo CSV/XLSX original não é enviado nem armazenado. O Worker mantém até 20 entradas de histórico na resposta da API, mas guarda versões anteriores sem política automática de retenção.
 
-**VERIFICADO em 15/10/2026:** versão 2 publicada no Sites; binding `DB` e tabelas `import_chunks`, `import_current` e `import_versions` presentes; `import_current` vazio. O acesso personalizado inclui Fabi, Giovanni, Bruno e Marlus. A aplicação configura Fabi para importar e os demais para consultar.
+**VERIFICADO em 15/10/2026:** Worker publicado no Sites; binding `DB` e tabelas `import_chunks`, `import_current` e `import_versions` presentes; `import_current` vazio. O acesso personalizado inclui Fabi, Giovanni, Bruno e Marlus. A aplicação configura Fabi para importar e os demais para consultar.
 
 **NÃO CONCLUÍDO:** Fabi ainda precisa entrar no Site e carregar um CSV real (aceitando o convite, caso seja solicitado). O fluxo de login, a permissão efetiva de importação e a leitura da atualização por Giovanni ainda não foram confirmados com as contas deles. A validação dos cabeçalhos de uma exportação CSV real também depende da conferência com Fabi.
 
