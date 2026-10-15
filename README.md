@@ -7,7 +7,9 @@ Experiência comercial V3. `npm run build` empacota os assets estáticos com o W
 - O preview local usa IndexedDB. A versão hospedada usa Worker/D1 e identidade do Sites quando publicada.
 - Fonte funcional copiada de `Dash com IA/src/features/comercial-v3`.
 
-O código e a migração D1 estão preparados no checkout, mas a versão publicada ainda é estática até o próximo deploy. Nenhum arquivo original CSV/XLSX é enviado; o Worker recebe só registros normalizados.
+O Site está publicado na versão 2 com Worker e D1 (`DB`). O banco tem as três tabelas de importação; `import_current` ainda está vazio, então não há CSV carregado e os números continuam demonstrativos. Fabi está configurada para importar; Giovanni, Bruno e Marlus para consultar. A audiência do Site permanece personalizada. A entrada real dessas pessoas e a leitura cruzada ainda não foram confirmadas.
+
+O Worker persiste registros normalizados e metadados de origem. O arquivo CSV/XLSX original não é enviado nem armazenado. A validação de cabeçalhos de uma exportação CSV real ainda precisa ser feita com Fabi.
 
 Validação local:
 

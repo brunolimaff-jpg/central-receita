@@ -44,19 +44,21 @@ Campos de contato, e-mail e CPF/CNPJ não entram na prévia implementada. Os arq
 
 A transcrição agrega necessidades concretas: acompanhar o congelado e o atual; destacar MRR; mostrar pendências por estado; expor previsões vencidas; reduzir preparação manual da Fabi; e permitir a Giovanne descer da filial à oportunidade. Relatos de fechamento em grupos de gestores são sinais de defasagem, não fatos de integração confirmada. Os números narrados na reunião não foram promovidos a controles reconciliados.
 
-## Entrega local e limite operacional
+## Armazenamento e operação hospedada
 
-A implementação desta etapa fica em `central-receita-sites`. Há dois seletores CSV/XLSX, validação, prévia, conferência por ID, registro das gravações locais e consultas provisórias de Forecast e New Name. Os filtros dessas consultas ficam na URL; representante e unidade têm recortes independentes. As demais áreas preservam a demonstração existente.
+A implementação desta etapa fica em `central-receita-sites`. Há dois seletores CSV/XLSX, validação, prévia, conferência por ID e consultas provisórias de Forecast e New Name. Os filtros dessas consultas ficam na URL; representante e unidade têm recortes independentes. As demais áreas preservam a demonstração existente.
 
-O armazenamento IndexedDB guarda apenas uma **prévia temporária, local e não autoritativa**. O histórico conserva até 20 registros de gravação; não guarda versões restauráveis nem comprova movimentos comerciais. A tela comunica esse limite. Nenhum serviço persistente, banco compartilhado, publicação, alteração no CRM ou integração externa foi criado.
+O preview local usa IndexedDB e não é autoritativo. No Site publicado, a versão 2 grava registros normalizados e metadados em D1; cada atualização cria uma versão imutável e mantém um ponteiro para a versão atual. O arquivo CSV/XLSX original não é enviado nem armazenado. O Worker mantém até 20 entradas de histórico na resposta da API, mas guarda versões anteriores sem política automática de retenção.
 
-**NÃO CONCLUÍDO para operação entre Fabi e Giovanne:** uma carga feita no computador de Fabi ainda não aparece no computador de Giovanne. O site atual é estático. A operação compartilhada exige armazenamento de servidor, acesso controlado e separação entre permissão de importar e de consultar. Esse passo precisa de decisão sobre o ambiente antes de transmitir dados reais.
+**VERIFICADO em 15/10/2026:** versão 2 publicada no Sites; binding `DB` e tabelas `import_chunks`, `import_current` e `import_versions` presentes; `import_current` vazio. O acesso personalizado inclui Fabi, Giovanni, Bruno e Marlus. A aplicação configura Fabi para importar e os demais para consultar.
+
+**NÃO CONCLUÍDO:** Fabi ainda precisa entrar no Site e carregar um CSV real (aceitando o convite, caso seja solicitado). O fluxo de login, a permissão efetiva de importação e a leitura da atualização por Giovanni ainda não foram confirmados com as contas deles. A validação dos cabeçalhos de uma exportação CSV real também depende da conferência com Fabi.
 
 ## Critério para apresentar o piloto já rodando
 
 1. Confirmar com Fabi a definição e a fonte de New Name, incluindo os casos contestados de novo CNPJ em conta existente.
 2. Confirmar composição de MRR, regra de recorrência, data de integração e recorte das filiais da diretoria.
-3. Disponibilizar armazenamento compartilhado e acesso controlado: Fabi importa; Giovanne lê a mesma carga. Manter uma versão anterior recuperável e registrar fonte, operador, referência e resultado de cada importação.
+3. Validar no Site publicado o acesso compartilhado: Fabi importa; Giovanni lê a mesma carga em outra sessão. Conferir fonte, operador, data de referência, revisão atual e retorno seguro após conflito ou falha.
 4. Obter uma lista oficial congelada, ou iniciar uma referência nova explicitamente datada. Preservá-la nas atualizações e reconciliar suas contas e valores.
 5. Validar uma carga de ponta a ponta: valores e contas com Fabi, leitura com Giovanne, repetição sem duplicidade, falha sem perda da carga anterior e distinção entre realizado e pendente.
 
@@ -72,6 +74,6 @@ A verificação de interface cobre seleção das duas fontes, bloqueio antes da 
 
 - Implementação local: parser CSV estrito no Web Worker; XLSX mantido; data de referência explícita; avisos agrupados; viewers recebem tela somente de consulta. Arquivos originais não são enviados nem armazenados.
 - `npm run typecheck` e `npm run build` passaram. A suíte de testes não foi executada; uma exportação CSV real ainda precisa ser conferida com a Fabi.
-- `backend/worker.js`, `db/schema.ts` e a migração inicial gerada estão preparados; `.openai/hosting.json` agora declara Worker+D1. A lista personalizada de viewers e as variáveis de identidade estão configuradas no Sites; D1 será provisionado e a migração aplicada quando a versão Worker for publicada.
-- Próximo passo operacional requer OK textual para criar/vincular D1, aplicar schema, configurar identidades Fabi/viewers e publicar no Sites. A validação entre computadores ainda está pendente.
-- A revisão visual viu Configurações, Forecast e New Name no IAB, mas as capturas não foram salvas como PNG. O servidor local está na porta 3011; após o build, a atualização automática do IAB foi bloqueada pela política do navegador.
+- `backend/worker.js`, `db/schema.ts` e a migração inicial estão publicados na versão 2. O Sites confirma o binding `DB` e as três tabelas; `import_current` está vazio. A audiência personalizada e as identidades de importação/consulta estão configuradas.
+- Próximo passo operacional: Fabi aceita o convite, confere os cabeçalhos e importa um CSV real; depois Giovanni confirma que vê os mesmos números em sessão separada. Política de retenção das versões anteriores segue pendente antes de uso contínuo.
+- `npm run typecheck` e `npm run build` passaram nesta retomada. A suíte de testes não foi executada. A leitura visual da versão publicada não foi concluída: o IAB bloqueou a aba por política do navegador. A validação de login, permissões efetivas e leitura entre usuários permanece não verificada.

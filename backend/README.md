@@ -1,6 +1,6 @@
 # Shared manual import Worker
 
-`worker.js` implements `GET` and `PUT /api/imports/current`. It forwards every other non-API request to the native `ASSETS` binding. The source manifest now declares the `DB` binding; the currently published Site remains on version 1 until a Worker version is saved and deployed.
+`worker.js` implements `GET` and `PUT /api/imports/current`. It forwards every other non-API request to the native `ASSETS` binding. Site version 2 is published with the `DB` binding and the three import tables. `import_current` is empty; no real CSV has been loaded.
 
 ## Storage contract
 
@@ -20,4 +20,4 @@ This header is trusted only on requests that pass through the authenticated Site
 
 ## Activation boundary
 
-`npm run build:sites` creates `dist/client` static assets and `dist/server/index.js` Worker entrypoint. The `.openai/hosting.json` manifest omits `static` and declares `d1: "DB"`; Sites applies the checked-in migration before uploading the Worker. Runtime IDs and `SITE_ORIGIN` are configured as server-only values. The current published version is still static until this prepared source is packaged and deployed. Verify the authenticated Sites dispatcher boundary before relying on Worker identity headers; an Origin check alone is not authentication.
+`npm run build:sites` creates `dist/client` static assets and `dist/server/index.js` Worker entrypoint. The `.openai/hosting.json` manifest omits `static` and declares `d1: "DB"`; Sites applied the checked-in migration before uploading the Worker. Runtime IDs and `SITE_ORIGIN` are configured as server-only values. The Site allowlist and import/viewer IDs are configured, but sign-in and cross-user reads have not been verified with Fabi and Giovanni. Before loading a real CSV, confirm that the API is reached through the authenticated Sites origin; an Origin check alone is not authentication.
