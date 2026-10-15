@@ -272,10 +272,14 @@ function authenticate(request, env, write) {
   if (!userId || userId.length > 512 || /[\r\n]/.test(userId)) throw new HttpError(401, 'authentication_required')
   const importers = parseAllowlist(env.IMPORTER_USER_IDS)
   const viewers = parseAllowlist(env.VIEWER_USER_IDS)
-  if (!importers.size && !viewers.size) throw new HttpError(503, 'role_allowlist_not_configured')
-  const canImport = importers.has(userId)
-  if (write ? !canImport : !canImport && !viewers.has(userId)) throw new HttpError(403, 'forbidden')
-  return userId
+  // Sites account/grant IDs differ from runtime Site-scoped IDs; email comes only from the trusted dispatcher.
+  const email = request.headers.get('oai-authenticated-user-email')?.trim().toLowerCase()
+  const importerEmails = parseAllowlist(env.IMPORTER_EMAILS?.toLowerCase())
+  const viewerEmails = parseAllowlist(env.VIEWER_EMAILS?.toLowerCase())
+  if (!importers.size && !viewers.size && !importerEmails.size && !viewerEmails.size) throw new HttpError(503, 'role_allowlist_not_configured')
+  const canImport = importers.has(userId) || Boolean(email && importerEmails.has(email))
+  if (write ? !canImport : !canImport && !viewers.has(userId) && !(email && viewerEmails.has(email))) throw new HttpError(403, 'forbidden')
+  return { userId, canImport }
 }
 
 function requireSiteOrigin(request, env) {
@@ -368,11 +372,11 @@ async function api(request, env) {
   if (request.method !== 'GET' && request.method !== 'PUT') return json({ error: 'method_not_allowed' }, 405, { allow: 'GET, PUT' })
   try {
     requireSiteOrigin(request, env)
-    const actorId = authenticate(request, env, request.method === 'PUT')
+    const { userId: actorId, canImport } = authenticate(request, env, request.method === 'PUT')
     if (!env.DB) throw new HttpError(503, 'database_not_configured')
     if (request.method === 'GET') return json({
       draft: await readCurrent(env.DB),
-      canImport: parseAllowlist(env.IMPORTER_USER_IDS).has(actorId),
+      canImport,
     })
     return await update(request, env, actorId)
   } catch (error) {

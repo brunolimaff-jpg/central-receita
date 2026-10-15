@@ -348,6 +348,26 @@
     min-height: 0;
     padding: 10px 12px;
   }
+
+    .revenue-app .revenue-sidebar > a {
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .revenue-app .revenue-sidebar nav {
+      display: flex;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .revenue-app .revenue-sidebar nav > a {
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    .revenue-app .revenue-sidebar > p {
+      display: none;
+    }
 }
 
 .revenue-app :is(a[href], button:not(:disabled):not([aria-disabled="true"]), summary, select):focus-visible {

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Search } from 'lucide-react'
-import { AGENTE_COPY, FILTER_LABELS } from '../copy'
+import { FILTER_LABELS } from '../copy'
 import type { CommercialNav } from '../nav'
 import { ALL_FILTERS, type CommercialPeriod, type CommercialView } from '../types'
 import { FilterSelect } from './filter-select'
@@ -103,11 +103,11 @@ export function CommercialHeader({
             ...branches.map((item) => ({ value: item, label: item })),
           ]}
         />
-        <div aria-label={branch === ALL_FILTERS ? 'Giovanne, ' + AGENTE_COPY.cargo : 'Recorte da filial ' + branch} className="revenue-control flex h-10 shrink-0 items-center gap-2 rounded-[12px] p-1.5">
-          <span className="grid h-7 w-7 place-items-center rounded-[9px] bg-[#086b6b] text-[12px] font-bold text-white">{branch === ALL_FILTERS ? 'G' : 'F'}</span>
+        <div aria-label={branch === ALL_FILTERS ? 'Cenário demonstrativo' : 'Recorte da filial ' + branch} className="revenue-control flex h-10 shrink-0 items-center gap-2 rounded-[12px] p-1.5">
+          <span className="grid h-7 w-7 place-items-center rounded-[9px] bg-[#086b6b] text-[12px] font-bold text-white">{branch === ALL_FILTERS ? 'D' : 'F'}</span>
           <span className="hidden pr-1 leading-tight min-[1440px]:block">
-            <strong className="block text-[12px] text-[#10294c]">{branch === ALL_FILTERS ? 'Giovanne' : 'Visão da filial'}</strong>
-            <small className="mt-0.5 block text-[11px] text-[#50647d]">{branch === ALL_FILTERS ? AGENTE_COPY.cargo : 'Recorte demonstrativo'}</small>
+            <strong className="block text-[12px] text-[#10294c]">{branch === ALL_FILTERS ? 'Demonstração' : 'Visão da filial'}</strong>
+            <small className="mt-0.5 block text-[11px] text-[#50647d]">Recorte demonstrativo</small>
           </span>
         </div>
       </div>

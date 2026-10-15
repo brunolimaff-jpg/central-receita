@@ -113,8 +113,8 @@ export function WeeklyForecastScene({
               role="group"
               aria-label="Forecast acumulado e ritmo da meta nos cortes de sexta-feira"
               viewBox={'0 0 ' + WIDTH + ' ' + HEIGHT}
-              className="block h-[224px] w-full min-w-[520px] overflow-visible"
-              preserveAspectRatio="none"
+              className="block h-auto w-full min-w-[520px] overflow-visible"
+              preserveAspectRatio="xMidYMid meet"
             >
               <defs>
                 <linearGradient id="forecast-area" x1="0" y1="0" x2="0" y2="1">

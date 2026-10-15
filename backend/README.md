@@ -14,10 +14,16 @@ Chunks are at most 800,000 UTF-8 bytes, below D1's 2 MB row limit. The request b
 
 ## Identity and roles
 
-The Worker reads only `oai-authenticated-user-id`, supplied by the Sites dispatcher. It ignores `X-User-ID`, request-body identity, and caller-selected roles. `IMPORTER_USER_IDS` authorizes `PUT` and `GET`; `VIEWER_USER_IDS` authorizes read-only `GET`. Values are comma or whitespace separated Site-scoped user IDs. Importers can also read. Missing identity returns `401`, an unlisted identity returns `403`, and an absent allowlist returns `503`.
+The Worker requires `oai-authenticated-user-id` supplied by the Sites dispatcher. It checks Site-scoped IDs in `IMPORTER_USER_IDS` / `VIEWER_USER_IDS` or the dispatcher email in `IMPORTER_EMAILS` / `VIEWER_EMAILS`. Account IDs and invitation grant IDs must not be substituted for runtime Site-scoped IDs. Lists accept comma or whitespace separated values. Importers may read and write; viewers may only read. It ignores `X-User-*`, request-body identity, and caller-selected roles. Missing identity returns `401`, an unlisted identity returns `403`, and absent allowlists return `503`.
 
 This header is trusted only on requests that pass through the authenticated Sites dispatcher. The Worker code cannot cryptographically distinguish a dispatcher-added header from a caller-forged header on a directly exposed Worker URL. Before activation, route the API only through the Site's authenticated origin and disable or otherwise block direct public Worker access. That routing and the actual identity IDs must be verified on the hosted Site; this local implementation does not claim production authentication is configured.
 
 ## Activation boundary
 
 `npm run build:sites` creates `dist/client` static assets and `dist/server/index.js` Worker entrypoint. The `.openai/hosting.json` manifest omits `static` and declares `d1: "DB"`; Sites applied the checked-in migration before uploading the Worker. Runtime IDs and `SITE_ORIGIN` are configured as server-only values. The Site allowlist and import/viewer IDs are configured, but sign-in and cross-user reads have not been verified with Fabi and Giovanni. Before loading a real CSV, confirm that the API is reached through the authenticated Sites origin; an Origin check alone is not authentication.
+
+## Correção de acesso e navegação — 15/10/2026
+
+Os IDs de conta e convite retornados pelo controle de acesso do Sites não são os IDs de usuário enviados ao Worker. `IMPORTER_EMAILS` e `VIEWER_EMAILS` aceitam os e-mails já autorizados, comparados exclusivamente com `oai-authenticated-user-email` do dispatcher. A presença de `oai-authenticated-user-id` continua obrigatória. As listas de IDs existentes continuam válidas para IDs efetivos do runtime. Nunca usar identidade do corpo, query ou headers `X-User-*`.
+
+Forecast/New Name têm estados explícitos para carga vazia ou indisponível e acesso à demonstração separado por `demo=1`. Home e demais áreas continuam usando o cenário fixo; não refletem as cargas. O nome fictício do usuário foi removido e a navegação compacta usa rolagem horizontal.

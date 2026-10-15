@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { CommercialShell } from './components/commercial-shell'
 import { buildCommercialHref, commercialReturnHref, parseCommercialContext } from './context'
 import { selectOpportunityLife } from './opportunity-life'
@@ -74,7 +75,9 @@ export function CommercialV3App() {
   const consulta = searchParams.toString()
   const contexto = useMemo(() => parseCommercialContext(new URLSearchParams(consulta)), [consulta])
   const { view, period, solution, branch, from, opportunityId } = contexto
-  const importedView = (view === 'forecast' && importDraft?.opportunities) || (view === 'new-name' && importDraft?.orders)
+  const demoRequested = searchParams.get('demo') === '1'
+  const importedView = !demoRequested && ((view === 'forecast' && importDraft?.opportunities) || (view === 'new-name' && importDraft?.orders))
+  const sourceView = view === 'forecast' || view === 'new-name'
 
   // Estado transitório do recorte: nenhum salvamento ou dado externo.
   const posicoes = useRef(new Map<string, {
@@ -166,7 +169,7 @@ export function CommercialV3App() {
       )
       const params = new URLSearchParams(destination.slice(2))
       const current = new URLSearchParams(consulta)
-      for (const key of ['importMonth', 'importRepresentative', 'importUnit']) {
+      for (const key of ['importMonth', 'importRepresentative', 'importUnit', 'demo']) {
         if (current.has(key)) params.set(key, current.get(key)!)
       }
       return `/?${params.toString()}`
@@ -176,8 +179,8 @@ export function CommercialV3App() {
 
   const movementHref = useCallback(
     (movimento: ForecastMovement) =>
-      buildCommercialHref('forecast', { period, solution, branch, query, busca }, { from: 'home', movement: movimento }),
-    [period, solution, branch, query, busca],
+      buildCommercialHref('forecast', { period, solution, branch, query, busca }, { from: 'home', movement: movimento }) + (demoRequested ? '&demo=1' : ''),
+    [period, solution, branch, query, busca, demoRequested],
   )
 
   const branchHref = useCallback(
@@ -204,12 +207,13 @@ export function CommercialV3App() {
         },
       )
       const extras = new URLSearchParams()
+      if (demoRequested) extras.set('demo', '1')
       if (query !== '') extras.set('q', query)
       if (busca !== '') extras.set('busca', busca)
       const sufixo = extras.toString()
       router.replace(sufixo === '' ? destino : `${destino}&${sufixo}`, { scroll: false })
     },
-    [router, view, period, solution, branch, from, opportunityId, movement, query, busca, contexto.returnTo],
+    [router, view, period, solution, branch, from, opportunityId, movement, query, busca, contexto.returnTo, demoRequested],
   )
 
   const nav = useMemo<CommercialNav>(
@@ -221,17 +225,17 @@ export function CommercialV3App() {
       onSolution: (novaSolucao: string) => trocarFiltros({ solution: novaSolucao }),
       onBranch: (novaFilial: string) => trocarFiltros({ branch: novaFilial }),
       onQuery: (texto: string) => {
-        const base = buildCommercialHref(globalSearchDestination(view), { period, solution, branch })
+        const base = buildCommercialHref(globalSearchDestination(view), { period, solution, branch }) + (demoRequested ? '&demo=1' : '')
         router.replace(texto === '' ? base : `${base}&q=${encodeURIComponent(texto)}`, { scroll: false })
       },
       onListQuery: (texto: string) => {
-        const base = buildCommercialHref('opportunities', { period, solution, branch, movement }, { from })
+        const base = buildCommercialHref('opportunities', { period, solution, branch, movement }, { from }) + (demoRequested ? '&demo=1' : '')
         router.replace(texto === '' ? base : `${base}&busca=${encodeURIComponent(texto)}`, {
           scroll: false,
         })
       },
     }),
-    [href, movementHref, branchHref, trocarFiltros, router, period, solution, branch, view, movement, from],
+    [href, movementHref, branchHref, trocarFiltros, router, period, solution, branch, view, movement, from, demoRequested],
   )
 
   return (
@@ -248,6 +252,10 @@ export function CommercialV3App() {
       nav={nav}
       importPreview={view === 'config' || Boolean(importedView)}
     >
+      {sharedImportEnabled && view !== 'config' && (!sourceView || demoRequested) && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#dfe8ef] bg-white px-4 py-3 text-sm text-[#33466c]">
+        <p><strong>Cenário demonstrativo.</strong> As cargas CSV/XLSX são consultadas em Forecast e New Name. Esta visão usa o cenário fixo, com agregados por filial identificados na tela.</p>
+        <Link href={nav.href('config')} className="font-semibold text-[#086b6b] underline">Consultar cargas</Link>
+      </div>}
       {view === 'config' && <ImportScreen draft={importDraft} canImport={canImport} onSaved={draft => { importEpoch.current++; setImportDraft(draft); setImportError('') }} loading={importLoading} loadError={importError} nav={nav} />}
       {view === 'home' && (
         <HomeScreen
@@ -270,10 +278,18 @@ export function CommercialV3App() {
         <SystemScreen model={home} filiaisReais={period === 'month'} nav={nav} />
       )}
 
-      {(view === 'forecast' || view === 'new-name') && (importLoading || importError) && <p role={importError ? 'alert' : 'status'} className="rounded-xl border border-[#dfe8ef] bg-white p-4 text-sm">{importError || 'Carregando a última carga…'}{importError && <button className="ml-3 underline" onClick={() => window.location.reload()}>Tentar novamente</button>}</p>}
-      {(view === 'forecast' || view === 'new-name') && sharedImportEnabled && !importedView && !importLoading && !importError && <p className="rounded-xl border border-[#dfe8ef] bg-white p-4 text-sm">Nenhuma carga desta fonte foi confirmada. A importação está disponível em Configurações.</p>}
-      {view === 'forecast' && importDraft?.opportunities && <ImportedDataScreen batch={importDraft.opportunities} canImport={canImport} lastSavedAt={importDraft.history?.find(entry => entry.sources.includes(importDraft.opportunities!.filename ?? ''))?.at} kind="forecast" nav={nav} />}
-      {view === 'forecast' && !sharedImportEnabled && !importDraft?.opportunities && !importLoading && !importError && (
+      {sourceView && !demoRequested && !importedView && (sharedImportEnabled || importLoading || importError) && <section className="rounded-xl border border-[#dfe8ef] bg-white p-6 text-sm text-[#33466c]">
+        <h1 className="revenue-heading">{view === 'forecast' ? 'Forecast' : 'New Name'}</h1>
+        <p role={importError ? 'alert' : 'status'} className="mt-3">{importLoading ? 'Carregando a última carga…' : importError || 'Nenhuma carga desta fonte foi confirmada. Consulte as cargas ou explore o cenário demonstrativo.'}</p>
+        <div className="mt-4 flex flex-wrap gap-4">
+          {importError && <button className="font-semibold underline" onClick={() => window.location.reload()}>Tentar novamente</button>}
+          <Link href={nav.href('config')} className="font-semibold text-[#086b6b] underline">Consultar cargas</Link>
+          <Link href={`${nav.href(view)}&demo=1`} className="font-semibold text-[#086b6b] underline">Ver demonstração</Link>
+        </div>
+      </section>}
+      {sourceView && demoRequested && <Link href={nav.href(view).replace(/&demo=1(?:&|$)/, '&').replace(/&$/, '')} className="mb-4 inline-block text-sm font-semibold text-[#086b6b] underline">Voltar aos dados compartilhados</Link>}
+      {view === 'forecast' && !demoRequested && importDraft?.opportunities && <ImportedDataScreen batch={importDraft.opportunities} canImport={canImport} lastSavedAt={importDraft.history?.find(entry => entry.sources.includes(importDraft.opportunities!.filename ?? ''))?.at} kind="forecast" nav={nav} />}
+      {view === 'forecast' && (demoRequested || (!sharedImportEnabled && !importDraft?.opportunities && !importLoading && !importError)) && (
         <ForecastScreen
           model={forecast}
           meta={home.kpis.find((kpi) => kpi.key === 'meta')?.value ?? 0}
@@ -300,8 +316,8 @@ export function CommercialV3App() {
         <AccountsScreen rows={forecast.oportunidades} detalhes={detalhes} query={query} nav={nav} />
       )}
 
-      {view === 'new-name' && importDraft?.orders && <ImportedDataScreen batch={importDraft.orders} canImport={canImport} lastSavedAt={importDraft.history?.find(entry => entry.sources.includes(importDraft.orders!.filename ?? ''))?.at} kind="new-name" nav={nav} />}
-      {view === 'new-name' && !sharedImportEnabled && !importDraft?.orders && !importLoading && !importError && (
+      {view === 'new-name' && !demoRequested && importDraft?.orders && <ImportedDataScreen batch={importDraft.orders} canImport={canImport} lastSavedAt={importDraft.history?.find(entry => entry.sources.includes(importDraft.orders!.filename ?? ''))?.at} kind="new-name" nav={nav} />}
+      {view === 'new-name' && (demoRequested || (!sharedImportEnabled && !importDraft?.orders && !importLoading && !importError)) && (
         <NewNameScreen rows={forecast.oportunidades} detalhes={detalhes} query={query} nav={nav} />
       )}
 

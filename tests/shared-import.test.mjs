@@ -125,6 +125,25 @@ test('Sites identity and server-side roles fail closed and distinguish importer 
   assert.equal((await handleRequest(req('GET', 'fabi-site-user'), noRoles)).status, 503)
 })
 
+test('dispatcher email authorizes approved visitors despite Site-scoped ID differences', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  env.IMPORTER_EMAILS = 'fabi@example.com'
+  env.VIEWER_EMAILS = 'bruno@example.com giovanne@example.com'
+  const email = value => ({ 'oai-authenticated-user-email': value })
+  const read = await handleRequest(req('GET', 'opaque-runtime-id', undefined, email('BRUNO@example.com')), env)
+  assert.equal(read.status, 200)
+  assert.equal((await read.json()).canImport, false)
+  const importer = await handleRequest(req('GET', 'another-runtime-id', undefined, email('fabi@example.com')), env)
+  assert.equal((await importer.json()).canImport, true)
+  const payload = { workspace: workspace(), previousRevision: null, referenceDate: today }
+  assert.equal((await handleRequest(req('PUT', 'opaque-runtime-id', payload, email('bruno@example.com')), env)).status, 403)
+  assert.equal((await handleRequest(req('PUT', 'another-runtime-id', payload, email('fabi@example.com')), env)).status, 200)
+  assert.equal((await handleRequest(req('GET', null, undefined, email('fabi@example.com')), env)).status, 401)
+  assert.equal((await handleRequest(req('GET', 'unapproved', undefined, email('other@example.com')), env)).status, 403)
+  assert.equal((await handleRequest(req('GET', 'unapproved', undefined, { 'x-user-email': 'fabi@example.com' }), env)).status, 403)
+})
+
 test('a valid import is stored in immutable chunks with server timestamps and served to readers', async t => {
   const env = makeEnv()
   t.after(() => env.DB.close())

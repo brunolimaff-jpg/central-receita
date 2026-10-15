@@ -12,7 +12,7 @@ import type { KpiKey } from './model'
 import { AGENT_DEMO_FOOTER, AGENT_DEMO_SNAPSHOT } from './demo-display'
 
 export const HOME_COPY = {
-  greeting: 'Bom dia, Giovanne',
+  greeting: 'Visão Executiva',
   greetingEmoji: '👋',
   briefingTitle: 'Briefing de hoje',
   briefingSubtitle: 'Principais movimentos e sinais do período.',
@@ -91,7 +91,7 @@ export const MOVIMENTO_FRASES: Record<string, string> = {
 
 export const AGENTE_COPY = {
   titulo: 'Agente Comercial',
-  saudacao: 'Bom dia, Giovanne.',
+  saudacao: 'Olá. Vamos analisar o cenário demonstrativo.',
   cargo: 'Diretoria Comercial',
   entrada: 'Pergunte sobre o mês, uma filial ou uma conta.',
   acompanhando: 'Filiais que estou acompanhando para você',

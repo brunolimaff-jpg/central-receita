@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Building2, Compass, FileText, GitBranch, Layers, LayoutDashboard, List, PackagePlus, Settings2, Target, TrendingUp } from 'lucide-react'
+import { Building2, GitBranch, Layers, LayoutDashboard, List, PackagePlus, Settings2, Target, TrendingUp } from 'lucide-react'
 import { VIEW_LABELS } from '../copy'
 import { sharedImportEnabled } from '../manual-import-client'
 import { sidebarViewFor, type CommercialNav } from '../nav'
@@ -25,8 +25,6 @@ const ITENS: ItemNav[] = [
   { key: 'new-name', label: VIEW_LABELS['new-name'], icon: Target, view: 'new-name' },
   { key: 'cross', label: VIEW_LABELS.cross, icon: PackagePlus, view: 'cross' },
   { key: 'forecast', label: VIEW_LABELS.forecast, icon: TrendingUp, view: 'forecast' },
-  { key: 'reports', label: 'Relatórios', icon: FileText },
-  { key: 'explore', label: 'Explorar', icon: Compass },
   { key: 'config', label: VIEW_LABELS.config, icon: Settings2, view: 'config' },
 ]
 
