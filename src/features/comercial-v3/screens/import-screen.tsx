@@ -52,7 +52,7 @@ function ForecastDates({ records }: { records: ImportedRecord[] }) {
   let count = 0
   const series = groups.map((group, index) => ({ week: index + 1, date: group.date, label: displayDate(group.date).slice(0, 5), rangeLabel: displayDate(group.date),
     current: false, forecast: count += group.count, pace: 0, cutoffDay: Number(group.date.slice(8)), closed: true }))
-  return <section aria-label="Distribuição das previsões de fechamento">
+  return <section aria-label="Distribuição das previsões de fechamento" className="min-w-0">
     <OpportunitiesForecastChart semanas={series} mode="dueDates" onSelectWeek={week => setSelected(groups[week - 1]?.date ?? null)} onClearSelection={() => setSelected(null)} />
     {current && <div className="mt-4 border-t border-[#dfe8ef] pt-3"><h3 className="mb-3 text-sm font-semibold">{displayDate(current.date)} · {current.count} oportunidades · {currency(current.value)}</h3><PreviewTable records={current.records} /><button type="button" className="mt-2 min-h-10 text-sm text-[#086b6b] underline" onClick={() => setSelected(null)}>Fechar recorte da data</button></div>}
     <details className="mt-3 text-sm text-[#52677f]"><summary className="min-h-10 cursor-pointer py-2 font-medium">Como ler o Forecast e suas linhas</summary><p className="leading-6">A linha soma a quantidade de oportunidades até cada data prevista. É a distribuição de uma única carga, não a evolução histórica da receita. O congelado exige uma lista validada, e a meta exige um valor informado.</p></details>
@@ -235,11 +235,11 @@ export function ImportedDataScreen({ batch, kind, nav, lastSavedAt, embedded = f
   const candidates = useMemo(() => batch.records.filter(record => record.classification.trim().toLowerCase() === 'novo' &&
     (!representative || record.representative === representative)), [batch, representative])
   const rows = kind === 'forecast' ? forecast.records : candidates
-  return <div className="revenue-page grid gap-4">
+  return <div className="revenue-page grid min-w-0 gap-4">
     {!embedded && <header className="flex flex-wrap items-center justify-between gap-3"><h1 className="revenue-heading text-2xl font-bold">{kind === 'forecast' ? 'Forecast' : 'New Name'}</h1>
       <Link href={nav.href('config')} className="min-h-10 rounded px-3 py-2 text-sm font-semibold text-[#086b6b] underline">{canImport ? 'Atualizar arquivos' : 'Consultar carga'}</Link></header>}
     <ImportFreshness batch={batch} lastSavedAt={lastSavedAt} /><p className="text-xs text-[#52677f]">{sharedImportEnabled ? 'Carga compartilhada' : 'Carga local'} · {batch.filename}</p>
-    <section className={panel + ' grid gap-4'}>
+    <section className={panel + ' grid min-w-0 gap-4'}>
       <div className="flex flex-wrap gap-4">{kind === 'forecast' && <label className="text-sm font-semibold">Mês de previsão<input type="month" className={input} value={month} onChange={event => setFilter('importMonth', event.target.value)} /></label>}
         <label className="min-w-60 max-w-full text-sm font-semibold">{kind === 'forecast' ? 'Representante informado no CRM' : 'Unidade da oportunidade no pedido'}
           <select className={input} value={representative} onChange={event => setFilter(scopeKey, event.target.value)}><option value="">Todos os registros da fonte</option>{representatives.map(value => <option key={value} value={value}>{value}</option>)}</select>

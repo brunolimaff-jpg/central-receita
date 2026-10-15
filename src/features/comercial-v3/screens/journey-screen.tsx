@@ -77,10 +77,7 @@ function detalheDaEtapa(stage: EtapaDemo) {
   const conversion = stage.conversion === null
     ? 'Conversão não calculada para esta etapa.'
     : `Conversão calculada: ${stage.conversion}% (${volume} de ${previousVolume?.toLocaleString('pt-BR')} registros da etapa anterior).`
-  return {
-    value: `${volume} registros`,
-    description: `${conversion} Permanência média demonstrativa: ${stage.days} dias.`,
-  }
+  return `Volume da etapa: ${volume} registros. ${conversion} Permanência média demonstrativa: ${stage.days} dias.`
 }
 
 function JourneyBarChart({ title, unit, stages, maximum, valueOf, formatValue, barColor }: {
@@ -110,7 +107,7 @@ function JourneyBarChart({ title, unit, stages, maximum, valueOf, formatValue, b
             const percent = Math.max(0, Math.min(100, value / maximum * 100))
             const tooltip = detalheDaEtapa(stage)
             return <li key={stage.label} className="min-w-[68px]">
-              <MetricDetail label={`${title}: ${stage.label}`} value={tooltip.value} description={tooltip.description}>
+              <MetricDetail label={`${title}: ${stage.label}`} value={unit === 'Percentual' ? formatValue(value) : `${formatValue(value)} registros`} description={tooltip}>
                 <span className="grid h-[198px] grid-rows-[160px_38px] text-center">
                   <span className="relative mt-1 block h-[156px]">
                     <span aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ backgroundImage: 'linear-gradient(to bottom, #e4ebf4 1px, transparent 1px)', backgroundSize: '100% 25%' }}/>

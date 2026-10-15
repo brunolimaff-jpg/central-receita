@@ -179,7 +179,7 @@ export function WeeklyForecastScene({
             <small className="text-[10px] text-[#52677f]">Realizado integrado: posição atual, sem série semanal.</small>
           </div> : <p className="text-[11px] leading-5 text-[#52677f]">Passe o mouse, use Tab ou selecione um corte para inspecionar forecast, ritmo da meta e posição integrada atual.</p>}
         </div>
-        <p className="mt-2 text-xs leading-5 text-[#52677f]">Demonstração · linha verde: previsão nos cortes concluídos. Tracejada: progresso esperado da meta, não o congelado. Passe o mouse, use Tab ou selecione uma sexta-feira para comparar os valores.</p>
+        <p className="mt-2 text-xs leading-5 text-[#52677f]">Demonstração · linha verde: forecast nos cortes concluídos. Tracejada: ritmo esperado da meta, não o forecast oficial.</p>
         <div aria-label="Inspecionar cortes semanais" className="grid grid-cols-4 gap-0.5 px-1">
           {semanas.map((semana, indice) => (
             <button
@@ -210,7 +210,7 @@ export function WeeklyForecastScene({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 border-t border-[#e8eef0] pt-2 lg:grid-cols-1 lg:content-center lg:gap-3 lg:border-l lg:border-t-0 lg:pl-3 lg:pt-0">
+      <div className="grid grid-cols-3 gap-2 border-t border-[#e8eef0] pt-2 min-[1550px]:grid-cols-1 min-[1550px]:content-center min-[1550px]:gap-3 min-[1550px]:border-l min-[1550px]:border-t-0 min-[1550px]:pl-3 min-[1550px]:pt-0">
         <Metric label="Meta do período" value={meta} color="text-[#415674]" />
         <Metric label="Forecast atual" value={forecastAtual} color="text-[#008c77]" />
         <div className="min-w-0">

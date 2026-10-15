@@ -154,7 +154,7 @@ export function OpportunitiesForecastChart({ semanas, mode = 'weekly', onSelectW
           {!dueDates && closedPoints.length === 0 && <text x={(PLOT_LEFT + PLOT_RIGHT) / 2} y={(PLOT_TOP + PLOT_BOTTOM) / 2} textAnchor="middle" fill="#63748a" fontSize="12">Sem cortes concluídos</text>}
         </svg>
         <div
-          className={dueDates ? 'flex gap-1 overflow-x-auto scroll-discreta' : 'grid gap-1'}
+          className={dueDates ? 'flex min-w-0 max-w-full gap-1 overflow-x-auto scroll-discreta' : 'grid gap-1'}
           style={dueDates ? undefined : { gridTemplateColumns: `repeat(${semanas.length}, minmax(0, 1fr))` }}
           aria-label={dueDates ? 'Inspecionar datas de fechamento' : 'Inspecionar cortes semanais'}
         >
