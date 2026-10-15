@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
+import { lineChartPath, nearestChartPoint } from '../chart-math'
 import { formatarMilhoes, formatarMilhoesExpandido, formatarPercentualInteiro } from '../format'
 import type { SemanaRow } from '../model'
 
@@ -49,11 +50,9 @@ export function WeeklyForecastScene({
   const indiceEscolhido = semanas.findIndex((semana) => semana.week === semanaEscolhida)
   const indiceSelecionado = indicePointer >= 0 ? indicePointer : indiceFoco >= 0 ? indiceFoco : indiceEscolhido >= 0 ? indiceEscolhido : indiceAtual
   const semanaSelecionada = semanas[indiceSelecionado]
-  const viewportRef = useRef<HTMLDivElement>(null)
-  const svgRef = useRef<SVGSVGElement>(null)
-  const [tooltipPosition, setTooltipPosition] = useState({ left: 8, width: 264 })
+  const inspecting = indicePointer >= 0 || indiceFoco >= 0 || indiceEscolhido >= 0
   const shouldReduceMotion = useReducedMotion()
-  const transition = shouldReduceMotion ? { duration: 0 } : { type: 'spring' as const, stiffness: 300, damping: 34 }
+  const transition = { duration: shouldReduceMotion ? 0 : 0.12 }
   const maiorValor = Math.max(meta, forecastAtual, ...semanas.map((semana) => Math.max(semana.forecast, semana.pace)), 1)
   const maxEixo = Math.max(3, Math.ceil(maiorValor / 3) * 3)
   const eixoX = (indice: number) => PLOT_LEFT + (indice + 0.5) * (PLOT_RIGHT - PLOT_LEFT) / Math.max(semanas.length, 1)
@@ -61,38 +60,10 @@ export function WeeklyForecastScene({
   const pontosForecast = semanas.map((semana, indice) => [eixoX(indice), eixoY(semana.forecast)] as [number, number])
   const pontosPace = semanas.map((semana, indice) => [eixoX(indice), eixoY(semana.pace)] as [number, number])
   const fechados = pontosForecast.filter((_, indice) => semanas[indice].closed)
-  const linhaForecast = suavizar(fechados)
-  const areaForecast = fechados.length
-    ? linhaForecast + ' L ' + fechados[fechados.length - 1][0] + ' ' + PLOT_BOTTOM + ' L ' + fechados[0][0] + ' ' + PLOT_BOTTOM + ' Z'
-    : ''
+  const linhaForecast = lineChartPath(fechados)
   const marcador = indiceSelecionado >= 0 && semanaSelecionada?.closed ? pontosForecast[indiceSelecionado] : null
   const valorSelecionado = semanaSelecionada?.forecast ?? forecastAtual
-  const desvioMeta = meta > 0 ? (valorSelecionado - meta) / meta : 0
-  useEffect(() => {
-    const viewport = viewportRef.current
-    if (!viewport) return
-    const updatePosition = () => {
-      const width = Math.min(264, Math.max(0, viewport.clientWidth - 16))
-      const viewportRect = viewport.getBoundingClientRect()
-      const svgRect = svgRef.current?.getBoundingClientRect()
-      const scrollLeft = viewport.scrollLeft
-      const center = marcador && svgRect
-        ? svgRect.left - viewportRect.left + svgRect.width * marcador[0] / WIDTH
-        : viewport.clientWidth / 2
-      const minLeft = scrollLeft + 8
-      const maxLeft = Math.max(minLeft, scrollLeft + viewport.clientWidth - width - 8)
-      setTooltipPosition({ left: Math.max(minLeft, Math.min(center + scrollLeft - width / 2, maxLeft)), width })
-    }
-    updatePosition()
-    const observer = new ResizeObserver(updatePosition)
-    observer.observe(viewport)
-    viewport.addEventListener('scroll', updatePosition, { passive: true })
-    return () => {
-      observer.disconnect()
-      viewport.removeEventListener('scroll', updatePosition)
-    }
-  }, [marcador?.[0]])
-
+  const desvioMeta = meta > 0 ? (valorSelecionado - meta) / meta : null
   return (
     <div className="grid min-w-0 items-stretch gap-2.5 min-[1550px]:grid-cols-[minmax(0,1fr)_150px]">
       <div className="min-w-0">
@@ -101,27 +72,32 @@ export function WeeklyForecastScene({
           <span className="flex items-center gap-2"><span aria-hidden className="w-6 border-t-2 border-dashed border-[#8299b3]" />Ritmo proporcional da meta</span>
         </div>
         <div
-          ref={viewportRef}
           role="region"
           aria-label="Gráfico semanal do forecast, com rolagem horizontal quando necessário"
           tabIndex={0}
           className="relative min-w-0 overflow-x-auto overflow-y-hidden scroll-discreta focus-visible:outline-2 focus-visible:outline-[#086b6b]"
+          onPointerLeave={() => setSemanaPointer(null)}
         >
           {semanas.length > 0 ? (
             <svg
-              ref={svgRef}
               role="group"
-              aria-label="Forecast acumulado e ritmo da meta nos cortes de sexta-feira"
+              aria-label="Forecast em cada corte e ritmo da meta nas sextas-feiras"
+              onPointerMove={event => {
+                if (event.pointerType === 'touch') return
+                const matrix = event.currentTarget.getScreenCTM()
+                if (!matrix) return
+                const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse())
+                if (point.x < PLOT_LEFT || point.x > PLOT_RIGHT || point.y < PLOT_TOP || point.y > PLOT_BOTTOM) {
+                  setSemanaPointer(null)
+                  return
+                }
+                const index = nearestChartPoint(point.x, pontosForecast.map(([x]) => x))
+                setSemanaPointer(index >= 0 ? semanas[index].week : null)
+              }}
               viewBox={'0 0 ' + WIDTH + ' ' + HEIGHT}
-              className="block h-auto w-full min-w-[520px] overflow-visible"
+              className="mx-auto block h-auto w-full min-w-[520px] max-w-[900px] overflow-visible"
               preserveAspectRatio="xMidYMid meet"
             >
-              <defs>
-                <linearGradient id="forecast-area" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#18b995" stopOpacity=".28" />
-                  <stop offset="100%" stopColor="#18b995" stopOpacity=".025" />
-                </linearGradient>
-              </defs>
               {[0, 1, 2, 3, 4].map((tick) => {
                 const value = maxEixo * tick / 4
                 const y = eixoY(value)
@@ -144,8 +120,7 @@ export function WeeklyForecastScene({
                   strokeDasharray="2 6"
                 />
               ))}
-              <path d={areaForecast} fill="url(#forecast-area)" />
-              <path d={suavizar(pontosPace)} fill="none" stroke="#8299b3" strokeWidth="2" strokeDasharray="6 5" />
+              <path d={lineChartPath(pontosPace)} fill="none" stroke="#8299b3" strokeWidth="2" strokeDasharray="6 5" />
               <path d={linhaForecast} fill="none" stroke="#009b83" strokeWidth="3" strokeLinecap="round" />
               {pontosForecast.map(([x, y], indice) => semanas[indice].closed ? (
                 <circle
@@ -162,7 +137,7 @@ export function WeeklyForecastScene({
                   aria-pressed={semanaEscolhida === semanas[indice].week}
                   onPointerEnter={(event) => { if (event.pointerType !== 'touch') setSemanaPointer(semanas[indice].week) }}
                   onPointerLeave={() => setSemanaPointer(null)}
-                  onFocus={() => setSemanaFocada(semanas[indice].week)}
+                  onFocus={() => { setSemanaPointer(null); setSemanaFocada(semanas[indice].week) }}
                   onBlur={() => setSemanaFocada(null)}
                   onClick={() => setSemanaEscolhida(semanas[indice].week)}
                   onKeyDown={(event) => {
@@ -179,7 +154,7 @@ export function WeeklyForecastScene({
                   className="cursor-pointer focus-visible:outline-2 focus-visible:outline-[#086b6b]"
                 />
               ) : null)}
-              {marcador && (
+              {marcador && inspecting && (
                 <g aria-hidden="true" pointerEvents="none">
                   <motion.line initial={false} y1={PLOT_TOP} y2={PLOT_BOTTOM} animate={{ x1: marcador[0], x2: marcador[0] }} transition={transition} stroke="#ed5267" strokeWidth="1.5" />
                   <motion.circle initial={false} r="11" animate={{ cx: marcador[0], cy: marcador[1] }} transition={transition} fill="white" stroke="#ed5267" strokeWidth="3.5" />
@@ -192,34 +167,17 @@ export function WeeklyForecastScene({
               Histórico semanal indisponível para esta combinação de filtros.
             </div>
           )}
-          {semanaSelecionada && (
-            <motion.div
-              role="status"
-              aria-live="polite"
-              initial={false}
-              animate={{ x: tooltipPosition.left }}
-              transition={transition}
-              style={{ left: 0, width: tooltipPosition.width }}
-              className="pointer-events-none absolute top-2 z-10 box-border min-w-0 rounded-[10px] border border-white/90 bg-white/95 px-3 py-2 shadow-[0_8px_24px_rgba(48,88,112,0.12)]"
-            >
-              <motion.div
-                key={semanaSelecionada.week}
-                initial={shouldReduceMotion ? false : { opacity: 0.7, y: 3 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={transition}
-              >
-                <small className="block break-words text-[11px] leading-4 text-[#52677f]">{semanaSelecionada.rangeLabel}</small>
-                <strong className="num mt-0.5 block break-words text-[16px] font-bold leading-5 text-[#10294c]">
-                  {semanaSelecionada.closed ? formatarMilhoesExpandido(valorSelecionado) : 'Corte pendente'}
-                </strong>
-                <span className={'num mt-0.5 block break-words text-[11px] font-bold leading-4 ' + (semanaSelecionada.closed ? (desvioMeta < 0 ? 'text-[#d33d54]' : 'text-[#00856f]') : 'text-[#8a5a00]')}>
-                  {semanaSelecionada.closed ? formatarPercentualInteiro(desvioMeta) + ' vs. meta' : 'Aguardando fechamento de sexta'}
-                </span>
-                <small className="mt-0.5 block break-words text-[12px] leading-4 text-[#43556b]">Ritmo da meta: {formatarMilhoesExpandido(semanaSelecionada.pace)}</small>
-                <small className="block break-words text-[11px] leading-4 text-[#52677f]">Realizado integrado: posição atual, sem série semanal.</small>
-              </motion.div>
-            </motion.div>
-          )}
+        </div>
+        <div role="status" aria-live="polite" className="mt-2 min-h-[40px] rounded-[9px] border border-[#e8eef0] bg-white/75 px-3 py-2">
+          {inspecting && semanaSelecionada ? <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <span className="text-[11px] text-[#52677f]">{semanaSelecionada.rangeLabel}</span>
+            <strong className="num text-[13px] font-bold text-[#10294c]">{semanaSelecionada.closed ? formatarMilhoesExpandido(valorSelecionado) : 'Corte pendente'}</strong>
+            <span className={'num text-[11px] font-bold ' + (semanaSelecionada.closed ? (desvioMeta === null ? 'text-[#52677f]' : desvioMeta < 0 ? 'text-[#d33d54]' : 'text-[#00856f]') : 'text-[#8a5a00]')}>
+              {semanaSelecionada.closed ? desvioMeta === null ? 'Meta indisponível' : formatarPercentualInteiro(desvioMeta) + ' vs. meta' : 'Aguardando fechamento de sexta'}
+            </span>
+            <small className="text-[11px] text-[#43556b]">Ritmo da meta: {formatarMilhoesExpandido(semanaSelecionada.pace)}</small>
+            <small className="text-[10px] text-[#52677f]">Realizado integrado: posição atual, sem série semanal.</small>
+          </div> : <p className="text-[11px] leading-5 text-[#52677f]">Passe o mouse, use Tab ou selecione um corte para inspecionar forecast, ritmo da meta e posição integrada atual.</p>}
         </div>
         <p className="mt-2 text-xs leading-5 text-[#52677f]">Demonstração · linha verde: previsão nos cortes concluídos. Tracejada: progresso esperado da meta, não o congelado. Passe o mouse, use Tab ou selecione uma sexta-feira para comparar os valores.</p>
         <div aria-label="Inspecionar cortes semanais" className="grid grid-cols-4 gap-0.5 px-1">
@@ -229,7 +187,7 @@ export function WeeklyForecastScene({
               type="button"
               onPointerEnter={(event) => { if (event.pointerType !== 'touch') setSemanaPointer(semana.week) }}
               onPointerLeave={() => setSemanaPointer(null)}
-              onFocus={() => setSemanaFocada(semana.week)}
+              onFocus={() => { setSemanaPointer(null); setSemanaFocada(semana.week) }}
               onBlur={() => setSemanaFocada(null)}
               onClick={() => setSemanaEscolhida(semana.week)}
               onKeyDown={(event) => {

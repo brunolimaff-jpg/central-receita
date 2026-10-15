@@ -50,10 +50,10 @@ function ForecastDates({ records }: { records: ImportedRecord[] }) {
   const [selected, setSelected] = useState<string | null>(null)
   const current = groups.find(group => group.date === selected)
   let count = 0
-  const series = groups.map((group, index) => ({ week: index + 1, label: displayDate(group.date).slice(0, 5), rangeLabel: displayDate(group.date),
+  const series = groups.map((group, index) => ({ week: index + 1, date: group.date, label: displayDate(group.date).slice(0, 5), rangeLabel: displayDate(group.date),
     current: false, forecast: count += group.count, pace: 0, cutoffDay: Number(group.date.slice(8)), closed: true }))
   return <section aria-label="Distribuição das previsões de fechamento">
-    <OpportunitiesForecastChart semanas={series} mode="dueDates" onSelectWeek={week => setSelected(groups[week - 1]?.date ?? null)} />
+    <OpportunitiesForecastChart semanas={series} mode="dueDates" onSelectWeek={week => setSelected(groups[week - 1]?.date ?? null)} onClearSelection={() => setSelected(null)} />
     {current && <div className="mt-4 border-t border-[#dfe8ef] pt-3"><h3 className="mb-3 text-sm font-semibold">{displayDate(current.date)} · {current.count} oportunidades · {currency(current.value)}</h3><PreviewTable records={current.records} /><button type="button" className="mt-2 min-h-10 text-sm text-[#086b6b] underline" onClick={() => setSelected(null)}>Fechar recorte da data</button></div>}
     <details className="mt-3 text-sm text-[#52677f]"><summary className="min-h-10 cursor-pointer py-2 font-medium">Como ler o Forecast e suas linhas</summary><p className="leading-6">A linha soma a quantidade de oportunidades até cada data prevista. É a distribuição de uma única carga, não a evolução histórica da receita. O congelado exige uma lista validada, e a meta exige um valor informado.</p></details>
   </section>

@@ -120,6 +120,7 @@ export type SinalAtencao = {
 
 export type SemanaRow = {
   week: number
+  date?: string
   label: string
   rangeLabel: string
   current: boolean
@@ -265,7 +266,7 @@ const pctUmaCasa = (razao: number): string => `${(razao * 100).toFixed(1).replac
 
 function legendasKpis(meta: number, realizado: number, oficial: number, atual: number): Kpi[] {
   return [
-    { key: 'meta', value: meta, caption: '100%' },
+    { key: 'meta', value: meta, caption: meta > 0 ? '100%' : '—' },
     {
       key: 'realizado',
       value: realizado,
