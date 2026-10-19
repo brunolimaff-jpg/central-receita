@@ -8,7 +8,7 @@
 
 import type { CommercialPeriod, CommercialView, ForecastMovement } from './types'
 
-const SIDEBAR_VIEWS = ['home', 'journey', 'system', 'opportunities', 'accounts', 'new-name', 'cross', 'forecast'] as const
+const SIDEBAR_VIEWS = ['home', 'journey', 'system', 'opportunities', 'accounts', 'new-name', 'cross', 'forecast', 'config'] as const
 type SidebarView = (typeof SIDEBAR_VIEWS)[number]
 
 /** Resolve a âncora visual do menu para as telas de drill-down. */
@@ -20,7 +20,7 @@ export function sidebarViewFor(view: CommercialView, from?: CommercialView): Sid
 
 /** Home abre Oportunidades; as demais áreas com busca mantêm o contexto atual. */
 export function globalSearchDestination(view: CommercialView): CommercialView {
-  if (view === 'journey' || view === 'accounts' || view === 'new-name' || view === 'cross') return view
+  if (view === 'journey' || view === 'accounts' || view === 'new-name' || view === 'cross' || view === 'config') return view
   return 'opportunities'
 }
 

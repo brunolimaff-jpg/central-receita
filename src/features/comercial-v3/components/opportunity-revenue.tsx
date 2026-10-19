@@ -1,5 +1,6 @@
 import { OPORTUNIDADE_COPY } from '../copy'
 import { formatarValorOportunidade, formatarPercentualInteiro } from '../format'
+import { MetricDetail } from './metric-detail'
 import type { OpportunityModel } from '../model'
 
 /**
@@ -49,7 +50,7 @@ export function OpportunityRevenue({ model }: { model: OpportunityModel }) {
 
       <ul className="grid gap-2.5">
         {partes.map((parte) => {
-          const participacao = total > 0 ? parte.valor / total : 0
+          const participacao = total > 0 ? parte.valor / total : null
           return (
             <li
               key={parte.chave}
@@ -57,40 +58,29 @@ export function OpportunityRevenue({ model }: { model: OpportunityModel }) {
                 parte.destaque ? 'border-[#cfe9e2] bg-[#f3faf8]' : 'border-[#edf2f6] bg-[#fbfdfe]'
               }`}
             >
-              <div className="flex items-baseline justify-between gap-3">
-                <span className="min-w-0">
-                  <strong
-                    className={`block ${parte.destaque ? 'text-[14px] font-extrabold text-[#0d2340]' : 'text-[12.5px] font-semibold text-[#3d5069]'}`}
-                  >
-                    {parte.rotulo}
-                  </strong>
-                  <span className="block text-[11px] text-[#75869a]">{parte.nota}</span>
+              <MetricDetail label={parte.rotulo} value={formatarValorOportunidade(parte.valor)} description={participacao === null ? `Composição total zero; a participação de ${parte.rotulo} não pode ser calculada.` : `${formatarPercentualInteiro(participacao)} da composição comercial total de ${formatarValorOportunidade(total)}. ${parte.nota}.`}>
+                <span className="block text-left">
+                  <span className="flex items-baseline justify-between gap-3">
+                    <span className="min-w-0">
+                      <strong className={`block ${parte.destaque ? 'text-[14px] font-extrabold text-[#0d2340]' : 'text-[12.5px] font-semibold text-[#3d5069]'}`}>
+                        {parte.rotulo}
+                      </strong>
+                      <span className="block text-[11px] text-[#75869a]">{parte.nota}</span>
+                    </span>
+                    <b className={`num whitespace-nowrap ${parte.destaque ? 'text-[20px] font-extrabold text-[#0d2340]' : 'text-[13px] font-bold text-[#3d5069]'}`}>
+                      {formatarValorOportunidade(parte.valor)}
+                    </b>
+                  </span>
+                  <span className="mt-2 flex items-center gap-2">
+                    <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#e6edf1]">
+                      <span className={`block h-full rounded-full ${parte.destaque ? 'bg-[linear-gradient(90deg,#04a88b,#42c5ae)]' : 'bg-[#b8c6d4]'}`} style={{ width: `${Math.min(100, (participacao ?? 0) * 100)}%` }} />
+                    </span>
+                    <span className="num w-[38px] text-right text-[11px] text-[#75869a]">
+                      {participacao === null ? '—' : formatarPercentualInteiro(participacao)}
+                    </span>
+                  </span>
                 </span>
-                <b
-                  className={`num whitespace-nowrap ${
-                    parte.destaque
-                      ? 'text-[20px] font-extrabold text-[#0d2340]'
-                      : 'text-[13px] font-bold text-[#3d5069]'
-                  }`}
-                >
-                    {formatarValorOportunidade(parte.valor)}
-                </b>
-              </div>
-              <div className="mt-2 flex items-center gap-2">
-                <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#e6edf1]">
-                  <span
-                    className={`block h-full rounded-full ${
-                      parte.destaque
-                        ? 'bg-[linear-gradient(90deg,#04a88b,#42c5ae)]'
-                        : 'bg-[#b8c6d4]'
-                    }`}
-                    style={{ width: `${Math.min(100, participacao * 100)}%` }}
-                  />
-                </span>
-                <span className="num w-[38px] text-right text-[11px] text-[#75869a]">
-                  {formatarPercentualInteiro(participacao)}
-                </span>
-              </div>
+              </MetricDetail>
             </li>
           )
         })}

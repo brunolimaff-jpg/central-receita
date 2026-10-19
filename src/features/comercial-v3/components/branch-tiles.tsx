@@ -30,33 +30,38 @@ export function BranchTiles({ filiais, nav, titulo, subtitulo, origem }: BranchT
         <p className="mt-0.5 text-[12px] text-[#63748a]">{subtitulo}</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2.5 2xl:grid-cols-4">
         {filiais.map((linha) => {
-          const percentual = formatarPercentualInteiro(linha.atingimento)
+          const missing = linha.missing ?? []
+          const percentual = missing.includes('meta') || missing.includes('realizado') || linha.meta <= 0 || !Number.isFinite(linha.atingimento)
+            ? '—'
+            : formatarPercentualInteiro(linha.atingimento)
+          const valor = (key: 'realizado' | 'meta' | 'forecastAtual') => missing.includes(key) ? '—' : formatarMilhoes(linha[key])
           return (
             <Link
               key={linha.branch}
               href={nav.branchHref(linha.branch, origem)}
-              className="rounded-[12px] border border-[#dfe8ef] bg-white px-3.5 py-3 transition-premium hover:-translate-y-0.5 hover:border-[#c9ded9] hover:shadow-[0_4px_14px_rgba(32,73,91,0.06)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b] active:translate-y-px"
+              aria-label={`${linha.branch}: realizado ${valor('realizado')}, meta ${valor('meta')}, forecast ${valor('forecastAtual')}, ${percentual} da meta. Abrir filial.`}
+              className="min-w-0 rounded-[12px] border border-[#dfe8ef] bg-white px-3.5 py-3 transition-premium hover:-translate-y-0.5 hover:border-[#c9ded9] hover:shadow-[0_4px_14px_rgba(32,73,91,0.06)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b] active:translate-y-px"
             >
-              <h3 className="text-[15px] font-bold text-[#0d2340]">{linha.branch}</h3>
-              <dl className="mt-2 flex justify-between gap-2.5">
+              <h3 className="truncate text-[15px] font-bold text-[#0d2340]" title={linha.branch}>{linha.branch}</h3>
+              <dl className="mt-2 grid grid-cols-1 gap-1.5 sm:grid-cols-3">
                 <div className="min-w-0">
-                  <dt className="text-[10px] text-[#75869a]">Realizado</dt>
-                  <dd className="num text-[17px] font-extrabold text-[#0d2340]">
-                    {formatarMilhoes(linha.realizado)}
+                  <dt className="whitespace-nowrap text-[10px] text-[#75869a]">Realizado</dt>
+                  <dd className="num whitespace-nowrap text-[15px] font-extrabold text-[#0d2340]">
+                    {valor('realizado')}
                   </dd>
                 </div>
                 <div className="min-w-0">
-                  <dt className="text-[10px] text-[#75869a]">Meta</dt>
-                  <dd className="num text-[17px] font-extrabold text-[#0d2340]">
-                    {formatarMilhoes(linha.meta)}
+                  <dt className="whitespace-nowrap text-[10px] text-[#75869a]">Meta</dt>
+                  <dd className="num whitespace-nowrap text-[15px] font-extrabold text-[#0d2340]">
+                    {valor('meta')}
                   </dd>
                 </div>
                 <div className="min-w-0">
-                  <dt className="text-[10px] text-[#75869a]">Forecast</dt>
-                  <dd className="num text-[17px] font-extrabold text-[#0d2340]">
-                    {formatarMilhoes(linha.forecastAtual)}
+                  <dt className="whitespace-nowrap text-[10px] text-[#75869a]">Forecast</dt>
+                  <dd className="num whitespace-nowrap text-[15px] font-extrabold text-[#0d2340]">
+                    {valor('forecastAtual')}
                   </dd>
                 </div>
               </dl>

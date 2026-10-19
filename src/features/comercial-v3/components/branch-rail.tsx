@@ -38,28 +38,34 @@ export function BranchRail({ filiais, nav, from, real, compact = false }: Branch
         className={`grid max-h-[360px] grid-cols-1 gap-1.5 overflow-y-auto overscroll-contain pr-1 scroll-discreta focus-visible:outline-2 focus-visible:outline-[#086b6b] ${compact ? 'lg:grid-cols-2 2xl:grid-cols-3' : ''}`}
       >
         {filiais.map((linha) => {
-          const percentual = Math.round(linha.atingimento * 100)
+          const coverageAvailable = !linha.missing?.includes('meta') && !linha.missing?.includes('realizado') && linha.meta > 0 && Number.isFinite(linha.atingimento)
+          const percentual = coverageAvailable ? Math.round(linha.atingimento * 100) : null
+          const largura = percentual === null ? 0 : Math.max(0, Math.min(100, percentual))
           const valor = (key: 'meta' | 'realizado' | 'forecastAtual') => linha.missing?.includes(key) ? '—' : formatarMilhoes(linha[key])
           return (
             <Link
               key={linha.branch}
               href={nav.branchHref(linha.branch, from)}
+              aria-label={`${linha.branch}: realizado ${valor('realizado')}, meta ${valor('meta')}, forecast ${valor('forecastAtual')}, ${percentual === null ? 'atingimento indisponível' : percentual + '% da meta'}. Abrir filial.`}
               className="grid grid-cols-[minmax(0,1fr)_44px] items-center gap-x-2.5 gap-y-1.5 rounded-[8px] px-1.5 py-2 transition-premium hover:bg-[#f3f8f7] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b] active:bg-[#eaf5f2]"
             >
               <span className="num order-1 break-words text-[12px] font-bold leading-4 text-[#334b64]">{linha.branch}</span>
               <span className="order-3 col-span-2 min-w-0">
-                <span className="block h-[9px] overflow-hidden rounded-full bg-[#edf2f5]">
+                <span role="img" aria-label={percentual === null ? 'Atingimento da meta indisponível' : `${percentual}% da meta`} className="block h-[9px] overflow-hidden rounded-full bg-[#edf2f5]">
                   <span
                     className="block h-full rounded-full bg-[linear-gradient(90deg,#0aa88f,#62c9b8)]"
-                    style={{ width: `${Math.min(100, percentual)}%` }}
+                    style={{ width: `${largura}%` }}
                   />
                 </span>
-                <span className="num mt-1 block text-[11px] leading-4 text-[#50647d]">
-                  {valor('realizado')} {real ? 'integrado' : 'realizado'} · meta {valor('meta')} ·{' '}
-                  {valor('forecastAtual')} forecast
+                <span className="num mt-1 flex flex-wrap gap-x-1 text-[10px] leading-4 text-[#50647d]">
+                  <span className="whitespace-nowrap">{valor('realizado')} {real ? 'integrado' : 'realizado'}</span>
+                  <span aria-hidden="true">·</span>
+                  <span className="whitespace-nowrap">meta {valor('meta')}</span>
+                  <span aria-hidden="true">·</span>
+                  <span className="whitespace-nowrap">{valor('forecastAtual')} forecast</span>
                 </span>
               </span>
-              <span className="num order-2 text-right text-[12px] font-bold text-[#435873]">{linha.missing?.includes('meta') || linha.missing?.includes('realizado') || linha.meta <= 0 ? '—' : `${percentual}%`}</span>
+              <span className="num order-2 text-right text-[12px] font-bold text-[#435873]">{percentual === null ? '—' : `${percentual}%`}</span>
             </Link>
           )
         })}

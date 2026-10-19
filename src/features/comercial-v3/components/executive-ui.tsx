@@ -1,0 +1,252 @@
+'use client'
+
+import Link from 'next/link'
+import { ArrowDownRight, ArrowUpRight, CheckCircle2, Clock3, Pencil, XCircle, type LucideIcon } from 'lucide-react'
+import { formatarRealComSinal } from '../format'
+import type { MovementLabel } from '../movement-rows'
+
+/**
+ * Primitivos visuais do painel (Visão Executiva, Forecast, New Name, Oportunidades).
+ *
+ * Linguagem aprovada: superfície de vidro sobre o fundo da sede, cartão de indicador
+ * com faixa de tom e mini-gráfico, pílula de estado e tabela com cabeçalho tingido.
+ * Toda cor vem de token (`globals.css`); nenhum hex solto aqui.
+ */
+
+/** Faixa de tom do cartão: muda só a variável `--tom` consumida pelos filhos. */
+export type Tom = 'marca' | 'positivo' | 'info' | 'atencao' | 'negativo'
+
+export const PAINEL = 'revenue-panel vidro min-w-0'
+
+/** Cartão de indicador com rótulo, valor, nota e mini-gráfico decorativo. */
+export function MetricCard({ rotulo, valor, nota, tom = 'marca', href }: {
+  rotulo: string
+  valor: string
+  nota?: string
+  tom?: Tom
+  href?: string
+}) {
+  const conteudo = (
+    <>
+      <span aria-hidden className="revenue-metric-dot" />
+      <div className="min-w-0">
+        <span className="revenue-metric-label block truncate">{rotulo}</span>
+        <strong className="revenue-metric-value num block tabular-nums text-ink-strong">{valor}</strong>
+        {nota && <small className="revenue-metric-note block truncate">{nota}</small>}
+      </div>
+    </>
+  )
+  const base = `revenue-metric vidro tone-${tom}`
+  if (href) {
+    return <Link href={href} className={`${base} transition-premium hover:-translate-y-px`}>{conteudo}</Link>
+  }
+  return <article className={base}>{conteudo}</article>
+}
+
+/** Painel de vidro com título e subtítulo opcionais. */
+export function Panel({ titulo, subtitulo, acao, children, className = '' }: {
+  titulo?: string
+  subtitulo?: string
+  acao?: React.ReactNode
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <section className={`${PAINEL} ${className}`}>
+      {(titulo || acao) && (
+        <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            {titulo && <h2 className="text-[15px] font-bold tracking-[-0.02em] text-ink-strong">{titulo}</h2>}
+            {subtitulo && <p className="mt-0.5 text-[11.5px] text-ink-muted">{subtitulo}</p>}
+          </div>
+          {acao}
+        </div>
+      )}
+      {children}
+    </section>
+  )
+}
+
+type PanelSectionProps = {
+  id: string
+  titulo: string
+  /** Contexto curto da seção. Uma linha, sem virar parágrafo explicativo. */
+  contexto?: string
+  acao?: React.ReactNode
+  nivel?: 'h1' | 'h2'
+  children: React.ReactNode
+}
+
+/** Seção da página corrida: âncora para a sidebar, título e contexto curto. */
+export function PanelSection({ id, titulo, contexto, acao, nivel = 'h2', children }: PanelSectionProps) {
+  const Titulo = nivel
+  return (
+    <section id={id} data-home-nav={id} aria-labelledby={`${id}-titulo`} className="scroll-mt-6 grid min-w-0 gap-4 border-t border-hairline pt-7 first:border-t-0 first:pt-0">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
+          <Titulo id={`${id}-titulo`} className="text-[22px] font-bold leading-tight tracking-[-0.035em] text-ink-strong">{titulo}</Titulo>
+          {contexto && <p className="mt-1 text-[13px] text-ink-muted">{contexto}</p>}
+        </div>
+        {acao}
+      </header>
+      {children}
+    </section>
+  )
+}
+
+export const MOVIMENTO: Record<MovementLabel, { icon: LucideIcon; tom: Tom }> = {
+  Entrou: { icon: ArrowUpRight, tom: 'positivo' },
+  Ganhou: { icon: CheckCircle2, tom: 'positivo' },
+  Saiu: { icon: ArrowDownRight, tom: 'negativo' },
+  Perdeu: { icon: XCircle, tom: 'negativo' },
+  Postergou: { icon: Clock3, tom: 'atencao' },
+  'Alterou valor': { icon: Pencil, tom: 'info' },
+}
+
+/** `03/10/2026` a partir de `2026-10-03`; `—` quando a carga não traz a data. */
+export function formatarDataCurta(iso: string | null): string {
+  if (!iso) return '—'
+  const partes = iso.split('-')
+  return partes.length === 3 ? `${partes[2]}/${partes[1]}/${partes[0]}` : iso
+}
+
+type MovementCardProps = {
+  movimento: MovementLabel
+  titulo?: string
+  valor: number | null
+  contagem: string
+  nota: string
+  disponivel: boolean
+  href?: string
+  selecionado?: boolean
+  onSelecionar?: () => void
+}
+
+/** Cartão de movimento: ícone em quadrado tingido, valor com sinal e uma legenda curta. */
+export function MovementCard({ movimento, titulo, valor, contagem, nota, disponivel, href, selecionado = false, onSelecionar }: MovementCardProps) {
+  const visual = MOVIMENTO[movimento]
+  const Icone = visual.icon
+  const corValor = !disponivel || valor === null || valor === 0
+    ? 'text-ink-strong'
+    : valor > 0 ? 'text-dado-positivo' : 'text-dado-negativo'
+  const conteudo = (
+    <>
+      <span className="flex items-center gap-2.5">
+        <span aria-hidden className={`revenue-brief-icon grid shrink-0 place-items-center tone-${visual.tom}`}>
+          <Icone size={17} strokeWidth={2.2} />
+        </span>
+        <span className="text-[13px] font-semibold text-ink-strong">{titulo ?? movimento}</span>
+      </span>
+      <span className="mt-3 block">
+        <strong className={`num block text-[23px] font-bold leading-none tracking-[-0.035em] ${corValor}`}>
+          {disponivel ? formatarRealComSinal(valor) : '—'}
+        </strong>
+        <span className="mt-1.5 block text-[12px] text-ink-muted">{disponivel ? contagem : 'Sem carga anterior'}</span>
+      </span>
+      <span className="mt-2 block text-[11px] leading-4 text-ink-muted">{disponivel ? nota : 'A comparação começa na próxima importação'}</span>
+    </>
+  )
+  const base = `revenue-panel vidro flex min-h-[132px] min-w-0 flex-col justify-between text-left transition-premium ${selecionado ? 'ring-2 ring-brand' : 'hover:-translate-y-px'}`
+  if (href) return <Link href={href} className={base}>{conteudo}</Link>
+  if (onSelecionar) {
+    return (
+      <button type="button" aria-pressed={selecionado} disabled={!disponivel} onClick={onSelecionar} className={`${base} disabled:cursor-not-allowed disabled:opacity-60`}>
+        {conteudo}
+      </button>
+    )
+  }
+  return <article className={base}>{conteudo}</article>
+}
+
+export type RingGroup = { rotulo: string; movimento: MovementLabel; valor: number | null; peso: number }
+
+const COR_ANEL: Record<MovementLabel, string> = {
+  Entrou: 'var(--dado-positivo)',
+  Ganhou: 'var(--verde-institucional)',
+  Saiu: 'var(--dado-negativo)',
+  Perdeu: 'var(--dado-negativo)',
+  Postergou: 'var(--dado-atencao)',
+  'Alterou valor': 'var(--dado-info)',
+}
+
+/** Anel de impacto: partes pelo peso absoluto; centro com o saldo líquido com sinal. */
+export function ImpactRing({ titulo, legenda, grupos, saldo }: { titulo: string; legenda: string; grupos: RingGroup[]; saldo: number | null }) {
+  const total = grupos.reduce((soma, grupo) => soma + grupo.peso, 0)
+  let angulo = 0
+  const paradas = grupos.map((grupo) => {
+    const inicio = angulo
+    angulo += total > 0 ? (grupo.peso / total) * 100 : 0
+    return `${COR_ANEL[grupo.movimento]} ${inicio}% ${angulo}%`
+  })
+  const fundo = total > 0 ? `conic-gradient(${paradas.join(', ')})` : 'var(--surface-sunken)'
+  return (
+    <Panel titulo={titulo} subtitulo={legenda} className="self-start">
+      <div className="flex items-center gap-5">
+        <span aria-hidden className="grid size-[120px] shrink-0 place-items-center rounded-full" style={{ background: fundo }}>
+          <span className="grid size-[86px] place-items-center rounded-full bg-white/95 text-center">
+            <span className="num block text-[15px] font-bold text-ink-strong">{formatarRealComSinal(saldo)}</span>
+            <span className="block text-[9.5px] text-ink-muted">saldo líquido</span>
+          </span>
+        </span>
+        <dl className="min-w-0 flex-1 space-y-2.5">
+          {grupos.map((grupo) => (
+            <div key={`${grupo.movimento}-${grupo.rotulo}`} className="flex items-center justify-between gap-3 text-[12px]">
+              <dt className="flex min-w-0 items-center gap-2 text-ink-muted">
+                <span aria-hidden className="size-2.5 shrink-0 rounded-full" style={{ background: COR_ANEL[grupo.movimento] }} />
+                <span className="truncate">{grupo.rotulo}</span>
+              </dt>
+              <dd className="num shrink-0 font-semibold text-ink-strong">{formatarRealComSinal(grupo.valor)}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </Panel>
+  )
+}
+
+/** Barra de progresso (realizado sobre previsto). */
+export function BarraProgresso({ valor, rotulo }: { valor: number; rotulo: string }) {
+  const largura = Math.max(0, Math.min(100, valor))
+  return (
+    <div role="progressbar" aria-label={rotulo} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(largura)} className="h-2 w-full overflow-hidden rounded-full bg-surface-sunken">
+      <span className="block h-full rounded-full bg-[linear-gradient(90deg,var(--verde-institucional),var(--verde-claro))] transition-[width] duration-500" style={{ width: `${largura}%` }} />
+    </div>
+  )
+}
+
+/** Pílula de estado do movimento. */
+export function Selo({ movimento }: { movimento: MovementLabel }) {
+  return <span className={`revenue-pill tone-${MOVIMENTO[movimento].tom}`}>{movimento}</span>
+}
+
+/** Anel de participação (61% etc.), com o valor no centro. */
+export function Donut({ valor, rotulo, tom = 'marca' }: { valor: number; rotulo: string; tom?: Tom }) {
+  const graus = Math.max(0, Math.min(100, valor)) * 3.6
+  return (
+    <span aria-hidden className={`revenue-donut tone-${tom}`} style={{ ['--donut' as string]: `${graus}deg` }}>
+      <span>
+        <strong className="num block text-[17px] font-bold leading-none text-ink-strong">{Math.round(valor)}%</strong>
+        <small className="mt-1 block text-[9.5px] text-ink-muted">{rotulo}</small>
+      </span>
+    </span>
+  )
+}
+
+/** Lista de barras horizontais: etapa, fase ou filial com valor proporcional. */
+export function BarList({ itens, vazio }: {
+  itens: Array<{ rotulo: string; valor: string; proporcao: number }>
+  vazio: string
+}) {
+  if (itens.length === 0) return <p className="text-[12px] text-ink-muted">{vazio}</p>
+  return (
+    <ul className="revenue-bar-list">
+      {itens.map(item => (
+        <li key={item.rotulo}>
+          <span className="truncate font-medium text-ink-strong" title={item.rotulo}>{item.rotulo}</span>
+          <i aria-hidden><em style={{ width: `${Math.round(Math.max(0, Math.min(1, item.proporcao)) * 100)}%` }} /></i>
+          <span className="num text-right text-ink-muted">{item.valor}</span>
+        </li>
+      ))}
+    </ul>
+  )
+}

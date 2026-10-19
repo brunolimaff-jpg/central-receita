@@ -1,0 +1,257 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "ab5c2e07-7f47-4504-9dd1-96b8dee74921",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "import_chunks": {
+      "name": "import_chunks",
+      "columns": {
+        "revision": {
+          "name": "revision",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "chunk_index": {
+          "name": "chunk_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "record_count": {
+          "name": "record_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "records_json": {
+          "name": "records_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "import_chunks_revision_import_versions_revision_fk": {
+          "name": "import_chunks_revision_import_versions_revision_fk",
+          "tableFrom": "import_chunks",
+          "tableTo": "import_versions",
+          "columnsFrom": [
+            "revision"
+          ],
+          "columnsTo": [
+            "revision"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "import_chunks_revision_kind_chunk_index_pk": {
+          "columns": [
+            "revision",
+            "kind",
+            "chunk_index"
+          ],
+          "name": "import_chunks_revision_kind_chunk_index_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "import_chunks_kind_check": {
+          "name": "import_chunks_kind_check",
+          "value": "\"import_chunks\".\"kind\" IN ('opportunities', 'orders')"
+        },
+        "import_chunks_index_check": {
+          "name": "import_chunks_index_check",
+          "value": "\"import_chunks\".\"chunk_index\" >= 0"
+        },
+        "import_chunks_record_count_check": {
+          "name": "import_chunks_record_count_check",
+          "value": "\"import_chunks\".\"record_count\" > 0"
+        },
+        "import_chunks_records_size_check": {
+          "name": "import_chunks_records_size_check",
+          "value": "length(CAST(\"import_chunks\".\"records_json\" AS BLOB)) <= 800000"
+        }
+      }
+    },
+    "import_current": {
+      "name": "import_current",
+      "columns": {
+        "singleton_id": {
+          "name": "singleton_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "revision": {
+          "name": "revision",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "import_current_revision_import_versions_revision_fk": {
+          "name": "import_current_revision_import_versions_revision_fk",
+          "tableFrom": "import_current",
+          "tableTo": "import_versions",
+          "columnsFrom": [
+            "revision"
+          ],
+          "columnsTo": [
+            "revision"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "import_current_singleton_check": {
+          "name": "import_current_singleton_check",
+          "value": "\"import_current\".\"singleton_id\" = 1"
+        }
+      }
+    },
+    "import_versions": {
+      "name": "import_versions",
+      "columns": {
+        "sequence": {
+          "name": "sequence",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "revision": {
+          "name": "revision",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "previous_revision": {
+          "name": "previous_revision",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "reference_date": {
+          "name": "reference_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "saved_at": {
+          "name": "saved_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_id": {
+          "name": "actor_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sources_json": {
+          "name": "sources_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workspace_json": {
+          "name": "workspace_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "opportunities_chunk_count": {
+          "name": "opportunities_chunk_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "orders_chunk_count": {
+          "name": "orders_chunk_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "import_versions_revision_unique": {
+          "name": "import_versions_revision_unique",
+          "columns": [
+            "revision"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "import_versions_previous_revision_import_versions_revision_fk": {
+          "name": "import_versions_previous_revision_import_versions_revision_fk",
+          "tableFrom": "import_versions",
+          "tableTo": "import_versions",
+          "columnsFrom": [
+            "previous_revision"
+          ],
+          "columnsTo": [
+            "revision"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "import_versions_opportunities_chunk_count_check": {
+          "name": "import_versions_opportunities_chunk_count_check",
+          "value": "\"import_versions\".\"opportunities_chunk_count\" >= 0"
+        },
+        "import_versions_orders_chunk_count_check": {
+          "name": "import_versions_orders_chunk_count_check",
+          "value": "\"import_versions\".\"orders_chunk_count\" >= 0"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

@@ -12,7 +12,7 @@ import type { KpiKey } from './model'
 import { AGENT_DEMO_FOOTER, AGENT_DEMO_SNAPSHOT } from './demo-display'
 
 export const HOME_COPY = {
-  greeting: 'Bom dia, Giovanne',
+  greeting: 'Visão Executiva',
   greetingEmoji: '👋',
   briefingTitle: 'Briefing de hoje',
   briefingSubtitle: 'Principais movimentos e sinais do período.',
@@ -39,6 +39,7 @@ export const VIEW_LABELS: Record<CommercialView, string> = {
   cross: 'Cross',
   branch: 'Filiais',
   opportunity: 'Oportunidade',
+  config: 'Configurações',
 }
 
 export const PERIOD_LABELS: Record<CommercialPeriod, string> = {
@@ -63,6 +64,7 @@ export const VOLTAR_POR_ORIGEM: Record<CommercialView, string> = {
   cross: 'Voltar ao Cross',
   branch: 'Voltar à filial',
   opportunity: 'Voltar à visão executiva',
+  config: 'Voltar às configurações',
 }
 
 export const FILTER_LABELS = {
@@ -89,7 +91,7 @@ export const MOVIMENTO_FRASES: Record<string, string> = {
 
 export const AGENTE_COPY = {
   titulo: 'Agente Comercial',
-  saudacao: 'Bom dia, Giovanne.',
+  saudacao: 'Olá. Vamos analisar o cenário demonstrativo.',
   cargo: 'Diretoria Comercial',
   entrada: 'Pergunte sobre o mês, uma filial ou uma conta.',
   acompanhando: 'Filiais que estou acompanhando para você',

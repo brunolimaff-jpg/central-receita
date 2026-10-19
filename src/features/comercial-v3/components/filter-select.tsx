@@ -18,12 +18,12 @@ type FilterSelectProps = {
 
 export function FilterSelect({ label, value, options, onChange }: FilterSelectProps) {
   return (
-    <span className="relative inline-flex items-center">
+    <span className="revenue-control relative inline-flex h-11 shrink-0 items-center rounded-[14px]">
       <select
         aria-label={label}
         value={value}
         onChange={(evento) => onChange(evento.target.value)}
-        className="h-[38px] w-full min-w-[140px] appearance-none rounded-[9px] border border-[#dfe8ef] bg-white pl-3 pr-9 text-[13px] text-[#30445e] transition-premium hover:border-[#c3d3dd] hover:bg-[#f8fbfd] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b]"
+        className="h-11 w-full min-w-[148px] appearance-none cursor-pointer rounded-[14px] border-0 bg-transparent pl-3.5 pr-9 text-[13px] font-semibold text-ink-strong outline-none transition-premium hover:bg-surface-sunken"
       >
         {options.map((opcao) => (
           <option key={opcao.value} value={opcao.value}>
@@ -33,7 +33,7 @@ export function FilterSelect({ label, value, options, onChange }: FilterSelectPr
       </select>
       <ChevronDown
         aria-hidden
-        className="pointer-events-none absolute right-3 h-4 w-4 text-[#607389]"
+        className="pointer-events-none absolute right-3 h-4 w-4 text-ink-muted"
         strokeWidth={1.8}
       />
     </span>

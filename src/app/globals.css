@@ -8,19 +8,28 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-public-sans), "Segoe UI", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
+
+  /* Semânticos da Central: os componentes usam estas classes, nunca hex solto. */
+  --color-ink-strong: var(--ink-strong);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-hairline: var(--hairline);
+  --color-hairline-suave: var(--hairline-suave);
+  --color-surface-base: var(--surface-base);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-brand: var(--verde-institucional);
+  --color-brand-medio: var(--verde-medio);
+  --color-brand-escuro: var(--verde-escuro);
+  --color-dado-positivo: var(--dado-positivo);
+  --color-dado-positivo-suave: var(--dado-positivo-suave);
+  --color-dado-negativo: var(--dado-negativo);
+  --color-dado-negativo-suave: var(--dado-negativo-suave);
+  --color-dado-atencao: var(--dado-atencao);
+  --color-dado-atencao-suave: var(--dado-atencao-suave);
+  --color-dado-info: var(--dado-info);
+  --color-dado-info-suave: var(--dado-info-suave);
+
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -43,60 +52,116 @@
   --radius-xl: calc(var(--radius) + 0.35rem);
 }
 
+/*
+ * Central de Receita — camada de tokens.
+ *
+ * Paleta: Senior Design System (brandcenter.senior.com.br). Regra de uso:
+ * componente consome token semântico, nunca hex solto. Verde predomina;
+ * laranja é conversão; azul-escuro é texto; Public Sans em tudo.
+ */
 :root {
   color-scheme: light;
-  --radius: 0.7rem;
+  --radius: 0.625rem;
 
-  /* Senior Brandcenter: #00968C is Verde Institucional. */
-  --senior-emerald: #00968c;
-  --senior-emerald-hover: #086b6b;
-  --senior-emerald-soft: color-mix(in srgb, var(--senior-emerald) 8%, white);
-  --senior-emerald-glass: rgb(0 150 140 / 11%);
-  --attention-amber: #8a5a00;
-  --attention-amber-soft: #fff3d6;
-  --critical-red: #b42318;
-  --critical-red-soft: #fcebea;
-  --success-green: #086b6b;
-  --success-green-soft: #e5f2ef;
-  --ink-primary: #202927;
-  --ink-secondary: #4b5753;
-  --surface-base: #f6f9fe;
-  --surface-raised: #ffffff;
-  --surface-glass: rgb(255 255 255 / 94%);
-  --hairline: #d4d4d4;
+  /* ---------- Paleta oficial ---------- */
+  --verde-institucional: #00968c;
+  --verde-medio: #00af9b;
+  --verde-claro: #2ac4aa;
+  --verde-escuro: #086b6b;
+  --verde-neon: #12f7d1;
+  --laranja: #ef8833;
+  --laranja-hover: #ae6229;
+  --amarelo: #ffc511;
+  --roxo: #844ec3;
+  --pink: #ff0069;
+  --azul-escuro: #33466c;
+  --azul-medio: #8ea0c5;
+  --azul-claro: #bdc6e3;
+  --cinza-azulado: #f6f9fe;
+  --cinza-900: #3b3d3d;
+  --cinza-600: #77736e;
+  --cinza-400: #9c9c9c;
+  --cinza-300: #d4d4d4;
+  --cinza-100: #f2f2f2;
+  --branco: #ffffff;
 
+  /*
+   * ---------- Escala de tinta e superfície ----------
+   *
+   * Contraste medido sobre o vidro (≈ branco), mínimo exigido AA = 4,5:1:
+   *   ink-strong  azul-escuro oficial      9,2:1
+   *   ink-muted   cinza-600 oficial        4,6:1  ← piso do texto pequeno
+   *   ink-subtle  cinza-600 (ver nota)     4,6:1
+   *
+   * `ink-subtle` NÃO usa `--azul-medio` oficial (#8EA0C5), que mede 2,6:1 e
+   * reprova o AA para texto. Aqui ele é um cinza um passo mais claro que o
+   * muted, ainda dentro do cinza oficial. Ícone decorativo pode usar
+   * `--azul-medio` direto, porque não carrega informação.
+   */
+  --ink-strong: var(--azul-escuro);
+  --ink-muted: var(--cinza-600);
+  --ink-subtle: #6f6b66;
+  --hairline: var(--cinza-300);
+  --hairline-suave: var(--cinza-100);
+  --surface-base: var(--cinza-azulado);
+  --surface-raised: var(--branco);
+  --surface-sunken: var(--cinza-100);
+
+  /*
+   * ---------- Semântica de dado ----------
+   *
+   * O design system cobre marca e conversão; não define cores de estado de dado
+   * (ganho, perda, atenção, informação), que um painel financeiro precisa. As
+   * famílias abaixo derivam da paleta oficial onde ela oferece matiz com
+   * contraste AA sobre branco:
+   *
+   *   positivo   verde-escuro oficial      5,4:1
+   *   atenção    laranja-hover oficial     4,6:1
+   *   informação azul-escuro oficial       8,6:1
+   *   negativo   vermelho de dado          6,5:1  ← única extensão, ver nota
+   *
+   * A paleta oficial não tem vermelho. `--dado-negativo` é a única extensão:
+   * vermelho sóbrio e acessível, reservado a perda e queda. Decisão pendente
+   * com os Guardiões do sistema e o Branding.
+   */
+  --dado-positivo: var(--verde-escuro);
+  --dado-positivo-suave: #e3f3f0;
+  --dado-negativo: #b42318;
+  --dado-negativo-suave: #fcebea;
+  --dado-atencao: var(--laranja-hover);
+  --dado-atencao-suave: #fff4db;
+  --dado-info: var(--azul-escuro);
+  --dado-info-suave: #eaf2fb;
+
+  /* ---------- Superfície de vidro (glassmorphism) ---------- */
+  --vidro: rgb(255 255 255 / 86%);
+  --vidro-forte: rgb(255 255 255 / 94%);
+  --vidro-borda: rgb(255 255 255 / 82%);
+  --vidro-borda-suave: rgb(14 63 88 / 10%);
+  --vidro-sombra: 0 18px 60px -28px rgb(23 79 73 / 26%);
+  --vidro-brilho: inset 0 1px 0 rgb(255 255 255 / 90%);
+
+  --sombra-painel: 0 1px 2px rgb(51 70 108 / 6%), 0 1px 3px rgb(51 70 108 / 4%);
+
+  /* ---------- Mapeamento para o tema do Tailwind ---------- */
   --background: var(--surface-base);
-  --foreground: var(--ink-primary);
+  --foreground: var(--ink-strong);
   --card: var(--surface-raised);
-  --card-foreground: var(--ink-primary);
-  --popover: #ffffff;
-  --popover-foreground: var(--ink-primary);
-  --primary: var(--senior-emerald-hover);
-  --primary-foreground: #ffffff;
-  --secondary: #edf2f3;
-  --secondary-foreground: #394542;
-  --muted: #eef2f4;
-  --muted-foreground: var(--ink-secondary);
-  --accent: var(--senior-emerald-soft);
-  --accent-foreground: var(--senior-emerald-hover);
-  --destructive: var(--critical-red);
-  --border: #d7dfe0;
-  --input: #bec9c9;
-  --ring: var(--senior-emerald-hover);
-  --chart-1: var(--senior-emerald);
-  --chart-2: #33466c;
-  --chart-3: #8ea0c5;
-  --chart-4: var(--attention-amber);
-  --chart-5: var(--critical-red);
-  /* Dark chrome matches the light labels already used by the navigation. */
-  --sidebar: #132320;
-  --sidebar-foreground: #f4f7f6;
-  --sidebar-primary: #34d399;
-  --sidebar-primary-foreground: #081913;
-  --sidebar-accent: #1d3833;
-  --sidebar-accent-foreground: #fafaf9;
-  --sidebar-border: #304944;
-  --sidebar-ring: #34d399;
+  --card-foreground: var(--ink-strong);
+  --popover: var(--branco);
+  --popover-foreground: var(--ink-strong);
+  --primary: var(--verde-escuro);
+  --primary-foreground: var(--branco);
+  --secondary: var(--cinza-100);
+  --secondary-foreground: var(--azul-escuro);
+  --muted: var(--cinza-100);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--dado-positivo-suave);
+  --accent-foreground: var(--verde-escuro);
+  --destructive: var(--dado-negativo);
+  --border: var(--hairline);
+  --input: var(--azul-claro);
+  --ring: var(--verde-escuro);
 }
 
 @layer base {
@@ -125,7 +190,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--senior-emerald-hover);
+    outline: 2px solid var(--verde-escuro);
     outline-offset: 2px;
   }
 }
@@ -133,7 +198,7 @@
 @layer utilities {
   .scroll-discreta {
     scrollbar-width: thin;
-    scrollbar-color: #b7c2c3 transparent;
+    scrollbar-color: var(--azul-medio) transparent;
   }
 
   .scroll-discreta::-webkit-scrollbar {
@@ -146,137 +211,8 @@
   }
 
   .scroll-discreta::-webkit-scrollbar-thumb {
-    background-color: #b7c2c3;
+    background-color: var(--azul-medio);
     border-radius: 8px;
-  }
-
-  .chrome-glass,
-  .revenue-app .revenue-panel {
-    background: var(--surface-glass);
-    border: 1px solid rgb(255 255 255 / 82%);
-    box-shadow: 0 10px 30px rgb(25 54 49 / 8%), inset 0 1px 0 rgb(255 255 255 / 90%);
-    -webkit-backdrop-filter: blur(18px) saturate(1.08);
-    backdrop-filter: blur(18px) saturate(1.08);
-  }
-
-  .revenue-app .revenue-panel {
-    border-radius: 16px;
-  }
-
-  .revenue-app .revenue-page {
-    display: grid;
-    gap: 14px;
-    min-width: 0;
-  }
-
-  .revenue-app .revenue-heading {
-    margin: 0;
-    color: #0d2340;
-    font-size: 32px;
-    font-weight: 700;
-    line-height: 1.12;
-    letter-spacing: -0.04em;
-  }
-
-  .revenue-app .revenue-subtitle {
-    margin: 6px 0 0;
-    color: #50647d;
-    font-size: 14px;
-    line-height: 1.45;
-  }
-
-  .revenue-background {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    background:
-      linear-gradient(90deg, rgb(245 250 251 / 88%), rgb(247 250 251 / 70%) 48%, rgb(246 250 250 / 82%)),
-      linear-gradient(0deg, rgb(246 249 251 / 76%), rgb(255 255 255 / 22%) 52%, rgb(244 249 250 / 42%)),
-      url("/revenue/senior-hq.jpeg") center 38% / cover no-repeat;
-  }
-
-  .revenue-app .revenue-sidebar {
-    position: sticky;
-    top: 18px;
-    z-index: 20;
-    display: flex;
-    height: calc(100dvh - 36px);
-    min-height: 440px;
-    flex-direction: column;
-    overflow: hidden;
-    border-radius: 17px;
-    background: rgb(255 255 255 / 90%);
-    padding: 17px 11px 13px;
-    box-shadow: 0 12px 40px rgb(40 71 83 / 10%), inset 0 1px 0 rgb(255 255 255 / 92%);
-    -webkit-backdrop-filter: blur(16px) saturate(1.08);
-    backdrop-filter: blur(16px) saturate(1.08);
-  }
-
-  .revenue-app .revenue-topbar {
-    position: sticky;
-    top: 18px;
-    z-index: 30;
-    display: flex;
-    min-height: 44px;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  .revenue-app .revenue-control {
-    border: 1px solid rgb(255 255 255 / 88%);
-    background: rgb(255 255 255 / 88%);
-    box-shadow: 0 6px 18px rgb(45 74 83 / 7%), inset 0 1px 0 rgb(255 255 255 / 95%);
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
-  }
-
-  @media (min-width: 1280px) {
-    .revenue-app .revenue-overview-kpis {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
-    }
-
-    .revenue-app .revenue-overview-kpi-card {
-      min-height: 104px;
-      gap: 7px;
-      padding: 8px;
-    }
-
-    .revenue-app .revenue-overview-kpi-icon {
-      width: 28px;
-      height: 28px;
-    }
-
-    .revenue-app .revenue-overview-kpi-value {
-      font-size: 23px;
-    }
-  }
-
-  @media (min-width: 1550px) {
-    .revenue-app .revenue-overview-kpi-card {
-      gap: 11px;
-      padding: 12px;
-    }
-
-    .revenue-app .revenue-overview-kpi-icon {
-      width: 40px;
-      height: 40px;
-    }
-
-    .revenue-app .revenue-overview-kpi-value {
-      font-size: 23px;
-    }
-  }
-
-  .chrome-glass--emerald {
-    background: color-mix(in srgb, var(--surface-glass) 88%, var(--senior-emerald-glass));
-    border-color: rgb(0 150 140 / 18%);
-  }
-
-  .surface-solid {
-    background: var(--surface-raised);
-    border: 1px solid var(--hairline);
   }
 
   .num {
@@ -285,7 +221,7 @@
   }
 
   .kicker {
-    color: var(--ink-secondary);
+    color: var(--ink-muted);
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.01em;
@@ -296,89 +232,463 @@
     transition-duration: 180ms;
     transition-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
   }
+}
 
-  @keyframes revenue-view-enter {
-    from { opacity: 0.82; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
+/*
+ * ============================================================================
+ * Camada de composição do painel
+ *
+ * Linguagem aprovada: fundo da sede com véu claro, superfícies de vidro,
+ * cartões com mini-gráfico e faixa de tom, tabelas com pílulas de movimento.
+ * Tudo preso aos tokens acima.
+ * ============================================================================
+ */
+@layer components {
+  .revenue-app {
+    position: relative;
+    min-height: 100dvh;
+    display: grid;
+    grid-template-columns: 208px minmax(0, 1fr);
+    gap: 22px;
+    padding: 18px;
+    overflow-x: clip;
   }
 
-  .message-enter {
-    animation: message-enter 160ms cubic-bezier(0.2, 0, 0, 1) both;
+  /*
+   * Fundo institucional: foto da sede sob véu claro, dessaturada.
+   * O véu é forte o bastante para o texto de 11px manter contraste AA sobre
+   * qualquer região da foto; a foto permanece como textura, não como imagem.
+   */
+  .revenue-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+      linear-gradient(90deg, rgb(242 250 248 / 96%), rgb(246 251 250 / 93%) 42%, rgb(242 250 248 / 95%)),
+      url('/revenue/senior-hq.jpeg') center / cover no-repeat;
+    filter: saturate(0.8);
   }
 
-  @keyframes message-enter {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
+
+  .vidro,
+  .vidro-forte {
+    background: var(--vidro);
+    border: 1px solid var(--vidro-borda);
+    box-shadow: var(--vidro-sombra), var(--vidro-brilho);
+    -webkit-backdrop-filter: blur(18px) saturate(118%);
+    backdrop-filter: blur(18px) saturate(118%);
   }
 
-  /* Entrada das mensagens do agente V3: 220ms, só transform/opacity, dentro da
-     faixa de 180-280ms do plano (05:33). O bloco prefers-reduced-motion acima
-     já neutraliza a duração para quem pede menos movimento. */
-  .drill-enter {
-    animation: drill-enter 220ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  .vidro-forte {
+    background: var(--vidro-forte);
   }
 
-  @keyframes drill-enter {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
+  /* ---------- Sidebar ---------- */
+  .revenue-app .revenue-sidebar {
+    position: sticky;
+    top: 18px;
+    z-index: 3;
+    display: flex;
+    height: calc(100dvh - 36px);
+    min-height: 440px;
+    flex-direction: column;
+    overflow: hidden auto;
+    border-radius: 22px;
+    padding: 18px 12px;
+  }
+
+  .revenue-app .revenue-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-height: 42px;
+    padding: 0 12px;
+    border-radius: 12px;
+    color: var(--azul-escuro);
+    font-size: 13.5px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s, color 0.25s;
+  }
+
+  .revenue-app .revenue-nav-item:hover {
+    background: rgb(0 150 140 / 7%);
+    transform: translateX(2px);
+  }
+
+  .revenue-app .revenue-nav-item[aria-current] {
+    color: var(--verde-escuro);
+    background: rgb(0 150 140 / 11%);
+    font-weight: 700;
+    box-shadow: inset 3px 0 0 var(--verde-institucional);
+  }
+
+  /* ---------- Cabeçalho ---------- */
+  .revenue-app .revenue-control {
+    border: 1px solid var(--vidro-borda);
+    background: var(--vidro);
+    box-shadow: var(--vidro-sombra), var(--vidro-brilho);
+    -webkit-backdrop-filter: blur(18px) saturate(118%);
+    backdrop-filter: blur(18px) saturate(118%);
+  }
+
+  /* ---------- Painel ---------- */
+  .revenue-app .revenue-panel {
+    min-width: 0;
+    border-radius: 18px;
+    padding: 16px 18px;
+  }
+
+  /* ---------- Cabeçalho de página das telas internas ---------- */
+  .revenue-app .revenue-page {
+    display: grid;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .revenue-app .revenue-heading {
+    margin: 0;
+    color: var(--ink-strong);
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+  }
+
+  .revenue-app .revenue-subtitle {
+    margin: 4px 0 0;
+    color: var(--ink-muted);
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .revenue-app .revenue-topbar {
+    position: relative;
+    min-height: 44px;
+  }
+
+  /* Superfície sólida, sem véu: usada onde o vidro atrapalharia a leitura. */
+  .revenue-app .surface-solid {
+    background: var(--surface-raised);
+    border: 1px solid var(--hairline);
+  }
+
+  .revenue-app .chrome-glass {
+    background: var(--vidro);
+    border: 1px solid var(--vidro-borda);
+    box-shadow: var(--vidro-sombra), var(--vidro-brilho);
+    -webkit-backdrop-filter: blur(18px) saturate(118%);
+    backdrop-filter: blur(18px) saturate(118%);
+  }
+
+  .revenue-app .chrome-glass--emerald {
+    background: color-mix(in srgb, var(--vidro) 88%, rgb(0 150 140 / 11%));
+    border-color: rgb(0 150 140 / 18%);
+  }
+
+  /* Faixa compacta de indicadores usada pelas telas internas. */
+  .revenue-app .revenue-overview-kpis {
+    display: grid;
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .revenue-app .revenue-overview-kpi-card {
+    position: relative;
+    display: flex;
+    min-height: 96px;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+    border-radius: 16px;
+    padding: 10px;
+  }
+
+  .revenue-app .revenue-overview-kpi-icon {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border-radius: 10px;
+  }
+
+  .revenue-app .revenue-overview-kpi-value {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+  }
+
+  /* ---------- Cartão de indicador ---------- */
+  /*
+   * Sem a terceira coluna do mini-gráfico: ele era decorativo e sugeria uma
+   * tendência que a carga não tem. O número ganhou a largura e não trunca mais.
+   */
+  .revenue-app .revenue-metric {
+    position: relative;
+    display: grid;
+    grid-template-columns: 10px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    min-height: 96px;
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+
+  .revenue-app .revenue-metric-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--tom, var(--verde-institucional));
+  }
+
+  .revenue-app .revenue-metric-value {
+    display: block;
+    margin: 5px 0 4px;
+    font-size: 23px;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+  }
+
+  .revenue-app .revenue-metric-label {
+    color: var(--azul-escuro);
+    font-size: 13px;
+  }
+
+  .revenue-app .revenue-metric-note {
+    color: var(--tom, var(--verde-institucional));
+    font-size: 11.5px;
+    font-weight: 700;
+  }
+
+
+  /*
+   * Faixas de tom: mudam só a variável --tom consumida pelos filhos.
+   * O nome é `tone-*` porque é o que os componentes usam; manter igual ao JSX
+   * evita classe morta, que falha em silêncio e pinta perda com a cor de ganho.
+   */
+  .revenue-app .tone-marca { --tom: var(--verde-institucional); }
+  .revenue-app .tone-positivo { --tom: var(--dado-positivo); }
+  .revenue-app .tone-info { --tom: var(--dado-info); }
+  .revenue-app .tone-atencao { --tom: var(--dado-atencao); }
+  .revenue-app .tone-negativo { --tom: var(--dado-negativo); }
+
+  /* ---------- Cartão de destaque (briefing, atalhos) ---------- */
+  .revenue-app .revenue-brief {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    min-height: 66px;
+    padding: 9px 10px;
+    border: 1px solid var(--vidro-borda-suave);
+    border-radius: 14px;
+    background: rgb(255 255 255 / 65%);
+    text-align: left;
+  }
+
+  .revenue-app .revenue-brief-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--tom, var(--verde-institucional)) 13%, white);
+    color: var(--tom, var(--verde-institucional));
+  }
+
+  /* ---------- Tabela ---------- */
+  .revenue-app .revenue-table {
+    overflow: auto;
+  }
+
+  .revenue-app .revenue-table table {
+    width: 100%;
+    min-width: 920px;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+
+  .revenue-app .revenue-table th {
+    padding: 8px 10px;
+    border-radius: 9px;
+    background: rgb(229 239 245 / 72%);
+    color: var(--azul-escuro);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-align: left;
+  }
+
+  .revenue-app .revenue-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid rgb(25 59 80 / 8%);
+    white-space: nowrap;
+  }
+
+  .revenue-app .revenue-table tbody tr:hover {
+    background: rgb(0 150 140 / 4%);
+  }
+
+  /* ---------- Pílula de estado ---------- */
+  .revenue-app .revenue-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 4px 9px;
+    background: color-mix(in srgb, var(--tom, var(--verde-institucional)) 12%, white);
+    color: color-mix(in srgb, var(--tom, var(--verde-institucional)) 88%, var(--cinza-900));
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  /* ---------- Lista de barras (etapas, fases, filiais) ---------- */
+  .revenue-app .revenue-bar-list {
+    display: grid;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+  }
+
+  .revenue-app .revenue-bar-list > li {
+    display: grid;
+    grid-template-columns: minmax(0, 168px) 1fr auto;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+  }
+
+  .revenue-app .revenue-bar-list i {
+    height: 9px;
+    border-radius: 999px;
+    background: var(--surface-sunken);
+    overflow: hidden;
+  }
+
+  .revenue-app .revenue-bar-list em {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--verde-institucional), var(--verde-claro));
+  }
+
+  /* ---------- Anel / donut ---------- */
+  .revenue-app .revenue-donut {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 96px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: conic-gradient(var(--verde-institucional) var(--donut, 0deg), var(--surface-sunken) 0);
+    flex: 0 0 auto;
+  }
+
+  .revenue-app .revenue-donut::before {
+    content: "";
+    position: absolute;
+    inset: 10px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 95%);
+  }
+
+  .revenue-app .revenue-donut > span {
+    position: relative;
+    text-align: center;
   }
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  .chrome-glass,
-  .chrome-glass--emerald,
-  .revenue-app .revenue-panel,
-  .revenue-app .revenue-sidebar,
+  .vidro,
+  .vidro-forte,
   .revenue-app .revenue-control,
-  .revenue-home-glass {
-    background: #ffffff;
+  .revenue-app .revenue-sidebar {
+    background: var(--surface-raised);
     border-color: var(--hairline);
-    box-shadow: none;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
 
-  .revenue-home-accent {
+  .revenue-bg {
+    background: var(--surface-base);
+    filter: none;
+  }
+}
+
+@media (max-width: 1180px) {
+  .revenue-app {
+    grid-template-columns: 84px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .revenue-app .revenue-sidebar {
+    padding-inline: 9px;
+  }
+
+  .revenue-app .revenue-sidebar .revenue-nav-rotulo,
+  .revenue-app .revenue-sidebar .revenue-marca-texto {
+    display: none;
+  }
+
+  .revenue-app .revenue-nav-item {
+    justify-content: center;
+    padding: 0;
+  }
+}
+
+@media (max-width: 780px) {
+  .revenue-app {
+    display: block;
+    padding: 10px;
+  }
+
+  .revenue-app .revenue-sidebar {
+    position: fixed;
+    inset: auto 10px 10px;
+    z-index: 30;
+    height: 62px;
+    min-height: 0;
+    flex-direction: row;
+    align-items: center;
+    padding: 6px 8px;
+  }
+
+  .revenue-app .revenue-sidebar nav {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    width: 100%;
+    gap: 4px;
+    overflow: visible;
+  }
+
+  .revenue-app .revenue-nav-item {
+    justify-content: center;
+    min-height: 48px;
+  }
+
+  .revenue-app .revenue-sidebar > a:first-child,
+  .revenue-app .revenue-sidebar > p {
+    display: none;
+  }
+
+  .revenue-app .revenue-nav-item:nth-child(n + 5) {
     display: none;
   }
 }
 
-@media (max-width: 1023px) {
-  .revenue-app .revenue-sidebar {
-    position: static;
-    top: auto;
-    height: auto;
-    min-height: 0;
-    padding: 10px 12px;
-  }
-}
-
-.revenue-app :is(a[href], button:not(:disabled):not([aria-disabled="true"]), summary, select):focus-visible {
-  outline: 2px solid var(--senior-emerald-hover);
-  outline-offset: 2px;
-}
-
 @media (prefers-reduced-motion: no-preference) {
   .revenue-app :is(a[href], button:not(:disabled):not([aria-disabled="true"]), summary, select) {
-    transition-property: color, background-color, border-color, box-shadow, filter, scale, transform, opacity, text-decoration-color;
+    transition-property: color, background-color, border-color, box-shadow, transform, opacity;
     transition-duration: 160ms;
     transition-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
   }
 
-  .revenue-app :is(a[href], button:not(:disabled):not([aria-disabled="true"]), summary, select):hover {
-    filter: brightness(0.985);
+  .revenue-app .revenue-control:hover {
+    transform: translateY(-1px);
   }
 
-  .revenue-app :is(a[href], button:not(:disabled):not([aria-disabled="true"]), summary):active {
-    scale: 0.99;
-  }
-
-  .revenue-app main > :first-child {
-    animation: revenue-view-enter 180ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  }
-
-  .revenue-app .opportunities-stage-fill {
-    transition: width 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  .revenue-app .revenue-control:active {
+    transform: translateY(1px) scale(0.99);
   }
 }
 

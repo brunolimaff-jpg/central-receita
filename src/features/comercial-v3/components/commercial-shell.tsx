@@ -1,5 +1,5 @@
-import { CommercialHeader } from './commercial-header'
-import { CommercialSidebar } from './commercial-sidebar'
+import { CommercialSidebar, CommercialTopbar } from './commercial-sidebar'
+import { sharedImportEnabled } from '../manual-import-client'
 import type { CommercialNav } from '../nav'
 import type { CommercialPeriod, CommercialView } from '../types'
 
@@ -15,8 +15,16 @@ type CommercialShellProps = {
   from?: CommercialView
   nav: CommercialNav
   children: React.ReactNode
+  importPreview?: boolean
+  executiveMode?: boolean
+  dataCarga?: string | null
 }
 
+/**
+ * Shell do painel: fundo da sede sob véu, sidebar de vidro à esquerda e o
+ * conteúdo à direita. O cabeçalho aparece nas telas internas; a Visão Executiva
+ * traz a própria saudação no corpo da página.
+ */
 export function CommercialShell({
   view,
   period,
@@ -29,15 +37,22 @@ export function CommercialShell({
   from,
   nav,
   children,
+  importPreview = false,
+  executiveMode = false,
+  dataCarga = null,
 }: CommercialShellProps) {
   return (
-    <div className="revenue-app relative isolate min-h-dvh overflow-x-clip text-[#0d2340]">
-      <div aria-hidden className="revenue-background" />
-      <div className="relative z-10 mx-auto grid min-h-dvh max-w-[1920px] gap-4 px-3 py-3 sm:px-4 sm:py-4 lg:grid-cols-[172px_minmax(0,1fr)] lg:gap-5 lg:px-5 lg:py-[18px]">
-        <CommercialSidebar view={view} from={from} nav={nav} />
+    <div className="revenue-app">
+      <div aria-hidden className="revenue-bg" />
+      <CommercialSidebar view={executiveMode ? 'home' : view} from={from} nav={nav} importPreview={importPreview} dataCarga={dataCarga} paginaCorrida={executiveMode} />
 
-        <div className="min-w-0">
-          <CommercialHeader
+      <div className="relative z-[2] min-w-0">
+        {view === 'config' ? (
+          <header className="revenue-control mb-4 rounded-[14px] px-4 py-3 text-[13px] text-ink-muted">
+            Importação manual · {sharedImportEnabled ? 'dados compartilhados de' : 'piloto local de'} New Name e Forecast
+          </header>
+        ) : executiveMode ? null : (
+          <CommercialTopbar
             view={view}
             period={period}
             solution={solution}
@@ -48,10 +63,10 @@ export function CommercialShell({
             branches={branches}
             nav={nav}
           />
-          <main className="mx-auto w-full max-w-[1500px] min-w-0 pb-10 pt-2 lg:pt-[34px]">
-            {children}
-          </main>
-        </div>
+        )}
+        <main className="mx-auto w-full max-w-[1500px] min-w-0 pb-24 pt-4 lg:pb-10 lg:pt-[18px]">
+          {children}
+        </main>
       </div>
     </div>
   )
