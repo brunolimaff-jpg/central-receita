@@ -351,7 +351,7 @@ export function CommercialV3App() {
         </summary>
         <p className="mt-1 max-w-[1000px]">
           {period === 'month'
-            ? 'Agregados de 22 filiais reais de setembro/2026; realizado representa pedidos integrados. KPIs, oportunidades, gráficos e detalhes por filial usam o cenário demonstrativo local. A carteira mock não representa a distribuição real por filial.'
+            ? 'Agregados de 22 filiais reais de setembro/2026; o realizado de vendas representa pedidos integrados. KPIs, oportunidades, gráficos e detalhes por filial usam o cenário demonstrativo local. A carteira mock não representa a distribuição real por filial.'
             : 'Este período usa dados demonstrativos. Os agregados reais de filial estão disponíveis apenas na Visão Comercial e no Sistema de Receita para setembro/2026.'}
           {' '}Contas e oportunidades usam exemplos demonstrativos; o recorte da carteira acompanha período, solução e filial.
         </p>

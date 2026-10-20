@@ -7,7 +7,7 @@ Data: 16/10/2026. Fontes: mapeamento do Microsoft Copilot sobre documentos e reu
 | Estado | Regra |
 |---|---|
 | Congelada | Estava no forecast oficial capturado no início do mês. Fotografia imutável; a carga diária nunca reescreve o congelado. Referência corporativa: quinto dia útil. |
-| Ganha | Etapa "Fechada e Ganha". Mostrar o substatus do pedido: integrado, em conferência ou devolvido. Ganha não é realizado oficial. |
+| Ganha | Etapa "Fechada e Ganha". É ganho no CRM, não realizado de vendas. Mostrar o substatus do pedido: integrado, em conferência ou devolvido. |
 | Perdida | Encerrada como perdida no período. Separar perda do congelado de perda de entrada do mês. |
 | Postergada | Continua aberta, mas a previsão foi para mês posterior. É subtipo de saída, não perda. |
 | Em negociação | Aberta, sem ganho, perda ou postergação. Mostrar a etapa real do CRM. |
@@ -21,7 +21,7 @@ Classificação "Novo" (provisória, a validar):
 ## Forecast
 
 - Critério do mês (Book PEX): etapa Proposta ou Negociação, probabilidade de 75% ou mais, previsão no mês corrente.
-- Realizado no Forecast: "Fechada e Ganha" com efetivação no mês.
+- Ganhos no CRM no Forecast: "Fechada e Ganha" com efetivação no mês. O cálculo não muda; só o nome exibido.
 
 | Movimento | Regra |
 |---|---|
@@ -32,15 +32,29 @@ Classificação "Novo" (provisória, a validar):
 | Perdeu | Etapa de perda com efetivação no período. |
 | Excluída ou outro motivo | Sumiu da carga ou deixou o critério sem ganho, perda ou postergação. Aparece como exceção. |
 
-## Realizado
+## Os três marcos
 
-| Situação do pedido | Realizado oficial | Exibição |
+Fluxo real (Bruno, 20/10/2026): ganhou no CRM → entra na fila de pedidos → na fila é conferido e já integrado. Não existem etapas gerenciais separadas para conferência e integração. O ADR-0001 continua valendo: a integração é o fato que autoriza o realizado.
+
+| Marco | Nome na Central | Significado |
 |---|---|---|
-| Integrado | Não | "Ganha — pedido integrado" |
-| Em conferência | Não | "Ganha — aguardando conferência" |
-| Conferido | Sim | "Realizado" |
-| Devolvido | Não | "Pedido devolvido", com alerta |
-| Cancelado | Não | "Cancelado", com reversão se já contado |
+| Comercial | **Ganhos no CRM** | Oportunidades Fechadas e Ganhas com efetivação no período. |
+| Intermediário | **Fila de pedidos** | Pedidos vinculados ainda sem conclusão. |
+| Final | **Realizado de vendas** | Pedidos conferidos ou integrados — um único marco. |
+
+Invariantes: ganho não é realizado; fila não é realizado; um pedido conta uma vez, qualquer que seja o número de itens; situação desconhecida não vira pendente nem concluída; indisponível nunca vira zero. Faturamento e reconhecimento contábil ficam fora.
+
+## Pedidos na fila e realizado de vendas
+
+| Situação do pedido | Marco | Exibição |
+|---|---|---|
+| Integrado | Realizado de vendas | "Ganha — pedido integrado" |
+| Em conferência | Fila de pedidos | "Ganha — aguardando conferência" |
+| Conferido | Realizado de vendas | "Pedido conferido" |
+| Devolvido | Fora da fila | "Pedido devolvido", com alerta; status original preservado |
+| Cancelado | Fora da fila | "Cancelado", com status original preservado |
+
+O status gerencial deriva dos campos já importados; não há nova tabela nem máquina de estados. Enquanto a data de integração não estiver na fonte, a data que define o mês continua sendo `DATA CONFERENCIA` — mudar isso exige confirmação da Fabi.
 
 Redução e ampliação ficam fora do reconhecimento (Book de Vendas). MRR é a rubrica da meta, não o evento de realização.
 
@@ -55,7 +69,7 @@ Redução e ampliação ficam fora do reconhecimento (Book de Vendas). MRR é a 
 ## Meta e atingimento
 
 - Meta de MRR vem do Acordo de Metas, por competência e filial. Não está nos arquivos da carga: precisa de fonte separada.
-- Atingimento = MRR realizado ÷ meta. Potencial do mês = realizado + forecast aberto, sem chamar de realizado.
+- Atingimento = Realizado de vendas ÷ meta. Potencial do mês = ganhos no CRM + forecast aberto, sem chamar de realizado.
 - Realizado de FP&A (usado na AGM) deve ser reconciliado com os pedidos; divergência visível.
 
 ## Quem vê o quê
@@ -74,7 +88,7 @@ Cadência: carga diária; congelamento mensal no quinto dia útil; foto semanal 
 Com a Fabi:
 
 1. Nomes reais das etapas e situações de pedido (ganha, perdida, integrado, conferido, devolvido).
-2. "Ganha" começa na integração ou só na conferência.
+2. Data de integração na fonte: hoje só existe `DATA CONFERENCIA`, que define o mês do realizado de vendas.
 3. Tratamento de pedido devolvido depois de conferido.
 4. Recorte Filiais versus Inside.
 5. Colunas das listas.

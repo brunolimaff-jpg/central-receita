@@ -7,7 +7,7 @@ export type ForecastMonthResult = {
   predicted: Movement
   realized: Movement
   projected: number | null
-  /** Valor em aberto na régua (Previsto para o mês − Realizado). */
+  /** Valor em aberto na régua (Previsto para o mês − Ganhos no CRM). */
   open: number | null
   /** @deprecated use `open`. */
   missing: number | null
