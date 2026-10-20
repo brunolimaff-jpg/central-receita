@@ -993,17 +993,6 @@
     padding-inline: 9px;
   }
 
-  /*
-   * A marca acompanha a largura, não só o estado: o wordmark tem 112px
-   * nominais e não cabe em coluna estreita, mesmo "expandida".
-   */
-  .revenue-app .revenue-marca-logo {
-    display: none;
-  }
-
-  .revenue-app .revenue-marca-simbolo {
-    display: block;
-  }
 }
 
 @media (max-width: 780px) {
