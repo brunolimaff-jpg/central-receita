@@ -5,9 +5,9 @@ import { suavizar } from '../chart-math'
 /**
  * Bloco analítico `Evolução do mês` (plano Task 5 Step 1, l.469-479).
  *
- * Séries: Meta (ritmo) tracejada, Realizado, Forecast oficial e Forecast atual.
+ * Séries: Meta (ritmo) tracejada, Ganhos no CRM, Forecast oficial e Forecast atual.
  * O mock congelado só oferece série semanal para meta (ritmo) e forecast atual
- * (`weeklyTargetPace` e `weeklyForecast`); Realizado e Forecast oficial entram
+ * (`weeklyTargetPace` e `weeklyForecast`); Ganhos no CRM e Forecast oficial entram
  * como referência de fechamento do mês, tiradas dos próprios KPIs, em vez de
  * inventar uma distribuição diária que o snapshot não tem.
  */
@@ -84,7 +84,7 @@ export function MonthEvolutionChart({ semanas, kpis, mes }: MonthEvolutionChartP
 
   const legenda = [
     { rotulo: 'Meta (ritmo)', cor: '#91a6be', tracejado: true },
-    { rotulo: 'Realizado', cor: '#009b83', tracejado: false },
+    { rotulo: 'Ganhos no CRM', cor: '#009b83', tracejado: false },
     { rotulo: 'Forecast oficial', cor: '#2f78ea', tracejado: false },
     { rotulo: 'Forecast atual', cor: '#ef4c64', tracejado: false },
   ]
@@ -114,7 +114,7 @@ export function MonthEvolutionChart({ semanas, kpis, mes }: MonthEvolutionChartP
       <svg
         viewBox="0 0 420 160"
         role="img"
-        aria-label={`Evolução do mês de ${mes}: meta, realizado, forecast oficial e forecast atual`}
+        aria-label={`Evolução do mês de ${mes}: meta, ganhos no CRM, forecast oficial e forecast atual`}
         className="h-[158px] w-full"
       >
         {[escala, (escala * 2) / 3, escala / 3].map((valor) => (
@@ -127,7 +127,7 @@ export function MonthEvolutionChart({ semanas, kpis, mes }: MonthEvolutionChartP
         ))}
         <line x1="38" y1={EIXO_Y0} x2="405" y2={EIXO_Y0} stroke="#cdd8e0" strokeWidth="1" />
 
-        {/* Referências de fechamento do mês: realizado e fotografia oficial. */}
+        {/* Referências de fechamento do mês: ganhos no CRM e fotografia oficial. */}
         <line
           x1={EIXO_X0}
           y1={posicaoY(realizado)}

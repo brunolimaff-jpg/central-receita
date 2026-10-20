@@ -146,7 +146,7 @@ function respostaFiliais(briefing: AgentBriefingModel): string {
       (sinal) =>
         `${sinal.branch} está em ${formatarPercentualInteiro(sinal.cobertura)} do forecast atual sobre a meta (${formatarMilhoes(
           sinal.realizado,
-        )} realizado de ${formatarMilhoes(sinal.meta)})`,
+        )} em ganhos no CRM de ${formatarMilhoes(sinal.meta)})`,
     )
     .join('; ')
 
@@ -156,16 +156,16 @@ function respostaFiliais(briefing: AgentBriefingModel): string {
 function respostaOrigem(briefing: AgentBriefingModel): string {
   const { origem } = briefing
   if (origem.realizado <= 0) {
-    return 'O recorte atual não tem realizado para comparar New Names e Cross.'
+    return 'O recorte atual não tem ganhos no CRM para comparar New Names e Cross.'
   }
 
-  return `O realizado do período é ${formatarMilhoes(origem.realizado)}: New Names representa ${formatarMilhoes(
+  return `Os ganhos no CRM do período somam ${formatarMilhoes(origem.realizado)}: New Names representa ${formatarMilhoes(
     origem.newNames,
   )} (${formatarPercentualInteiro(origem.newNames / origem.realizado)}) e Cross ${formatarMilhoes(
     origem.cross,
   )} (${formatarPercentualInteiro(origem.cross / origem.realizado)}). A receita recorrente soma ${formatarMilhoes(
     origem.recorrente,
-  )} (${formatarPercentualInteiro(origem.recorrente / origem.realizado)} do realizado).`
+  )} (${formatarPercentualInteiro(origem.recorrente / origem.realizado)} dos ganhos no CRM).`
 }
 
 function respostaSemana(briefing: AgentBriefingModel): string {

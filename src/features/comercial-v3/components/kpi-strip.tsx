@@ -6,7 +6,7 @@ import { CircleDollarSign, Target, TrendingUp, TriangleAlert } from 'lucide-reac
 
 /**
  * Faixa de KPIs da Home na ordem exata do plano Task 4 Step 5, l.418-422:
- * Meta do mês → Realizado → Forecast oficial → Forecast atual → Δ versus meta.
+ * Meta do mês → Ganhos no CRM → Forecast oficial → Forecast atual → Δ versus meta.
  *
  * Valores e legendas vêm do `HomeModel` (nenhum número fixo aqui); barras mostram
  * atingimento da meta. O forecast atual também mostra sua variação vs. oficial.
@@ -60,7 +60,7 @@ const TONS: Record<KpiKey, Tom> = {
 
 const MEANINGS: Record<KpiKey, string> = {
   meta: 'Objetivo financeiro do período e dos filtros selecionados.',
-  realizado: 'Pedidos integrados com data, na posição do recorte. Assinatura e conferência ainda não representam integração.',
+  realizado: 'Oportunidades Fechadas e Ganhas no CRM no recorte. Pedido integrado é o marco seguinte, não este indicador.',
   forecastOficial: 'Fotografia congelada validada para o período. A referência permanece fixa durante a comparação.',
   forecastAtual: 'Previsão revisada na posição atual do recorte. A barra compara o valor com a meta; a legenda mostra a variação contra o forecast oficial.',
   deltaMeta: 'Forecast atual menos a meta. Um valor negativo indica quanto falta na previsão para atingir o objetivo.',
@@ -73,7 +73,7 @@ export function KpiStrip({ kpis, resumo = false, overview = false }: { kpis: Kpi
   if (overview) {
     const cards = [
       { key: 'meta' as const, title: 'Meta do período', Icon: Target },
-      { key: 'realizado' as const, title: 'Realizado', Icon: CircleDollarSign },
+      { key: 'realizado' as const, title: 'Ganhos no CRM', Icon: CircleDollarSign },
       { key: 'forecastAtual' as const, title: 'Forecast atual', Icon: TrendingUp },
       { key: 'deltaMeta' as const, title: 'Gap para a meta', Icon: TriangleAlert },
     ]
@@ -114,8 +114,8 @@ export function KpiStrip({ kpis, resumo = false, overview = false }: { kpis: Kpi
   if (resumo) {
     const valor = (key: KpiKey) => kpis.find((kpi) => kpi.key === key)?.value ?? 0
     const leituras = [
-      { titulo: 'Falta realizar para a meta', valor: meta - valor('realizado'), detalhe: 'Meta menos realizado · posição do snapshot' },
-      { titulo: 'Forecast acima do realizado', valor: valor('forecastAtual') - valor('realizado'), detalhe: 'Diferença entre as duas leituras · não é pedido integrado' },
+      { titulo: 'Falta para a meta', valor: meta - valor('realizado'), detalhe: 'Meta menos ganhos no CRM · posição do snapshot' },
+      { titulo: 'Forecast acima dos ganhos no CRM', valor: valor('forecastAtual') - valor('realizado'), detalhe: 'Diferença entre as duas leituras · não é pedido integrado' },
       { titulo: 'Revisão desde a foto oficial', valor: valor('forecastAtual') - valor('forecastOficial'), detalhe: 'Forecast atual menos referência oficial' },
     ]
     return (

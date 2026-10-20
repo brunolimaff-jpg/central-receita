@@ -85,7 +85,7 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate }: 
     <PanelSection
       id="forecast"
       titulo="Forecast"
-      contexto={`Previsto, realizado e movimentação de ${mesLabel}.`}
+      contexto={`Previsto, ganhos no CRM e movimentação de ${mesLabel}.`}
       acao={
         <SeletorPeriodo
           rotulo="Período do forecast"
@@ -99,15 +99,15 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate }: 
         <div className="grid min-w-0 content-start gap-4">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <MetricCard rotulo="Previsto para o mês" valor={formatarRealCompacto(projetado)} nota="Vendido + aberto na régua" tom="marca" />
-            <MetricCard rotulo="Realizado" valor={formatarRealCompacto(realizado)} nota={percentual === null ? 'Vendido no mês' : `${formatarPercentualInteiro(percentual / 100)} do previsto`} tom="positivo" />
-            <MetricCard rotulo="Em aberto" valor={formatarRealCompacto(monthResult.open)} nota="Previsto menos realizado" tom="info" />
+            <MetricCard rotulo="Ganhos no CRM" valor={formatarRealCompacto(realizado)} nota={percentual === null ? 'Ganho no mês' : `${formatarPercentualInteiro(percentual / 100)} do previsto`} tom="positivo" />
+            <MetricCard rotulo="Em aberto" valor={formatarRealCompacto(monthResult.open)} nota="Previsto menos ganhos no CRM" tom="info" />
           </div>
 
           <Panel>
             <div className="flex items-center gap-3">
-              <BarraProgresso valor={percentual ?? 0} rotulo="Realizado sobre previsto" />
+              <BarraProgresso valor={percentual ?? 0} rotulo="Ganhos no CRM sobre previsto" />
               <span className="num shrink-0 text-[13px] font-semibold text-ink-strong">
-                {percentual === null ? '—' : `${formatarPercentualInteiro(percentual / 100)} realizado`}
+                {percentual === null ? '—' : `${formatarPercentualInteiro(percentual / 100)} em ganhos no CRM`}
               </span>
             </div>
             <p className="mt-2.5 text-[12px] text-ink-muted">

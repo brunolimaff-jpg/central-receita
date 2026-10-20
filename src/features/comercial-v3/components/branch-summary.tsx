@@ -48,7 +48,7 @@ export function BranchSummary({ model, agregadoReal }: { model: BranchModel; agr
         </article>
 
         <article className="rounded-[10px] border border-[#dfe8ef] bg-[#fbfdfe] px-3.5 py-3.5">
-          <p className="text-[12px] text-[#6b7d91]">Realizado</p>
+          <p className="text-[12px] text-[#6b7d91]">{valores.source === 'real' ? 'Realizado de vendas' : 'Ganhos no CRM'}</p>
           <b className="num mt-1.5 block text-[24px] font-extrabold text-[#0d2340]">
             {valores.realizado === null ? 'Indisponível' : formatarMilhoes(valores.realizado)}
           </b>
@@ -83,7 +83,7 @@ export function BranchSummary({ model, agregadoReal }: { model: BranchModel; agr
                 {formatarMilhoes(model.origem.newNames)} / {formatarMilhoes(model.origem.cross)}
               </b>
               <span className="num mt-1 block text-[11px] text-[#63748a]">
-                {formatarPercentualInteiro(participacaoNewNames)} New Names do realizado
+                {formatarPercentualInteiro(participacaoNewNames)} New Names dos ganhos no CRM
               </span>
             </>
           )}

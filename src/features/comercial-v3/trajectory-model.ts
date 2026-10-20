@@ -147,7 +147,7 @@ export function buildTrajectory(args: {
       regime, ...totals,
       series: [
         { kind: 'previsto', rotulo: 'Previsto', tracejado: false, points: points('forecast', snapshot => snapshot.forecastTotal) },
-        { kind: 'realizado', rotulo: 'Realizado', tracejado: false, points: points('realized', snapshot => snapshot.realized) },
+        { kind: 'realizado', rotulo: 'Ganhos no CRM', tracejado: false, points: points('realized', snapshot => snapshot.realized) },
       ],
       ticks: marcasDeEixo(labels),
     }
@@ -165,7 +165,7 @@ export function buildTrajectory(args: {
 
   const series: TrajectorySeries[] = [
     { kind: 'previsto', rotulo: 'Previsto', tracejado: false, points: previstoPoints },
-    { kind: 'realizado', rotulo: 'Realizado', tracejado: false, points: realizadoPoints.filter(point => realizedByDate.has(point.date)) },
+    { kind: 'realizado', rotulo: 'Ganhos no CRM', tracejado: false, points: realizadoPoints.filter(point => realizedByDate.has(point.date)) },
   ]
   const restante = previsto === null || datado === null ? null : previsto - datado
   if (restante !== null && restante > 0) {

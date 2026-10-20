@@ -27,7 +27,7 @@ export function BranchRail({ filiais, nav, from, real, compact = false }: Branch
     <section className="rounded-[10px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
       <div className="mb-2">
         <h2 className="text-[15px] font-bold tracking-[-0.02em] text-[#0d2340]">{real ? 'Filiais · setembro/2026' : BLOCOS_HOME.filiais}</h2>
-        <p className="mt-0.5 text-[12px] text-[#63748a]">{real ? 'Dados reais · totais por filial, sem corte por solução' : 'Realizado, meta e forecast atual'}</p>
+        <p className="mt-0.5 text-[12px] text-[#63748a]">{real ? 'Dados reais · totais por filial, sem corte por solução' : 'Ganhos no CRM, meta e forecast atual'}</p>
         {real && <div className="mt-3 rounded-[8px] bg-[#f3faf8] p-3 text-[11px] leading-5 text-[#086b6b]"><strong>Total consolidado da exportação</strong><p>Meta: {REAL_BRANCH_TOTAL.meta === null ? '—' : formatarMilhoes(REAL_BRANCH_TOTAL.meta)}</p><p>Integrado: {REAL_BRANCH_TOTAL.realizado === null ? '—' : formatarMilhoes(REAL_BRANCH_TOTAL.realizado)}</p><p>Forecast: {REAL_BRANCH_TOTAL.forecastAtual === null ? '—' : formatarMilhoes(REAL_BRANCH_TOTAL.forecastAtual)}</p></div>}
       </div>
 
@@ -46,7 +46,7 @@ export function BranchRail({ filiais, nav, from, real, compact = false }: Branch
             <Link
               key={linha.branch}
               href={nav.branchHref(linha.branch, from)}
-              aria-label={`${linha.branch}: realizado ${valor('realizado')}, meta ${valor('meta')}, forecast ${valor('forecastAtual')}, ${percentual === null ? 'atingimento indisponível' : percentual + '% da meta'}. Abrir filial.`}
+              aria-label={`${linha.branch}: ${real ? 'integrado' : 'ganhos no CRM'} ${valor('realizado')}, meta ${valor('meta')}, forecast ${valor('forecastAtual')}, ${percentual === null ? 'atingimento indisponível' : percentual + '% da meta'}. Abrir filial.`}
               className="grid grid-cols-[minmax(0,1fr)_44px] items-center gap-x-2.5 gap-y-1.5 rounded-[8px] px-1.5 py-2 transition-premium hover:bg-[#f3f8f7] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b] active:bg-[#eaf5f2]"
             >
               <span className="num order-1 break-words text-[12px] font-bold leading-4 text-[#334b64]">{linha.branch}</span>
@@ -58,7 +58,7 @@ export function BranchRail({ filiais, nav, from, real, compact = false }: Branch
                   />
                 </span>
                 <span className="num mt-1 flex flex-wrap gap-x-1 text-[11px] leading-4 text-[#50647d]">
-                  <span className="whitespace-nowrap">{valor('realizado')} {real ? 'integrado' : 'realizado'}</span>
+                  <span className="whitespace-nowrap">{valor('realizado')} {real ? 'integrado' : 'ganhos no CRM'}</span>
                   <span aria-hidden="true">·</span>
                   <span className="whitespace-nowrap">meta {valor('meta')}</span>
                   <span aria-hidden="true">·</span>

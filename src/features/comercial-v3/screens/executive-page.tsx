@@ -157,8 +157,8 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
 
   const faixa: Array<{ rotulo: string; valor: string; nota?: string; tom: Tom; href: string }> = [
     { rotulo: 'Previsto para o mês', valor: formatarRealCompacto(esperado), nota: 'Vendido + aberto na régua', tom: 'marca', href: '#forecast' },
-    { rotulo: 'Realizado', valor: formatarRealCompacto(realizado), nota: progresso === null ? 'Vendido no mês' : `${formatarPercentualInteiro(progresso / 100)} do previsto`, tom: 'positivo', href: '#forecast' },
-    { rotulo: 'Em aberto', valor: formatarRealCompacto(emAberto), nota: 'Previsto menos realizado', tom: 'info', href: '#forecast' },
+    { rotulo: 'Ganhos no CRM', valor: formatarRealCompacto(realizado), nota: progresso === null ? 'Ganho no mês' : `${formatarPercentualInteiro(progresso / 100)} do previsto`, tom: 'positivo', href: '#forecast' },
+    { rotulo: 'Em aberto', valor: formatarRealCompacto(emAberto), nota: 'Previsto menos ganhos no CRM', tom: 'info', href: '#forecast' },
     { rotulo: 'New Name', valor: newName ? `${newName.indicators.newAccounts} ${newName.indicators.newAccounts === 1 ? 'conta' : 'contas'}` : '—', nota: newName ? newNameDetalhe(newName.indicators.newAccounts, newName.indicators.orders, newName.unclassifiedOrders) : 'Sem carga de pedidos', tom: 'marca', href: '#new-name' },
     { rotulo: 'Pipeline aberto', valor: formatarRealCompacto(pipelineValor), nota: 'Mês atual + 3', tom: 'info', href: '#opportunities' },
   ]
@@ -251,11 +251,11 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
                     <span aria-hidden className="revenue-brief-icon grid place-items-center tone-marca"><Target className="h-[17px] w-[17px]" strokeWidth={2} /></span>
                     <span className="text-[13px] font-semibold text-ink-strong">Atingimento do previsto</span>
                   </div>
-                  <BarraProgressoAnimada valor={progresso ?? 0} rotulo="Realizado sobre previsto" />
+                  <BarraProgressoAnimada valor={progresso ?? 0} rotulo="Ganhos no CRM sobre previsto" />
                   <p className="text-[12px] text-ink-muted">
                     {progresso === null
                       ? 'Sem previsto na carga para calcular o atingimento.'
-                      : `${formatarPercentualInteiro(progresso / 100)} do previsto já realizado.`}
+                      : `${formatarPercentualInteiro(progresso / 100)} do previsto já ganho no CRM.`}
                   </p>
                 </Panel>
 
@@ -272,9 +272,9 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
                 </Panel>
 
                 <Panel className="grid content-center gap-3">
-                  <span className="text-[13px] font-semibold text-ink-strong">New Name no realizado</span>
+                  <span className="text-[13px] font-semibold text-ink-strong">New Name nos ganhos no CRM</span>
                   <div className="flex items-center gap-3">
-                    <Donut valor={participacaoNN ?? 0} rotulo="do realizado" tom="marca" />
+                    <Donut valor={participacaoNN ?? 0} rotulo="dos ganhos no CRM" tom="marca" />
                     <div className="min-w-0">
                       <strong className="num block text-[20px] font-bold leading-none tracking-[-0.03em] text-ink-strong">
                         {newName ? formatarRealCompacto(newName.indicators.realizedValue) : '—'}
@@ -363,11 +363,11 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
 
       {opportunities
         ? <ImportedForecastScreen batch={opportunities} previousBatch={previous?.opportunities ?? null} referenceDate={referenceDate} />
-        : <EmptySection id="forecast" titulo="Forecast" contexto="Previsto, realizado e o que mudou desde a carga anterior." nav={nav} carregando={carregando} />}
+        : <EmptySection id="forecast" titulo="Forecast" contexto="Previsto, ganhos no CRM e o que mudou desde a carga anterior." nav={nav} carregando={carregando} />}
 
       {orders
         ? <NewNameSection orders={orders.records} opportunities={opportunities?.records ?? null} previousOrders={previousOrders} previousOpportunities={previousOpportunities} referenceDate={ordersReferenceDate} />
-        : <EmptySection id="new-name" titulo="New Name" contexto="Contas novas, realizado conferido e o que saiu do período." nav={nav} carregando={carregando} />}
+        : <EmptySection id="new-name" titulo="New Name" contexto="Contas novas, pedidos conferidos e o que saiu do período." nav={nav} carregando={carregando} />}
 
       {opportunities
         ? <PipelineSection records={opportunities.records} previousRecords={previousOpportunities} referenceDate={referenceDate} />

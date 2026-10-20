@@ -41,13 +41,13 @@ export function BranchTiles({ filiais, nav, titulo, subtitulo, origem }: BranchT
             <Link
               key={linha.branch}
               href={nav.branchHref(linha.branch, origem)}
-              aria-label={`${linha.branch}: realizado ${valor('realizado')}, meta ${valor('meta')}, forecast ${valor('forecastAtual')}, ${percentual} da meta. Abrir filial.`}
+              aria-label={`${linha.branch}: ganhos no CRM ${valor('realizado')}, meta ${valor('meta')}, forecast ${valor('forecastAtual')}, ${percentual} da meta. Abrir filial.`}
               className="min-w-0 rounded-[10px] border border-[#dfe8ef] bg-white px-3.5 py-3 transition-premium hover:-translate-y-0.5 hover:border-[#c9ded9] hover:shadow-[0_4px_14px_rgba(32,73,91,0.06)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b] active:translate-y-px"
             >
               <h3 className="truncate text-[15px] font-bold text-[#0d2340]" title={linha.branch}>{linha.branch}</h3>
               <dl className="mt-2 grid grid-cols-1 gap-1.5 sm:grid-cols-3">
                 <div className="min-w-0">
-                  <dt className="whitespace-nowrap text-[11px] text-[#75869a]">Realizado</dt>
+                  <dt className="whitespace-nowrap text-[11px] text-[#75869a]">Ganhos no CRM</dt>
                   <dd className="num whitespace-nowrap text-[15px] font-extrabold text-[#0d2340]">
                     {valor('realizado')}
                   </dd>

@@ -97,7 +97,7 @@ const COR: Record<TrajectorySeries['kind'], string> = {
   restante: 'var(--ink-subtle)',
 }
 
-/** Ordem de desenho da spec: área, realizado, previsto e "restante" por último. */
+/** Ordem de desenho da spec: área, ganhos no CRM, previsto e "restante" por último. */
 const ORDEM_DESENHO: TrajectorySeries['kind'][] = ['realizado', 'previsto', 'restante']
 
 const valorDoPonto = (serie: TrajectorySeries, ponto: TrajectoryPoint): number | null =>
@@ -114,7 +114,7 @@ export function TrajectoryLegend({ model }: { model: TrajectoryModel }) {
         <span className="inline-flex items-center gap-1.5"><i aria-hidden className="h-[3px] w-4 rounded-full bg-brand" />Previsto</span>
       )}
       {presentes.has('realizado') && (
-        <span className="inline-flex items-center gap-1.5"><i aria-hidden className="h-[3px] w-4 rounded-full bg-brand-escuro" />Realizado</span>
+        <span className="inline-flex items-center gap-1.5"><i aria-hidden className="h-[3px] w-4 rounded-full bg-brand-escuro" />Ganhos no CRM</span>
       )}
       {presentes.has('restante') && (
         <span className="inline-flex items-center gap-1.5"><i aria-hidden className="w-4 border-t-2 border-dashed border-ink-subtle" />Sem data</span>
@@ -479,7 +479,7 @@ export function TrajectoryChart({ model }: { model: TrajectoryModel }) {
 
       <footer className="mt-3 flex flex-wrap items-baseline gap-x-6 gap-y-1 border-t border-hairline pt-3 text-[12px]">
         <span className="text-ink-muted">Previsto <strong className="num text-[15px] font-bold text-ink-strong">{formatarRealCompacto(model.previsto)}</strong></span>
-        <span className="text-ink-muted">Realizado <strong className="num text-[15px] font-bold text-ink-strong">{formatarRealCompacto(model.realizado)}</strong></span>
+        <span className="text-ink-muted">Ganhos no CRM <strong className="num text-[15px] font-bold text-ink-strong">{formatarRealCompacto(model.realizado)}</strong></span>
         {model.semData > 0 && <span className="text-ink-muted">{semDataSufixo} · <strong className="num font-semibold text-ink-strong">{formatarRealCompacto(model.datado)}</strong> com data</span>}
       </footer>
 

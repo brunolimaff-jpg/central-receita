@@ -28,7 +28,7 @@ export function AgentBriefing({ briefing }: { briefing: AgentBriefingModel }) {
     },
     {
       chave: 'new-names',
-      rotulo: 'New Names no realizado',
+      rotulo: 'New Names nos ganhos no CRM',
       valor: formatarMilhoes(briefing.origem.newNames),
       detalhe: `${formatarPercentualInteiro(participacaoNewNames)} de ${formatarMilhoes(briefing.origem.realizado)}`,
       negativo: false,
@@ -63,7 +63,7 @@ export function AgentBriefing({ briefing }: { briefing: AgentBriefingModel }) {
         {negativos.length > 0
           ? `Os maiores movimentos do período estão concentrados em ${negativos.join(', ')}. `
           : 'O período não tem movimento negativo contra a fotografia oficial. '}
-        New Names representa {formatarPercentualInteiro(participacaoNewNames)} do realizado, e{' '}
+        New Names representa {formatarPercentualInteiro(participacaoNewNames)} dos ganhos no CRM, e{' '}
         {briefing.atencao.length === 1 ? 'uma filial segue' : `${briefing.atencao.length} filiais seguem`}{' '}
         com a menor cobertura de forecast sobre a meta no recorte atual.
       </p>

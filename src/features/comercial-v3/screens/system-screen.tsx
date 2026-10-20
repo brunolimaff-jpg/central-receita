@@ -76,7 +76,7 @@ export function SystemScreen({ model, filiaisReais, nav }: SystemScreenProps) {
               <div className="rounded-[10px] bg-[#f3faf8] p-3">
                 <strong className="text-[12px] text-[#086b6b]">Disponível</strong>
                 <p className="mt-1 text-[11px] leading-5 text-[#405872]">
-                  Meta, realizado, forecast oficial e atual, movimentos, origem New Name/Cross e oportunidades do recorte.
+                  Meta, ganhos no CRM, forecast oficial e atual, movimentos, origem New Name/Cross e oportunidades do recorte.
                 </p>
               </div>
               <div className="rounded-[10px] bg-[#f7f9fb] p-3">

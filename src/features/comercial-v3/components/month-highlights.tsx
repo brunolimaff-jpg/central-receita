@@ -25,7 +25,7 @@ export function MonthHighlights({ origem, movimentos, atencao }: MonthHighlights
       chave: 'new-names',
       icone: 'N',
       tom: 'bg-[#e8f7f3] text-[#009b83]',
-      titulo: `New Names representa ${formatarPercentualInteiro(participacaoNewNames)} do realizado`,
+      titulo: `New Names representa ${formatarPercentualInteiro(participacaoNewNames)} dos ganhos no CRM`,
       detalhe: `${formatarMilhoes(origem.newNames)} de ${formatarMilhoes(origem.realizado)} no mês.`,
     },
     {

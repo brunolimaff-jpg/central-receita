@@ -110,7 +110,7 @@ export function AgentScreen({ briefing, from, nav }: AgentScreenProps) {
                       </strong>
                       <span className="num mt-0.5 block text-[11px] text-[#6e7f92]">
                         {formatarPercentualInteiro(sinal.cobertura)} da meta ·{' '}
-                        {formatarMilhoes(sinal.realizado)} realizado
+                        {formatarMilhoes(sinal.realizado)} em ganhos no CRM
                       </span>
                     </span>
                     <b className="num whitespace-nowrap text-[13px] font-bold text-[#435873]">
