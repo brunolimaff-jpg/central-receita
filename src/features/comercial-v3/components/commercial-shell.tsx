@@ -1,7 +1,48 @@
+'use client'
+
+import { useCallback, useSyncExternalStore } from 'react'
 import { CommercialSidebar, CommercialTopbar } from './commercial-sidebar'
 import { sharedImportEnabled } from '../manual-import-client'
+import { CHAVE_NAVEGACAO, collapseInicial, gravarPreferencia, lerPreferencia, type NavCollapse } from '../nav-collapse'
 import type { CommercialNav } from '../nav'
 import type { CommercialPeriod, CommercialView } from '../types'
+
+/**
+ * Preferência da coluna como store externo.
+ *
+ * O HTML pré-renderizado não conhece o navegador, então o servidor usa o
+ * padrão expandido. `useSyncExternalStore` hidrata com esse mesmo valor e troca
+ * pelo real na reconciliação, antes da pintura — sem `useEffect` corretivo e sem
+ * erro de hidratação. A escolha também vale entre abas do mesmo navegador.
+ */
+const ouvintes = new Set<() => void>()
+
+function assinarPreferencia(ouvir: () => void): () => void {
+  ouvintes.add(ouvir)
+  window.addEventListener('storage', ouvir)
+  return () => {
+    ouvintes.delete(ouvir)
+    window.removeEventListener('storage', ouvir)
+  }
+}
+
+function lerPreferenciaDoNavegador(): NavCollapse {
+  try {
+    return lerPreferencia(window.localStorage.getItem(CHAVE_NAVEGACAO), window.innerWidth)
+  } catch {
+    // Modo privado ou armazenamento bloqueado: cai no padrão por largura.
+    return collapseInicial(window.innerWidth)
+  }
+}
+
+function persistirPreferencia(estado: NavCollapse) {
+  try {
+    window.localStorage.setItem(CHAVE_NAVEGACAO, gravarPreferencia(estado))
+  } catch {
+    // Cota ou modo privado: a escolha vale só nesta sessão, o uso continua.
+  }
+  for (const ouvir of ouvintes) ouvir()
+}
 
 type CommercialShellProps = {
   view: CommercialView
@@ -41,11 +82,25 @@ export function CommercialShell({
   executiveMode = false,
   dataCarga = null,
 }: CommercialShellProps) {
+  const navState = useSyncExternalStore<NavCollapse>(assinarPreferencia, lerPreferenciaDoNavegador, () => 'expandida')
+  const alternarNav = useCallback(() => {
+    persistirPreferencia(navState === 'expandida' ? 'recolhida' : 'expandida')
+  }, [navState])
+
   return (
-    <div className="revenue-app">
+    <div className="revenue-app" data-nav={navState}>
       <div aria-hidden className="revenue-bg" />
       <div aria-hidden className="revenue-bg-faixa" />
-      <CommercialSidebar view={executiveMode ? 'home' : view} from={from} nav={nav} importPreview={importPreview} dataCarga={dataCarga} paginaCorrida={executiveMode} />
+      <CommercialSidebar
+        view={executiveMode ? 'home' : view}
+        from={from}
+        nav={nav}
+        importPreview={importPreview}
+        dataCarga={dataCarga}
+        paginaCorrida={executiveMode}
+        navState={navState}
+        onAlternarNav={alternarNav}
+      />
 
       <div className="relative z-[2] min-w-0">
         {view === 'config' ? (
