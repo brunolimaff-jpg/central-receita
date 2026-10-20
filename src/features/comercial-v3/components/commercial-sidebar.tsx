@@ -3,10 +3,11 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Bell, Building2, ChevronDown, GitBranch, Layers, LayoutDashboard, List, PackagePlus, Search, Settings2, Target, TrendingUp, Users } from 'lucide-react'
+import { Bell, Building2, ChevronDown, GitBranch, Layers, LayoutDashboard, List, PackagePlus, PanelLeftClose, PanelLeftOpen, Search, Settings2, Target, TrendingUp, Users } from 'lucide-react'
 import { FILTER_LABELS, VIEW_LABELS } from '../copy'
 import { sharedImportEnabled } from '../manual-import-client'
 import { sidebarViewFor, type CommercialNav } from '../nav'
+import type { NavCollapse } from '../nav-collapse'
 import { ALL_FILTERS, type CommercialPeriod, type CommercialView } from '../types'
 import { FilterSelect } from './filter-select'
 import { PeriodTabs } from './period-tabs'
@@ -52,6 +53,15 @@ function NavIcone({ icone: Icone }: { icone: typeof LayoutDashboard }) {
   )
 }
 
+/**
+ * Cartão de rótulo da coluna recolhida. CSS puro: aparece no hover do item (com
+ * 120ms de atraso, para não piscar ao varrer vários) e no foco de teclado (sem
+ * atraso). O `title` nativo continua como fallback.
+ */
+function NavDica({ rotulo }: { rotulo: string }) {
+  return <span aria-hidden className="revenue-nav-dica">{rotulo}</span>
+}
+
 export function CommercialSidebar({
   view,
   from,
@@ -59,6 +69,8 @@ export function CommercialSidebar({
   importPreview = false,
   dataCarga = null,
   paginaCorrida = false,
+  navState,
+  onAlternarNav,
 }: {
   view: CommercialView
   from?: CommercialView
@@ -72,6 +84,9 @@ export function CommercialSidebar({
    * trocá-las deixava a navegação da sidebar sem efeito.
    */
   paginaCorrida?: boolean
+  /** Estado da coluna, controlado pelo shell. */
+  navState: NavCollapse
+  onAlternarNav: () => void
 }) {
   const [secao, mudarSecao] = useState<CommercialView>('home')
   const naPagina = paginaCorrida
@@ -100,6 +115,7 @@ export function CommercialSidebar({
     ? dataCarga ? `Carga de ${formatarDataCurta(dataCarga)}` : sharedImportEnabled ? 'Carga compartilhada' : 'Prévia local · importação'
     : 'Cenário demonstrativo · set/2026'
   const configAtiva = view === 'config'
+  const expandida = navState === 'expandida'
 
   return (
     <aside aria-label="Navegação principal" className="revenue-sidebar vidro-forte">
@@ -133,7 +149,7 @@ export function CommercialSidebar({
         <span className="revenue-marca-texto text-[11px] font-medium tracking-[0.02em] text-ink-muted">Central de Receita</span>
       </Link>
 
-      <nav aria-label="Seções" className="grid gap-1">
+      <nav id="revenue-navegacao" aria-label="Seções" className="grid gap-1">
         {ITENS.map((item) => {
           const Icone = item.icon
           const ativo = ativoNoMenu(item)
@@ -151,6 +167,7 @@ export function CommercialSidebar({
                 <NavIcone icone={Icone} />
                 <span className="revenue-nav-rotulo truncate">{item.label}</span>
                 <span className="sr-only"> ({PENDENTE})</span>
+                <NavDica rotulo={`${item.label} · ${PENDENTE}`} />
               </button>
             )
           }
@@ -160,10 +177,12 @@ export function CommercialSidebar({
               key={item.key}
               href={naPagina && (SECOES as readonly string[]).includes(item.view) ? `#${item.view}` : nav.href(item.view, { from: 'home' })}
               aria-current={ativo ? (pageView === 'home' ? 'location' : 'page') : undefined}
+              title={item.label}
               className="revenue-nav-item"
             >
               <NavIcone icone={Icone} />
               <span className="revenue-nav-rotulo truncate">{item.label}</span>
+              <NavDica rotulo={item.label} />
             </Link>
           )
         })}
@@ -175,13 +194,33 @@ export function CommercialSidebar({
       </p>
 
       <div className="mt-auto grid gap-1 pt-4">
+        {/*
+          Controle de largura da coluna. Fica imediatamente acima de Configurações
+          e é ocultado abaixo de 780px, onde a sidebar vira barra inferior e não
+          existe coluna para recolher.
+        */}
+        <button
+          type="button"
+          onClick={onAlternarNav}
+          aria-expanded={expandida}
+          aria-controls="revenue-navegacao"
+          aria-label={expandida ? 'Recolher navegação' : 'Expandir navegação'}
+          title={expandida ? 'Recolher navegação' : 'Expandir navegação'}
+          className="revenue-nav-item revenue-nav-toggle"
+        >
+          <NavIcone icone={expandida ? PanelLeftClose : PanelLeftOpen} />
+          <span className="revenue-nav-rotulo truncate">{expandida ? 'Recolher navegação' : 'Expandir navegação'}</span>
+          <NavDica rotulo={expandida ? 'Recolher navegação' : 'Expandir navegação'} />
+        </button>
         <Link
           href={nav.href('config')}
           aria-current={configAtiva ? 'page' : undefined}
+          title={VIEW_LABELS.config}
           className="revenue-nav-item border-t border-hairline-suave pt-3"
         >
           <NavIcone icone={Settings2} />
           <span className="revenue-nav-rotulo truncate">{VIEW_LABELS.config}</span>
+          <NavDica rotulo={VIEW_LABELS.config} />
         </Link>
         <p className="revenue-nav-rotulo px-3 pt-1 text-[11px] leading-4 text-ink-muted">{rodape}</p>
       </div>
