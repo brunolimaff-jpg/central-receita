@@ -1,0 +1,1 @@
+ALTER TABLE `import_versions` ADD `snapshot_json` text;

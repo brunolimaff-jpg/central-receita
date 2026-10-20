@@ -1,7 +1,29 @@
 import type { ImportBatch, ImportKind, ImportWorkspace } from './manual-import'
 import { isValidImportReference, currentImportDate, isDuplicateImport, importRejectionMessage } from './manual-import'
+import { calculateForecastMonth } from './forecast-month'
+import { historyEntry, trajectorySnapshotFrom } from './trajectory-snapshot'
 
-export type ImportDraft = ImportWorkspace & { revision: string; history: Array<{ at: string; sources: string[]; referenceDate: string }> }
+/**
+ * Resumo numérico de uma carga no histórico, para a trajetória comparar cargas
+ * passadas. Valores em reais; `null` quando algum registro da conta não traz
+ * valor (nulo contamina, nunca vira zero). `exited` é sinalizado (negativo).
+ * O modo compartilhado calcula no worker; o modo local, em `trajectory-snapshot.ts`.
+ */
+export type TrajectorySnapshot = {
+  forecastTotal: number | null
+  entered: number | null
+  exited: number | null
+  changed: number | null
+  realized: number | null
+}
+export type ImportHistoryEntry = {
+  at: string
+  sources: string[]
+  referenceDate: string
+  /** Ausente nas cargas anteriores ao snapshot, inclusive as gravadas antes da migração. */
+  snapshot?: TrajectorySnapshot
+}
+export type ImportDraft = ImportWorkspace & { revision: string; history: ImportHistoryEntry[] }
 export type ImportAccess = { draft: ImportDraft | null; canImport: boolean }
 
 export const sharedImportEnabled = process.env.NEXT_PUBLIC_IMPORT_STORAGE === 'shared'
@@ -95,10 +117,21 @@ export async function saveImportDraft(workspace: ImportWorkspace, previous: Impo
   for (const kind of ['opportunities', 'orders'] as const) {
     if (workspace[kind] && !isDuplicateImport(workspace[kind]!, previous?.[kind])) savedWorkspace[kind] = { ...workspace[kind]!, savedAt: at }
   }
+  const month = referenceDate.slice(0, 7)
+  const previousRecords = previous?.opportunities?.records ?? null
+  const snapshot = workspace.opportunities
+    ? trajectorySnapshotFrom(
+      calculateForecastMonth(workspace.opportunities.records, previousRecords, month, referenceDate, 'mês'),
+      previousRecords && calculateForecastMonth(previousRecords, null, month, referenceDate, 'mês'),
+    )
+    : null
   const draft: ImportDraft = { ...savedWorkspace, revision: crypto.randomUUID(), history: [
-    { at, referenceDate, sources: (['opportunities', 'orders'] as const)
-      .filter(kind => workspace[kind] && !isDuplicateImport(workspace[kind]!, previous?.[kind]))
-      .map(kind => workspace[kind]!.filename).filter((name): name is string => Boolean(name)) },
+    historyEntry({
+      at, referenceDate, snapshot,
+      sources: (['opportunities', 'orders'] as const)
+        .filter(kind => workspace[kind] && !isDuplicateImport(workspace[kind]!, previous?.[kind]))
+        .map(kind => workspace[kind]!.filename).filter((name): name is string => Boolean(name)),
+    }),
     ...(previous?.history ?? []),
   ].slice(0, 20) }
   return new Promise((resolve, reject) => {
