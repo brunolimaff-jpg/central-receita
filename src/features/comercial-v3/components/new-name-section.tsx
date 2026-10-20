@@ -109,6 +109,12 @@ export function NewNameSection({
         />
       </div>
 
+      {indicators.sourceOnlyCount > 0 && (
+        <p className="rounded-[10px] bg-[#eef2f6] px-4 py-3 text-[13px] leading-5 text-[#52677f]">
+          New Name pela fonte: {plural(indicators.sourceOnlyCount, 'pedido', 'pedidos')} com classificação “NOVO” vinda da exportação, ainda sem confirmação institucional.
+        </p>
+      )}
+
       {indicators.toValidateCount > 0 && (
         <p className="rounded-[10px] bg-dado-atencao-suave px-4 py-3 text-[13px] leading-5 text-dado-atencao">
           Classificação “Novo” a validar com a Fabi: {plural(indicators.toValidateCount, 'pedido', 'pedidos')} ({formatarRealCompacto(indicators.toValidateValue)}) ficam fora dos indicadores.
