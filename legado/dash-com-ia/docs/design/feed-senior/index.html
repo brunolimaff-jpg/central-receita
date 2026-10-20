@@ -1,0 +1,1247 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f6f9fe">
+    <meta name="description" content="Cockpit comercial da Senior Sistemas. Snapshot sintético, somente leitura.">
+    <title>Senior · Central de Receita</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        color-scheme: light;
+        --page: #f6f9fe;
+        --card: #ffffff;
+        --line: #d4d4d4;
+        --ink: #202927;
+        --muted: #4b5753;
+        --green: #00968c;
+        --green-hover: #086b6b;
+        --green-soft: #ebf7f6;
+        --red: #b42318;
+        --red-soft: #fcebea;
+        --amber: #8a5a00;
+        --amber-soft: #fff3d6;
+        --blue: #3b7dd8;
+        --radius: 12px;
+        --shadow: 0 2px 10px rgba(32, 41, 39, 0.035);
+        --topbar-height: 72px;
+        font-family: "Public Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-variant-numeric: tabular-nums;
+        color: var(--ink);
+        background: var(--page);
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      * { box-sizing: border-box; }
+      html {
+        min-width: 320px;
+        scroll-behavior: smooth;
+        scroll-padding-top: calc(var(--topbar-height) + 16px);
+        scroll-snap-type: y proximity;
+      }
+      body {
+        min-width: 320px;
+        min-height: 100vh;
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font-size: 14px;
+      }
+      button, a { font: inherit; }
+      button { color: inherit; }
+      button:focus-visible, a:focus-visible {
+        outline: 3px solid var(--blue);
+        outline-offset: 3px;
+      }
+      button:disabled { cursor: not-allowed; opacity: .58; }
+      [hidden] { display: none !important; }
+
+      .topbar {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 10;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, .98);
+      }
+      .topbar-inner {
+        width: min(1360px, 100%);
+        min-height: var(--topbar-height);
+        margin: 0 auto;
+        padding: 0 28px;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 22px;
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-width: max-content;
+        color: var(--ink);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: -.02em;
+      }
+      .brand-mark {
+        width: 20px;
+        height: 20px;
+        flex: 0 0 20px;
+        border-radius: 5px;
+        background: var(--green);
+      }
+      .brand-divider { color: #89928f; padding: 0 2px; }
+      .filters {
+        min-width: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+      }
+      .filter-button {
+        min-height: 34px;
+        padding: 0 12px;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        background: transparent;
+        color: var(--muted);
+        white-space: nowrap;
+        cursor: pointer;
+        transition: color .16s ease, background .16s ease, border-color .16s ease;
+      }
+      .filter-button:hover { border-color: var(--line); background: #f8fafb; color: var(--ink); }
+      .filter-button[aria-pressed="true"] {
+        border-color: #b7dedb;
+        background: var(--green-soft);
+        color: #075d58;
+        font-weight: 600;
+      }
+      .snapshot-chip {
+        min-height: 30px;
+        padding: 0 10px;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #e0e4e3;
+        border-radius: 999px;
+        background: #fbfcfd;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: .035em;
+        text-transform: lowercase;
+        white-space: nowrap;
+      }
+
+      main.feed {
+        width: min(1320px, 100%);
+        margin: 0 auto;
+        padding: calc(var(--topbar-height) + 22px) 78px 76px 34px;
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+      }
+      .feed-card {
+        min-height: 80vh;
+        padding: clamp(24px, 3vw, 40px);
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--card);
+        box-shadow: var(--shadow);
+        scroll-margin-top: calc(var(--topbar-height) + 14px);
+        scroll-snap-align: start;
+      }
+      .section-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 24px;
+      }
+      .section-title {
+        margin: 0;
+        color: var(--ink);
+        font-size: 12px;
+        line-height: 1.2;
+        font-weight: 700;
+        letter-spacing: .14em;
+      }
+      .section-index {
+        display: block;
+        margin-bottom: 9px;
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1;
+        font-weight: 600;
+        letter-spacing: .12em;
+      }
+      .headline-total {
+        display: flex;
+        align-items: baseline;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 7px 11px;
+        text-align: right;
+      }
+      .headline-total strong {
+        color: var(--ink);
+        font-size: clamp(20px, 2.3vw, 30px);
+        line-height: 1;
+        font-weight: 600;
+        letter-spacing: -.055em;
+      }
+      .headline-total span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .attention-list { display: flex; flex-direction: column; }
+      .attention-row {
+        min-height: 91px;
+        padding: 15px 2px;
+        display: grid;
+        grid-template-columns: 10px minmax(220px, 1fr) minmax(150px, auto) auto;
+        align-items: center;
+        gap: 16px;
+        border-bottom: 1px solid #e9eceb;
+      }
+      .attention-row:last-child { border-bottom: 0; }
+      .severity-dot, .unit-dot {
+        display: block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #89928f;
+      }
+      .severity-dot.critical, .unit-dot.critical { background: var(--red); }
+      .severity-dot.warning, .unit-dot.warning { background: var(--amber); }
+      .severity-dot.info { background: var(--blue); }
+      .attention-detail { min-width: 0; }
+      .unit-line {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 6px 11px;
+      }
+      .unit-line strong {
+        color: var(--ink);
+        font-size: 14px;
+        line-height: 1.35;
+        font-weight: 600;
+      }
+      .unit-line span { color: var(--muted); font-size: 13px; line-height: 1.35; }
+      .unit-line span.signal-critical, .unit-line span.signal-warning {
+        padding: 3px 7px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 600;
+      }
+      .unit-line span.signal-critical { background: var(--red-soft); color: var(--red); }
+      .unit-line span.signal-warning { background: var(--amber-soft); color: var(--amber); }
+      .attention-meta {
+        margin-top: 5px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px 12px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .attention-value {
+        color: var(--ink);
+        font-size: clamp(18px, 1.8vw, 23px);
+        line-height: 1;
+        font-weight: 600;
+        letter-spacing: -.045em;
+        white-space: nowrap;
+      }
+      .action-button {
+        min-height: 36px;
+        padding: 0 13px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        border: 1px solid #b5d9d6;
+        border-radius: 8px;
+        background: var(--green-soft);
+        color: #075d58;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background .16s ease, border-color .16s ease, color .16s ease;
+      }
+      .action-button:hover { border-color: var(--green-hover); background: var(--green-hover); color: #fff; }
+      .action-button svg { width: 14px; height: 14px; }
+
+      .weekly-summary {
+        display: flex;
+        align-items: flex-end;
+        flex-wrap: wrap;
+        gap: 12px 18px;
+      }
+      .weekly-total {
+        color: var(--ink);
+        font-size: clamp(42px, 6vw, 68px);
+        line-height: .95;
+        font-weight: 600;
+        letter-spacing: -.07em;
+        white-space: nowrap;
+      }
+      .weekly-count {
+        padding-bottom: 6px;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .change-badge {
+        min-height: 27px;
+        margin-bottom: 5px;
+        padding: 0 9px;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #cce5e2;
+        border-radius: 999px;
+        background: var(--green-soft);
+        color: #075d58;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .weekly-chart {
+        min-height: 224px;
+        padding: 18px 10px 4px;
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        align-items: stretch;
+        gap: clamp(8px, 2.4vw, 28px);
+        border-top: 1px solid #e9eceb;
+        border-bottom: 1px solid #e9eceb;
+      }
+      .day-column {
+        min-width: 0;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        justify-items: center;
+        gap: 9px;
+      }
+      .day-name {
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+      }
+      .day-value {
+        color: var(--ink);
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .bar-track {
+        width: min(38px, 76%);
+        min-height: 124px;
+        align-self: end;
+        display: flex;
+        align-items: flex-end;
+        border-radius: 5px 5px 2px 2px;
+        background: #f1f4f4;
+        overflow: hidden;
+      }
+      .bar-fill {
+        width: 100%;
+        height: var(--height);
+        min-height: 6px;
+        border-radius: 5px 5px 2px 2px;
+        background: var(--green);
+        transition: height .2s ease, background .2s ease;
+      }
+      .day-column.is-zero .bar-track { background: #f1f4f4; }
+      .day-column.is-zero .bar-fill { background: #cbd2d0; }
+      .day-column.is-highlighted .bar-track { outline: 2px solid #93cdc8; outline-offset: 3px; }
+      .day-column.is-highlighted .day-name, .day-column.is-highlighted .day-value { color: #075d58; }
+      .opportunity-list {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .opportunity-pill {
+        min-height: 58px;
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: #fff;
+        text-align: left;
+        cursor: pointer;
+        transition: border-color .16s ease, background .16s ease;
+      }
+      .opportunity-pill:hover, .opportunity-pill[aria-pressed="true"] {
+        border-color: #a7d5d1;
+        background: var(--green-soft);
+      }
+      .opportunity-name {
+        color: var(--ink);
+        font-size: 11px;
+        line-height: 1.35;
+        font-weight: 500;
+      }
+      .opportunity-name strong { display: block; font-weight: 600; }
+      .opportunity-value {
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      .ranking-card { gap: 18px; }
+      .ranking-legend {
+        padding: 0 8px 8px 20px;
+        display: grid;
+        grid-template-columns: minmax(160px, 1fr) 94px;
+        gap: 14px;
+        border-bottom: 1px solid #e9eceb;
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: .09em;
+        text-transform: uppercase;
+      }
+      .ranking-legend span:last-child { text-align: right; }
+      .ranking-list { display: flex; flex-direction: column; gap: 1px; }
+      .ranking-row {
+        width: 100%;
+        min-height: 37px;
+        padding: 3px 8px 3px 0;
+        display: grid;
+        grid-template-columns: 9px minmax(0, 1fr) 94px;
+        align-items: center;
+        gap: 11px;
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+        transition: background .15s ease;
+      }
+      .ranking-row:hover, .ranking-row.is-selected { background: #f4f8f7; }
+      .ranking-unit {
+        min-width: 0;
+        display: grid;
+        grid-template-columns: minmax(88px, 132px) minmax(60px, 1fr);
+        align-items: center;
+        gap: 12px;
+      }
+      .ranking-unit-name {
+        overflow: hidden;
+        color: var(--ink);
+        font-size: 11px;
+        line-height: 1.25;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .pipeline-track {
+        position: relative;
+        height: 7px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #edf1f0;
+      }
+      .pipeline-fill {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: var(--bar);
+        border-radius: inherit;
+        background: var(--green);
+      }
+      .pipeline-marker {
+        position: absolute;
+        z-index: 1;
+        top: 0;
+        bottom: 0;
+        left: calc(var(--bar) - max(4px, min(var(--delta), var(--bar))));
+        width: max(4px, min(var(--delta), var(--bar)));
+        border-radius: inherit;
+        background: var(--marker-color, #086b6b);
+      }
+      .ranking-metrics {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2px;
+        white-space: nowrap;
+      }
+      .ranking-amount { color: var(--ink); font-size: 11px; font-weight: 600; }
+      .ranking-change { font-size: 10px; line-height: 1.2; font-weight: 600; }
+      .ranking-change.up { color: #087a55; }
+      .ranking-change.down { color: var(--red); }
+      .ranking-change.flat { color: #697470; font-weight: 500; }
+      .more-units {
+        min-height: 36px;
+        padding: 8px 0 0 20px;
+        border-top: 1px solid #e9eceb;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 500;
+      }
+      .more-units strong { color: var(--ink); font-weight: 600; }
+
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .kpi {
+        min-height: 132px;
+        padding: 18px 17px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 12px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #fff;
+      }
+      .kpi.overdue { border-color: #efc7c3; background: var(--red-soft); }
+      .kpi-label {
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.3;
+        font-weight: 600;
+      }
+      .kpi-value {
+        color: var(--ink);
+        font-size: clamp(21px, 2.2vw, 30px);
+        line-height: 1;
+        font-weight: 600;
+        letter-spacing: -.055em;
+        white-space: nowrap;
+      }
+      .kpi.overdue .kpi-value { color: var(--red); }
+      .kpi-note { color: var(--muted); font-size: 10px; line-height: 1.35; }
+      .stages { margin-top: auto; }
+      .stages-heading {
+        margin: 0 0 14px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: .12em;
+      }
+      .stage-list { display: flex; flex-direction: column; gap: 12px; }
+      .stage-row {
+        display: grid;
+        grid-template-columns: 112px minmax(70px, 1fr) 94px;
+        align-items: center;
+        gap: 14px;
+      }
+      .stage-name { color: var(--ink); font-size: 11px; font-weight: 500; }
+      .stage-track {
+        height: 8px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #edf1f0;
+      }
+      .stage-fill { height: 100%; width: var(--stage); border-radius: inherit; background: var(--green); }
+      .stage-row:last-child .stage-fill { background: #aeb9b6; }
+      .stage-value { color: var(--ink); font-size: 11px; font-weight: 600; text-align: right; white-space: nowrap; }
+
+      .feed-progress {
+        position: fixed;
+        z-index: 8;
+        top: 50%;
+        right: max(18px, calc((100vw - 1380px) / 2));
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+      .progress-dot {
+        width: 9px;
+        height: 9px;
+        display: block;
+        border: 1px solid #a6b1ae;
+        border-radius: 50%;
+        background: #fff;
+        transition: transform .15s ease, border-color .15s ease, background .15s ease;
+      }
+      .progress-dot:hover { transform: scale(1.2); border-color: var(--green); }
+      .progress-dot[aria-current="step"] { border-color: var(--green); background: var(--green); }
+
+      .feed-footer {
+        position: fixed;
+        z-index: 7;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        min-height: 36px;
+        padding: 8px 88px 8px 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-top: 1px solid rgba(212, 212, 212, .75);
+        background: rgba(246, 249, 254, .97);
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.25;
+        letter-spacing: .015em;
+        text-align: center;
+      }
+      .assistant-toggle {
+        position: fixed;
+        z-index: 12;
+        right: 25px;
+        bottom: 52px;
+        width: 54px;
+        height: 54px;
+        display: grid;
+        place-items: center;
+        border: 0;
+        border-radius: 50%;
+        background: var(--green);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(0, 80, 75, .18);
+        cursor: pointer;
+        transition: background .16s ease, transform .16s ease;
+      }
+      .assistant-toggle:hover { transform: translateY(-2px); background: var(--green-hover); }
+      .assistant-toggle svg { width: 22px; height: 22px; }
+      .assistant-panel {
+        position: fixed;
+        z-index: 11;
+        right: 25px;
+        bottom: 118px;
+        width: min(320px, calc(100vw - 36px));
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 12px 36px rgba(32, 41, 39, .14);
+      }
+      .assistant-heading {
+        margin: 0;
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .assistant-note { margin: 6px 0 14px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+      .assistant-links { display: flex; flex-wrap: wrap; gap: 7px; }
+      .assistant-link {
+        min-height: 30px;
+        padding: 0 10px;
+        border: 1px solid #b7dedb;
+        border-radius: 999px;
+        background: var(--green-soft);
+        color: #075d58;
+        font-size: 10px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .assistant-link:hover { background: #dff1ef; }
+      .assistant-close {
+        position: absolute;
+        top: 9px;
+        right: 10px;
+        width: 28px;
+        height: 28px;
+        display: grid;
+        place-items: center;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+      }
+      .assistant-close:hover { background: #f2f5f4; color: var(--ink); }
+      .assistant-close svg { width: 16px; height: 16px; }
+      .toast {
+        position: fixed;
+        z-index: 14;
+        right: 50%;
+        bottom: 55px;
+        max-width: min(420px, calc(100vw - 32px));
+        padding: 10px 14px;
+        transform: translateX(50%);
+        border: 1px solid #cce5e2;
+        border-radius: 8px;
+        background: #fff;
+        color: var(--ink);
+        box-shadow: var(--shadow);
+        font-size: 11px;
+        line-height: 1.35;
+      }
+
+      @media (max-width: 760px) {
+        :root { --topbar-height: 104px; }
+        .topbar-inner {
+          min-height: var(--topbar-height);
+          padding: 11px 14px 9px;
+          grid-template-columns: minmax(0, 1fr) auto;
+          gap: 8px 12px;
+        }
+        .brand { font-size: 12px; }
+        .brand-mark { width: 18px; height: 18px; flex-basis: 18px; }
+        .filters {
+          grid-column: 1 / -1;
+          justify-content: flex-start;
+          gap: 4px;
+          overflow-x: auto;
+          scrollbar-width: none;
+        }
+        .filters::-webkit-scrollbar { display: none; }
+        .filter-button { min-height: 31px; padding: 0 10px; font-size: 11px; }
+        .snapshot-chip { min-height: 26px; font-size: 10px; }
+        main.feed { padding: calc(var(--topbar-height) + 14px) 38px 94px 12px; gap: 14px; }
+        .feed-card { min-height: 80vh; padding: 20px 16px; gap: 18px; }
+        .section-heading { align-items: flex-start; gap: 10px; }
+        .section-index { margin-bottom: 7px; font-size: 9px; }
+        .headline-total { max-width: 58%; gap: 4px 7px; }
+        .headline-total strong { font-size: clamp(18px, 5vw, 24px); }
+        .headline-total span { font-size: 10px; }
+        .attention-list { gap: 0; }
+        .attention-row {
+          min-height: 88px;
+          padding: 11px 0;
+          grid-template-columns: 8px minmax(0, 1fr) auto;
+          grid-template-rows: auto auto;
+          align-items: center;
+          gap: 6px 10px;
+        }
+        .attention-dot-wrap { grid-row: 1 / 3; }
+        .attention-detail { grid-column: 2 / 4; }
+        .unit-line { gap: 3px 8px; }
+        .unit-line strong { font-size: 12px; }
+        .unit-line span { font-size: 11px; }
+        .attention-meta { margin-top: 3px; font-size: 10px; }
+        .attention-value { grid-column: 2; grid-row: 2; font-size: 16px; }
+        .action-button { grid-column: 3; grid-row: 2; min-height: 31px; padding: 0 9px; font-size: 10px; }
+        .weekly-summary { align-items: center; gap: 8px 11px; }
+        .weekly-total { font-size: clamp(38px, 11vw, 52px); }
+        .weekly-count { padding-bottom: 0; font-size: 11px; }
+        .change-badge { min-height: 24px; margin-bottom: 0; font-size: 10px; }
+        .weekly-chart { min-height: 190px; padding: 14px 2px 3px; gap: 5px; }
+        .day-column { gap: 7px; }
+        .day-name { font-size: 9px; }
+        .day-value { font-size: 9px; }
+        .bar-track { width: min(28px, 75%); min-height: 112px; }
+        .opportunity-list { grid-template-columns: 1fr; gap: 7px; }
+        .opportunity-pill { min-height: 46px; padding: 8px 10px; }
+        .opportunity-name, .opportunity-value { font-size: 10px; }
+        .ranking-card { gap: 14px; }
+        .ranking-legend { grid-template-columns: minmax(100px, 1fr) 82px; gap: 8px; padding-left: 18px; font-size: 8px; }
+        .ranking-row { min-height: 39px; grid-template-columns: 8px minmax(0, 1fr) 82px; gap: 8px; }
+        .ranking-unit { grid-template-columns: minmax(82px, 96px) minmax(35px, 1fr); gap: 7px; }
+        .ranking-unit-name, .ranking-amount { font-size: 10px; }
+        .ranking-change { font-size: 9px; }
+        .more-units { padding-left: 18px; font-size: 10px; }
+        .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        .kpi { min-height: 106px; padding: 13px 11px; gap: 8px; }
+        .kpi-label { font-size: 10px; }
+        .kpi-value { font-size: clamp(18px, 5vw, 24px); }
+        .kpi-note { font-size: 9px; }
+        .stages-heading { margin-bottom: 11px; }
+        .stage-list { gap: 11px; }
+        .stage-row { grid-template-columns: 82px minmax(35px, 1fr) 76px; gap: 8px; }
+        .stage-name, .stage-value { font-size: 10px; }
+        .feed-progress { right: 10px; gap: 10px; }
+        .progress-dot { width: 7px; height: 7px; }
+        .feed-footer { min-height: 34px; padding: 7px 82px 7px 8px; font-size: 9px; }
+        .assistant-toggle { right: 15px; bottom: 47px; width: 48px; height: 48px; }
+        .assistant-panel { right: 12px; bottom: 105px; width: min(320px, calc(100vw - 24px)); }
+        .toast { bottom: 45px; }
+      }
+      @media (max-width: 390px) {
+        .brand { gap: 7px; font-size: 11px; }
+        .snapshot-chip { padding: 0 7px; font-size: 9px; }
+        .section-title { font-size: 11px; }
+        .ranking-unit { grid-template-columns: minmax(75px, 82px) minmax(30px, 1fr); gap: 6px; }
+        .ranking-legend { grid-template-columns: minmax(100px, 1fr) 76px; }
+        .ranking-row { grid-template-columns: 7px minmax(0, 1fr) 76px; gap: 6px; }
+        .stage-row { grid-template-columns: 76px minmax(28px, 1fr) 72px; gap: 6px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="#exige" aria-label="Senior, Central de Receita — início do feed">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span>Senior <span class="brand-divider" aria-hidden="true">·</span> Central de Receita</span>
+        </a>
+        <nav class="filters" aria-label="Filtros do snapshot">
+          <button class="filter-button" type="button" data-filter="unit" aria-pressed="true" aria-label="Filtro de unidade: todas as unidades">
+            <span id="unit-filter-label">Todas as unidades</span>
+          </button>
+          <button class="filter-button" type="button" data-filter="public" aria-pressed="false">Público</button>
+          <button class="filter-button" type="button" data-filter="private" aria-pressed="false">Privado</button>
+        </nav>
+        <span class="snapshot-chip">snapshot 22/09</span>
+      </div>
+    </header>
+
+    <main class="feed" id="feed">
+      <section class="feed-card" id="exige" aria-labelledby="title-exige">
+        <div class="section-heading">
+          <div>
+            <span class="section-index">01 / AÇÃO</span>
+            <h1 class="section-title" id="title-exige">EXIGE VOCÊ</h1>
+          </div>
+          <div class="headline-total">
+            <strong>R$ 15,4 mi</strong>
+            <span>exigem decisão hoje</span>
+          </div>
+        </div>
+
+        <div class="attention-list" role="list" aria-label="Itens que exigem decisão">
+          <div class="attention-row" role="listitem">
+            <span class="attention-dot-wrap"><span class="severity-dot critical" role="img" aria-label="Severidade crítica"></span></span>
+            <div class="attention-detail">
+              <div class="unit-line"><strong>Passo Fundo</strong><span class="signal-critical">Previsão vencida</span></div>
+              <div class="attention-meta"><span>3 opp</span><span>6 resp</span></div>
+            </div>
+            <strong class="attention-value">R$ 1.183.500</strong>
+            <button class="action-button" type="button" data-action="Resolver" aria-label="Resolver: Passo Fundo, previsão vencida, R$ 1.183.500">
+              Resolver
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <div class="attention-row" role="listitem">
+            <span class="attention-dot-wrap"><span class="severity-dot critical" role="img" aria-label="Severidade crítica"></span></span>
+            <div class="attention-detail">
+              <div class="unit-line"><strong>Rio Verde</strong><span class="signal-critical">Sem ação 21d</span></div>
+              <div class="attention-meta"><span>5 opp</span><span>4 resp</span></div>
+            </div>
+            <strong class="attention-value">R$ 890.000</strong>
+            <button class="action-button" type="button" data-action="Cobrar" aria-label="Cobrar: Rio Verde, sem ação há 21 dias, R$ 890.000">
+              Cobrar
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <div class="attention-row" role="listitem">
+            <span class="attention-dot-wrap"><span class="severity-dot warning" role="img" aria-label="Severidade de atenção"></span></span>
+            <div class="attention-detail">
+              <div class="unit-line"><strong>Cuiabá</strong><span class="signal-warning">Slip &gt;60d</span></div>
+              <div class="attention-meta"><span>4 opp</span><span>3 resp</span></div>
+            </div>
+            <strong class="attention-value">R$ 640.000</strong>
+            <button class="action-button" type="button" data-action="Revalidar" aria-label="Revalidar: Cuiabá, slip acima de 60 dias, R$ 640.000">
+              Revalidar
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <div class="attention-row" role="listitem">
+            <span class="attention-dot-wrap"><span class="severity-dot warning" role="img" aria-label="Severidade de atenção"></span></span>
+            <div class="attention-detail">
+              <div class="unit-line"><strong>Campinas</strong><span class="signal-warning">Win sem pedido &gt;30d</span></div>
+              <div class="attention-meta"><span>3 opp</span></div>
+            </div>
+            <strong class="attention-value">R$ 512.000</strong>
+            <button class="action-button" type="button" data-action="Pedir pedido" aria-label="Pedir pedido: Campinas, win sem pedido há mais de 30 dias, R$ 512.000">
+              Pedir pedido
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <div class="attention-row" role="listitem">
+            <span class="attention-dot-wrap"><span class="severity-dot info" role="img" aria-label="Informação"></span></span>
+            <div class="attention-detail">
+              <div class="unit-line"><strong>Diretoria</strong><span>Decisões do Ciclo 1 a congelar</span></div>
+              <div class="attention-meta"><span>fórum sexta, 10h</span></div>
+            </div>
+            <strong class="attention-value">6 decisões</strong>
+            <button class="action-button" type="button" data-action="Ver" aria-label="Ver as seis decisões do Ciclo 1, fórum sexta às 10 horas">
+              Ver
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="feed-card" id="semana" aria-labelledby="title-semana">
+        <div class="section-heading">
+          <div>
+            <span class="section-index">02 / PRÓXIMOS 7 DIAS</span>
+            <h2 class="section-title" id="title-semana">ENTRA NA SEMANA</h2>
+          </div>
+        </div>
+        <div class="weekly-summary">
+          <strong class="weekly-total">R$ 360,5 mil</strong>
+          <span class="weekly-count">3 oportunidades</span>
+          <span class="change-badge">+8% vs semana anterior</span>
+        </div>
+        <div class="weekly-chart" role="group" aria-label="Entradas previstas por dia">
+          <div class="day-column">
+            <span class="day-name">seg</span>
+            <span class="bar-track" role="img" aria-label="Segunda-feira: R$ 120 mil"><span class="bar-fill" style="--height:75%"></span></span>
+            <span class="day-value">120k</span>
+          </div>
+          <div class="day-column">
+            <span class="day-name">ter</span>
+            <span class="bar-track" role="img" aria-label="Terça-feira: R$ 80 mil"><span class="bar-fill" style="--height:50%"></span></span>
+            <span class="day-value">80k</span>
+          </div>
+          <div class="day-column">
+            <span class="day-name">qua</span>
+            <span class="bar-track" role="img" aria-label="Quarta-feira: R$ 160 mil"><span class="bar-fill" style="--height:100%"></span></span>
+            <span class="day-value">160k</span>
+          </div>
+          <div class="day-column is-zero">
+            <span class="day-name">qui</span>
+            <span class="bar-track" role="img" aria-label="Quinta-feira: sem entrada prevista"><span class="bar-fill" style="--height:6px"></span></span>
+            <span class="day-value">—</span>
+          </div>
+          <div class="day-column is-zero">
+            <span class="day-name">sex</span>
+            <span class="bar-track" role="img" aria-label="Sexta-feira: sem entrada prevista"><span class="bar-fill" style="--height:6px"></span></span>
+            <span class="day-value">—</span>
+          </div>
+          <div class="day-column is-zero">
+            <span class="day-name">sáb</span>
+            <span class="bar-track" role="img" aria-label="Sábado: sem entrada prevista"><span class="bar-fill" style="--height:6px"></span></span>
+            <span class="day-value">—</span>
+          </div>
+          <div class="day-column is-zero">
+            <span class="day-name">dom</span>
+            <span class="bar-track" role="img" aria-label="Domingo: sem entrada prevista"><span class="bar-fill" style="--height:6px"></span></span>
+            <span class="day-value">—</span>
+          </div>
+        </div>
+        <div class="opportunity-list" aria-label="Oportunidades previstas">
+          <button class="opportunity-pill" type="button" data-day="qua" aria-pressed="false" aria-label="ERP Cloud Migration, AgroTech, R$ 160 mil. Destacar quarta-feira">
+            <span class="opportunity-name"><strong>ERP Cloud Migration</strong>AgroTech</span>
+            <span class="opportunity-value">R$ 160 mil</span>
+          </button>
+          <button class="opportunity-pill" type="button" data-day="seg" aria-pressed="false" aria-label="Gestão de Ativos, Vale Verde, R$ 120 mil. Destacar segunda-feira">
+            <span class="opportunity-name"><strong>Gestão de Ativos</strong>Vale Verde</span>
+            <span class="opportunity-value">R$ 120 mil</span>
+          </button>
+          <button class="opportunity-pill" type="button" data-day="ter" aria-pressed="false" aria-label="BI Upgrade, Casa e Obra, R$ 80,5 mil. Destacar terça-feira">
+            <span class="opportunity-name"><strong>BI Upgrade</strong>Casa &amp; Obra</span>
+            <span class="opportunity-value">R$ 80,5 mil</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="feed-card ranking-card" id="unidades" aria-labelledby="title-unidades">
+        <div class="section-heading">
+          <div>
+            <span class="section-index">03 / DISTRIBUIÇÃO</span>
+            <h2 class="section-title" id="title-unidades">UNIDADES (29)</h2>
+          </div>
+        </div>
+        <div class="ranking-legend" aria-hidden="true"><span>Unidade · pipeline</span><span>Pipeline · entra 7d</span></div>
+        <div class="ranking-list" aria-label="Ranking de unidades por pipeline aberto">
+          <button class="ranking-row" type="button" data-unit="Rio Verde" aria-label="Selecionar Rio Verde. Pipeline R$ 1,66 milhão, variação positiva de R$ 120 mil">
+            <span class="unit-dot critical" role="img" aria-label="Sinal crítico"></span>
+            <span class="ranking-unit">
+              <span class="ranking-unit-name">Rio Verde</span>
+              <span class="pipeline-track" role="img" aria-label="Rio Verde: pipeline R$ 1,66 milhão; variação de 7 dias mais R$ 120 mil">
+                <span class="pipeline-fill" style="--bar:100%"></span><span class="pipeline-marker" style="--bar:100%;--delta:7.2%;--marker-color:#086b6b"></span>
+              </span>
+            </span>
+            <span class="ranking-metrics"><span class="ranking-amount">R$ 1,66 mi</span><span class="ranking-change up">▲ 120k</span></span>
+          </button>
+          <button class="ranking-row" type="button" data-unit="Passo Fundo" aria-label="Selecionar Passo Fundo. Pipeline R$ 1,18 milhão, variação negativa de R$ 60 mil">
+            <span class="unit-dot critical" role="img" aria-label="Sinal crítico"></span>
+            <span class="ranking-unit">
+              <span class="ranking-unit-name">Passo Fundo</span>
+              <span class="pipeline-track" role="img" aria-label="Passo Fundo: pipeline R$ 1,18 milhão; variação de 7 dias menos R$ 60 mil">
+                <span class="pipeline-fill" style="--bar:71.1%"></span><span class="pipeline-marker" style="--bar:71.1%;--delta:5.1%;--marker-color:#b42318"></span>
+              </span>
+            </span>
+            <span class="ranking-metrics"><span class="ranking-amount">R$ 1,18 mi</span><span class="ranking-change down">▼ 60k</span></span>
+          </button>
+          <button class="ranking-row" type="button" data-unit="Cuiabá" aria-label="Selecionar Cuiabá. Pipeline R$ 1,10 milhão, variação positiva de R$ 40 mil">
+            <span class="unit-dot warning" role="img" aria-label="Sinal de atenção"></span>
+            <span class="ranking-unit">
+              <span class="ranking-unit-name">Cuiabá</span>
+              <span class="pipeline-track" role="img" aria-label="Cuiabá: pipeline R$ 1,10 milhão; variação de 7 dias mais R$ 40 mil">
+                <span class="pipeline-fill" style="--bar:66.3%"></span><span class="pipeline-marker" style="--bar:66.3%;--delta:3.6%;--marker-color:#086b6b"></span>
+              </span>
+            </span>
+            <span class="ranking-metrics"><span class="ranking-amount">R$ 1,10 mi</span><span class="ranking-change up">▲ 40k</span></span>
+          </button>
+          <button class="ranking-row" type="button" data-unit="Campinas" aria-label="Selecionar Campinas. Pipeline R$ 980 mil, sem variação">
+            <span class="unit-dot warning" role="img" aria-label="Sinal de atenção"></span>
+            <span class="ranking-unit">
+              <span class="ranking-unit-name">Campinas</span>
+              <span class="pipeline-track" role="img" aria-label="Campinas: pipeline R$ 980 mil; sem variação de 7 dias">
+                <span class="pipeline-fill" style="--bar:59%"></span>
+              </span>
+            </span>
+            <span class="ranking-metrics"><span class="ranking-amount">R$ 980 mil</span><span class="ranking-change flat">—</span></span>
+          </button>
+          <button class="ranking-row" type="button" data-unit="Sorriso" aria-label="Selecionar Sorriso. Pipeline R$ 870 mil, variação positiva de R$ 25 mil">
+            <span class="unit-dot" role="img" aria-label="Sinal sem classificação"></span>
+            <span class="ranking-unit">
+              <span class="ranking-unit-name">Sorriso</span>
+              <span class="pipeline-track" role="img" aria-label="Sorriso: pipeline R$ 870 mil; variação de 7 dias mais R$ 25 mil">
+                <span class="pipeline-fill" style="--bar:52.4%"></span><span class="pipeline-marker" style="--bar:52.4%;--delta:2.9%;--marker-color:#086b6b"></span>
+              </span>
+            </span>
+            <span class="ranking-metrics"><span class="ranking-amount">R$ 870 mil</span><span class="ranking-change up">▲ 25k</span></span>
+          </button>
+          <button class="ranking-row" type="button" data-unit="Ribeirão Preto" aria-label="Selecionar Ribeirão Preto. Pipeline R$ 760 mil, variação negativa de R$ 18 mil">
+            <span class="unit-dot" role="img" aria-label="Sinal sem classificação"></span>
+            <span class="ranking-unit">
+              <span class="ranking-unit-name">Ribeirão Preto</span>
+              <span class="pipeline-track" role="img" aria-label="Ribeirão Preto: pipeline R$ 760 mil; variação de 7 dias menos R$ 18 mil">
+                <span class="pipeline-fill" style="--bar:45.8%"></span><span class="pipeline-marker" style="--bar:45.8%;--delta:2.4%;--marker-color:#b42318"></span>
+              </span>
+            </span>
+            <span class="ranking-metrics"><span class="ranking-amount">R$ 760 mil</span><span class="ranking-change down">▼ 18k</span></span>
+          </button>
+          <button class="ranking-row" type="button" data-unit="Goiânia" aria-label="Selecionar Goiânia. Pipeline R$ 665 mil, variação positiva de R$ 12 mil">
+            <span class="unit-dot" role="img" aria-label="Sinal sem classificação"></span>
+            <span class="ranking-unit">
+              <span class="ranking-unit-name">Goiânia</span>
+              <span class="pipeline-track" role="img" aria-label="Goiânia: pipeline R$ 665 mil; variação de 7 dias mais R$ 12 mil">
+                <span class="pipeline-fill" style="--bar:40.1%"></span><span class="pipeline-marker" style="--bar:40.1%;--delta:1.8%;--marker-color:#086b6b"></span>
+              </span>
+            </span>
+            <span class="ranking-metrics"><span class="ranking-amount">R$ 665 mil</span><span class="ranking-change up">▲ 12k</span></span>
+          </button>
+          <button class="ranking-row" type="button" data-unit="Uberlândia" aria-label="Selecionar Uberlândia. Pipeline R$ 585 mil, sem variação">
+            <span class="unit-dot" role="img" aria-label="Sinal sem classificação"></span>
+            <span class="ranking-unit">
+              <span class="ranking-unit-name">Uberlândia</span>
+              <span class="pipeline-track" role="img" aria-label="Uberlândia: pipeline R$ 585 mil; sem variação de 7 dias">
+                <span class="pipeline-fill" style="--bar:35.2%"></span>
+              </span>
+            </span>
+            <span class="ranking-metrics"><span class="ranking-amount">R$ 585 mil</span><span class="ranking-change flat">—</span></span>
+          </button>
+          <button class="ranking-row" type="button" data-unit="Fortaleza" aria-label="Selecionar Fortaleza. Pipeline R$ 490 mil, variação positiva de R$ 8 mil">
+            <span class="unit-dot" role="img" aria-label="Sinal sem classificação"></span>
+            <span class="ranking-unit">
+              <span class="ranking-unit-name">Fortaleza</span>
+              <span class="pipeline-track" role="img" aria-label="Fortaleza: pipeline R$ 490 mil; variação de 7 dias mais R$ 8 mil">
+                <span class="pipeline-fill" style="--bar:29.5%"></span><span class="pipeline-marker" style="--bar:29.5%;--delta:1.6%;--marker-color:#086b6b"></span>
+              </span>
+            </span>
+            <span class="ranking-metrics"><span class="ranking-amount">R$ 490 mil</span><span class="ranking-change up">▲ 8k</span></span>
+          </button>
+        </div>
+        <div class="more-units"><strong>+ 20 unidades</strong><span> · R$ 6,0 mi</span></div>
+      </section>
+
+      <section class="feed-card" id="pipeline" aria-labelledby="title-pipeline">
+        <div class="section-heading">
+          <div>
+            <span class="section-index">04 / VISÃO CONSOLIDADA</span>
+            <h2 class="section-title" id="title-pipeline">PIPELINE &amp; PEX</h2>
+          </div>
+        </div>
+        <div class="kpi-grid" aria-label="Indicadores do pipeline e PEX">
+          <article class="kpi">
+            <span class="kpi-label">Pipeline aberto</span>
+            <strong class="kpi-value">R$ 18,33 mi</strong>
+            <span class="kpi-note">59 opp</span>
+          </article>
+          <article class="kpi">
+            <span class="kpi-label">Projeção 30d</span>
+            <strong class="kpi-value">R$ 5,56 mi</strong>
+            <span class="kpi-note">−2,19 mi desde 15/09</span>
+          </article>
+          <article class="kpi">
+            <span class="kpi-label">Forecast PEX</span>
+            <strong class="kpi-value">R$ 408,5 mil</strong>
+            <span class="kpi-note">set/2026</span>
+          </article>
+          <article class="kpi overdue">
+            <span class="kpi-label">Previsão vencida</span>
+            <strong class="kpi-value">R$ 6,06 mi</strong>
+            <span class="kpi-note">valor em risco</span>
+          </article>
+        </div>
+
+        <div class="stages">
+          <h3 class="stages-heading">PIPELINE POR ETAPA</h3>
+          <div class="stage-list">
+            <div class="stage-row">
+              <span class="stage-name">Negociação</span>
+              <span class="stage-track" role="img" aria-label="Negociação, R$ 2,43 milhões, 13,3% do pipeline"><span class="stage-fill" style="--stage:13.3%"></span></span>
+              <strong class="stage-value">R$ 2,43 mi</strong>
+            </div>
+            <div class="stage-row">
+              <span class="stage-name">SQL</span>
+              <span class="stage-track" role="img" aria-label="SQL, R$ 2,45 milhões, 13,4% do pipeline"><span class="stage-fill" style="--stage:13.4%"></span></span>
+              <strong class="stage-value">R$ 2,45 mi</strong>
+            </div>
+            <div class="stage-row">
+              <span class="stage-name">Fechamento</span>
+              <span class="stage-track" role="img" aria-label="Fechamento, R$ 2,25 milhões, 12,3% do pipeline"><span class="stage-fill" style="--stage:12.3%"></span></span>
+              <strong class="stage-value">R$ 2,25 mi</strong>
+            </div>
+            <div class="stage-row">
+              <span class="stage-name">Demais etapas</span>
+              <span class="stage-track" role="img" aria-label="Demais etapas, R$ 11,2 milhões, 61,1% do pipeline"><span class="stage-fill" style="--stage:61.1%"></span></span>
+              <strong class="stage-value">R$ 11,2 mi</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="feed-progress" aria-label="Progresso do feed">
+      <a class="progress-dot" href="#exige" aria-label="Ir para seção 1: Exige você" aria-current="step"></a>
+      <a class="progress-dot" href="#semana" aria-label="Ir para seção 2: Entra na semana"></a>
+      <a class="progress-dot" href="#unidades" aria-label="Ir para seção 3: Unidades"></a>
+      <a class="progress-dot" href="#pipeline" aria-label="Ir para seção 4: Pipeline e PEX"></a>
+    </nav>
+
+    <footer class="feed-footer">Snapshot 22/09 · dados sintéticos · somente leitura</footer>
+
+    <aside class="assistant-panel" id="assistant-panel" role="dialog" aria-labelledby="assistant-title" aria-modal="false" hidden>
+      <button class="assistant-close" id="assistant-close" type="button" aria-label="Fechar assistente">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+      <h2 class="assistant-heading" id="assistant-title">Assistente da Receita</h2>
+      <p class="assistant-note">Demonstração · snapshot sintético · somente leitura</p>
+      <div class="assistant-links" aria-label="Atalhos do feed">
+        <button class="assistant-link" type="button" data-scroll-to="exige">Exige você</button>
+        <button class="assistant-link" type="button" data-scroll-to="semana">Entra na semana</button>
+        <button class="assistant-link" type="button" data-scroll-to="pipeline">Pipeline &amp; PEX</button>
+      </div>
+    </aside>
+    <button class="assistant-toggle" id="assistant-toggle" type="button" aria-label="Abrir assistente da Receita" aria-expanded="false" aria-controls="assistant-panel">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 3.5c.55 4.05 2.45 5.95 6.5 6.5-4.05.55-5.95 2.45-6.5 6.5-.55-4.05-2.45-5.95-6.5-6.5 4.05-.55 5.95-2.45 6.5-6.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M19 15.5c.25 1.85 1.15 2.75 3 3-1.85.25-2.75 1.15-3 3-.25-1.85-1.15-2.75-3-3 1.85-.25 2.75-1.15 3-3Z" fill="currentColor"/>
+        <path d="M5 2.5c.2 1.4.9 2.1 2.3 2.3C5.9 5 5.2 5.7 5 7.1 4.8 5.7 4.1 5 2.7 4.8 4.1 4.6 4.8 3.9 5 2.5Z" fill="currentColor"/>
+      </svg>
+    </button>
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+    <script>
+      const toast = document.getElementById("toast");
+      let toastTimer;
+
+      function announce(message) {
+        toast.textContent = message;
+        toast.hidden = false;
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => { toast.hidden = true; }, 2600);
+      }
+
+      const filterButtons = [...document.querySelectorAll("[data-filter]")];
+      const unitFilter = document.querySelector('[data-filter="unit"]');
+      const unitFilterLabel = document.getElementById("unit-filter-label");
+      let activeUnit = "";
+
+      function setActiveFilter(filter, unit = "") {
+        activeUnit = unit;
+        for (const button of filterButtons) {
+          const active = button.dataset.filter === filter;
+          button.setAttribute("aria-pressed", String(active));
+        }
+        unitFilterLabel.textContent = unit || "Todas as unidades";
+        unitFilter.setAttribute("aria-label", unit
+          ? "Filtro de unidade ativo: " + unit + ". Clique para limpar."
+          : "Filtro de unidade: todas as unidades");
+        for (const row of document.querySelectorAll(".ranking-row")) {
+          const selected = Boolean(unit) && row.dataset.unit === unit;
+          row.classList.toggle("is-selected", selected);
+          row.setAttribute("aria-pressed", String(selected));
+        }
+      }
+
+      for (const button of filterButtons) {
+        button.addEventListener("click", () => {
+          const filter = button.dataset.filter;
+          if (filter === "unit") {
+            setActiveFilter("unit");
+            announce("Filtro visual: todas as unidades.");
+          } else {
+            setActiveFilter(filter);
+            announce("Filtro visual selecionado: " + button.textContent.trim() + ".");
+          }
+        });
+      }
+
+      for (const row of document.querySelectorAll(".ranking-row")) {
+        row.addEventListener("click", () => {
+          const unit = row.dataset.unit;
+          setActiveFilter("unit", unit);
+          announce("Filtro visual selecionado: " + unit + ".");
+        });
+      }
+
+      for (const button of document.querySelectorAll("[data-action]")) {
+        button.addEventListener("click", () => {
+          announce(button.dataset.action + " · demonstração somente leitura.");
+        });
+      }
+
+      for (const button of document.querySelectorAll(".opportunity-pill")) {
+        button.addEventListener("click", () => {
+          const selected = button.getAttribute("aria-pressed") !== "true";
+          for (const pill of document.querySelectorAll(".opportunity-pill")) pill.setAttribute("aria-pressed", "false");
+          for (const day of document.querySelectorAll(".day-column")) day.classList.remove("is-highlighted");
+          if (selected) {
+            button.setAttribute("aria-pressed", "true");
+            const day = document.querySelector(".day-column:nth-child(" + ({seg: 1, ter: 2, qua: 3}[button.dataset.day]) + ")");
+            if (day) day.classList.add("is-highlighted");
+          }
+        });
+      }
+
+      const assistant = document.getElementById("assistant-panel");
+      const assistantToggle = document.getElementById("assistant-toggle");
+      const assistantClose = document.getElementById("assistant-close");
+
+      function closeAssistant() {
+        assistant.hidden = true;
+        assistantToggle.setAttribute("aria-expanded", "false");
+        assistantToggle.focus();
+      }
+
+      assistantToggle.addEventListener("click", () => {
+        assistant.hidden = !assistant.hidden;
+        assistantToggle.setAttribute("aria-expanded", String(!assistant.hidden));
+        if (assistant.hidden) assistantToggle.focus();
+        else assistantClose.focus();
+      });
+      assistantClose.addEventListener("click", closeAssistant);
+      assistant.addEventListener("keydown", event => {
+        if (event.key === "Escape") closeAssistant();
+      });
+      for (const button of document.querySelectorAll("[data-scroll-to]")) {
+        button.addEventListener("click", () => {
+          document.getElementById(button.dataset.scrollTo).scrollIntoView({behavior: "smooth", block: "start"});
+          closeAssistant();
+        });
+      }
+
+      const sections = [...document.querySelectorAll(".feed-card")];
+      const progressDots = [...document.querySelectorAll(".progress-dot")];
+      const observer = new IntersectionObserver(entries => {
+        const visible = entries.filter(entry => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (!visible) return;
+        const index = sections.indexOf(visible.target);
+        progressDots.forEach((dot, dotIndex) => {
+          if (dotIndex === index) dot.setAttribute("aria-current", "step");
+          else dot.removeAttribute("aria-current");
+        });
+      }, {threshold: [0.2, 0.45, 0.7]});
+      sections.forEach(section => observer.observe(section));
+    </script>
+  </body>
+</html>

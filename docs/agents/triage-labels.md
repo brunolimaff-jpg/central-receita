@@ -17,7 +17,7 @@ O mesmo nome vale em todos os projetos do Bruno. Assim o `/triage` funciona igua
 
 ### Criar as labels
 
-No rastreador local não existe label para criar. O estado do ticket é a linha `Status:`
+As labels existem no repositório do GitHub (criadas na unificação de 20/10/2026).
 no topo do arquivo, usando os mesmos nomes desta tabela.
 
 Se este projeto ganhar um repositório no GitHub, use o comando abaixo:

@@ -1,0 +1,394 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-public-sans), "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 0.2rem);
+  --radius-md: calc(var(--radius) - 0.05rem);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 0.35rem);
+}
+
+:root {
+  color-scheme: light;
+  --radius: 0.7rem;
+
+  /* Senior Brandcenter: #00968C is Verde Institucional. */
+  --senior-emerald: #00968c;
+  --senior-emerald-hover: #086b6b;
+  --senior-emerald-soft: color-mix(in srgb, var(--senior-emerald) 8%, white);
+  --senior-emerald-glass: rgb(0 150 140 / 11%);
+  --attention-amber: #8a5a00;
+  --attention-amber-soft: #fff3d6;
+  --critical-red: #b42318;
+  --critical-red-soft: #fcebea;
+  --success-green: #086b6b;
+  --success-green-soft: #e5f2ef;
+  --ink-primary: #202927;
+  --ink-secondary: #4b5753;
+  --surface-base: #f6f9fe;
+  --surface-raised: #ffffff;
+  --surface-glass: rgb(255 255 255 / 94%);
+  --hairline: #d4d4d4;
+
+  --background: var(--surface-base);
+  --foreground: var(--ink-primary);
+  --card: var(--surface-raised);
+  --card-foreground: var(--ink-primary);
+  --popover: #ffffff;
+  --popover-foreground: var(--ink-primary);
+  --primary: var(--senior-emerald-hover);
+  --primary-foreground: #ffffff;
+  --secondary: #edf2f3;
+  --secondary-foreground: #394542;
+  --muted: #eef2f4;
+  --muted-foreground: var(--ink-secondary);
+  --accent: var(--senior-emerald-soft);
+  --accent-foreground: var(--senior-emerald-hover);
+  --destructive: var(--critical-red);
+  --border: #d7dfe0;
+  --input: #bec9c9;
+  --ring: var(--senior-emerald-hover);
+  --chart-1: var(--senior-emerald);
+  --chart-2: #33466c;
+  --chart-3: #8ea0c5;
+  --chart-4: var(--attention-amber);
+  --chart-5: var(--critical-red);
+  /* Dark chrome matches the light labels already used by the navigation. */
+  --sidebar: #132320;
+  --sidebar-foreground: #f4f7f6;
+  --sidebar-primary: #34d399;
+  --sidebar-primary-foreground: #081913;
+  --sidebar-accent: #1d3833;
+  --sidebar-accent-foreground: #fafaf9;
+  --sidebar-border: #304944;
+  --sidebar-ring: #34d399;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-public-sans), "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "tnum" 1;
+    text-rendering: optimizeLegibility;
+    font-synthesis: none;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--senior-emerald-hover);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .scroll-discreta {
+    scrollbar-width: thin;
+    scrollbar-color: #b7c2c3 transparent;
+  }
+
+  .scroll-discreta::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scroll-discreta::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scroll-discreta::-webkit-scrollbar-thumb {
+    background-color: #b7c2c3;
+    border-radius: 8px;
+  }
+
+  .chrome-glass,
+  .revenue-app .revenue-panel {
+    background: var(--surface-glass);
+    border: 1px solid rgb(255 255 255 / 82%);
+    box-shadow: 0 10px 30px rgb(25 54 49 / 8%), inset 0 1px 0 rgb(255 255 255 / 90%);
+    -webkit-backdrop-filter: blur(18px) saturate(1.08);
+    backdrop-filter: blur(18px) saturate(1.08);
+  }
+
+  .revenue-app .revenue-panel {
+    border-radius: 16px;
+  }
+
+  .revenue-app .revenue-page {
+    display: grid;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .revenue-app .revenue-heading {
+    margin: 0;
+    color: #0d2340;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.12;
+    letter-spacing: -0.04em;
+  }
+
+  .revenue-app .revenue-subtitle {
+    margin: 6px 0 0;
+    color: #50647d;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .revenue-background {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(90deg, rgb(245 250 251 / 88%), rgb(247 250 251 / 70%) 48%, rgb(246 250 250 / 82%)),
+      linear-gradient(0deg, rgb(246 249 251 / 76%), rgb(255 255 255 / 22%) 52%, rgb(244 249 250 / 42%)),
+      url("/revenue/senior-hq.jpeg") center 38% / cover no-repeat;
+  }
+
+  .revenue-app .revenue-sidebar {
+    position: sticky;
+    top: 18px;
+    z-index: 20;
+    display: flex;
+    height: calc(100dvh - 36px);
+    min-height: 440px;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 17px;
+    background: rgb(255 255 255 / 90%);
+    padding: 17px 11px 13px;
+    box-shadow: 0 12px 40px rgb(40 71 83 / 10%), inset 0 1px 0 rgb(255 255 255 / 92%);
+    -webkit-backdrop-filter: blur(16px) saturate(1.08);
+    backdrop-filter: blur(16px) saturate(1.08);
+  }
+
+  .revenue-app .revenue-topbar {
+    position: sticky;
+    top: 18px;
+    z-index: 30;
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .revenue-app .revenue-control {
+    border: 1px solid rgb(255 255 255 / 88%);
+    background: rgb(255 255 255 / 88%);
+    box-shadow: 0 6px 18px rgb(45 74 83 / 7%), inset 0 1px 0 rgb(255 255 255 / 95%);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+
+  @media (min-width: 1280px) {
+    .revenue-app .revenue-overview-kpis {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .revenue-app .revenue-overview-kpi-card {
+      min-height: 104px;
+      gap: 7px;
+      padding: 8px;
+    }
+
+    .revenue-app .revenue-overview-kpi-icon {
+      width: 28px;
+      height: 28px;
+    }
+
+    .revenue-app .revenue-overview-kpi-value {
+      font-size: 23px;
+    }
+  }
+
+  @media (min-width: 1550px) {
+    .revenue-app .revenue-overview-kpi-card {
+      gap: 11px;
+      padding: 12px;
+    }
+
+    .revenue-app .revenue-overview-kpi-icon {
+      width: 40px;
+      height: 40px;
+    }
+
+    .revenue-app .revenue-overview-kpi-value {
+      font-size: 23px;
+    }
+  }
+
+  .chrome-glass--emerald {
+    background: color-mix(in srgb, var(--surface-glass) 88%, var(--senior-emerald-glass));
+    border-color: rgb(0 150 140 / 18%);
+  }
+
+  .surface-solid {
+    background: var(--surface-raised);
+    border: 1px solid var(--hairline);
+  }
+
+  .num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  .kicker {
+    color: var(--ink-secondary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  .transition-premium {
+    transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+    transition-duration: 180ms;
+    transition-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  @keyframes revenue-view-enter {
+    from { opacity: 0.82; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .message-enter {
+    animation: message-enter 160ms cubic-bezier(0.2, 0, 0, 1) both;
+  }
+
+  @keyframes message-enter {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Entrada das mensagens do agente V3: 220ms, só transform/opacity, dentro da
+     faixa de 180-280ms do plano (05:33). O bloco prefers-reduced-motion acima
+     já neutraliza a duração para quem pede menos movimento. */
+  .drill-enter {
+    animation: drill-enter 220ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  @keyframes drill-enter {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .chrome-glass,
+  .chrome-glass--emerald,
+  .revenue-app .revenue-panel,
+  .revenue-app .revenue-sidebar,
+  .revenue-app .revenue-control,
+  .revenue-home-glass {
+    background: #ffffff;
+    border-color: var(--hairline);
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .revenue-home-accent {
+    display: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .revenue-app .revenue-sidebar {
+    position: static;
+    top: auto;
+    height: auto;
+    min-height: 0;
+    padding: 10px 12px;
+  }
+}
+
+.revenue-app :is(a[href], button:not(:disabled):not([aria-disabled="true"]), summary, select):focus-visible {
+  outline: 2px solid var(--senior-emerald-hover);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .revenue-app :is(a[href], button:not(:disabled):not([aria-disabled="true"]), summary, select) {
+    transition-property: color, background-color, border-color, box-shadow, filter, scale, transform, opacity, text-decoration-color;
+    transition-duration: 160ms;
+    transition-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .revenue-app :is(a[href], button:not(:disabled):not([aria-disabled="true"]), summary, select):hover {
+    filter: brightness(0.985);
+  }
+
+  .revenue-app :is(a[href], button:not(:disabled):not([aria-disabled="true"]), summary):active {
+    scale: 0.99;
+  }
+
+  .revenue-app main > :first-child {
+    animation: revenue-view-enter 180ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .revenue-app .opportunities-stage-fill {
+    transition: width 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

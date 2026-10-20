@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Piloto B · Trilha de Execução — Central de Receita</title>
+<style>
+  :root{
+    --bg:#F4F7F6; --surface:#FFFFFF; --line:#E3EAE7; --line-soft:#EDF2F0;
+    --ink:#0F2420; --ink-2:#48605A; --ink-3:#7C9089;
+    --brand:#0E8C7D; --brand-ink:#0A6A5F; --brand-soft:#E3F2EF;
+    --side:#08211B; --side-2:#0D2C25; --side-ink:#B8CCC6;
+    --crit:#C0361C; --crit-bg:#FCEDE7; --warn:#9A6700; --warn-bg:#FBF3DC;
+    --r:14px; --shadow:0 1px 2px rgba(15,36,32,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Public Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); font-size:14px; line-height:1.45;
+    display:flex; min-height:100vh;
+  }
+  button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+  button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:6px}
+  a{color:var(--brand-ink)}
+
+  /* ---------- sidebar ---------- */
+  .side{width:232px;flex:none;background:var(--side);color:var(--side-ink);display:flex;flex-direction:column;padding:20px 14px}
+  .wordmark{color:#fff;font-weight:700;font-size:19px;letter-spacing:.2px;display:flex;align-items:center;gap:8px}
+  .wordmark i{width:9px;height:9px;border-radius:3px;background:var(--brand);display:inline-block}
+  .side-sub{font-size:12px;color:var(--side-ink);margin-top:4px}
+  .nav-h{font-size:10px;letter-spacing:.14em;color:#6E8781;margin:26px 10px 8px;text-transform:uppercase}
+  .nav a{display:flex;align-items:center;gap:10px;color:var(--side-ink);text-decoration:none;padding:9px 10px;border-radius:9px;font-weight:500}
+  .nav a:hover{background:var(--side-2)}
+  .nav a.on{background:var(--side-2);color:#fff}
+  .nav svg{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7}
+  .side-foot{margin-top:auto;border-top:1px solid #123A31;padding-top:14px;font-size:11px;color:#6E8781}
+  .side-foot b{color:var(--side-ink);font-weight:600}
+
+  /* ---------- main ---------- */
+  main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .topbar{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--line);background:var(--surface);flex-wrap:wrap}
+  .crumbs{font-size:13px;color:var(--ink-3)}
+  .crumbs strong{color:var(--ink);font-weight:600}
+  .controls{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:2px}
+  .seg button{padding:4px 12px;border-radius:7px;font-size:12.5px;font-weight:600;color:var(--ink-2)}
+  .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+  .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:5px 11px;font-size:12.5px;font-weight:600;color:var(--ink-2)}
+  .badge-syn{font-size:11.5px;color:var(--ink-3);font-weight:500}
+  .badge-syn::before{content:"●";color:var(--brand);font-size:8px;margin-right:5px;vertical-align:2px}
+
+  .wrap{padding:18px 22px 26px;max-width:1560px;width:100%}
+
+  /* ---------- kpis ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px 12px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow)}
+  .kpi-h{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-3);font-weight:600}
+  .kpi-v{font-size:26px;font-weight:700;letter-spacing:-.02em}
+  .kpi-v small{font-size:14px;font-weight:600;color:var(--ink-3);margin-left:2px}
+  .kpi-d{font-size:12.5px;color:var(--ink-2)}
+  .up{color:var(--brand-ink);font-weight:700}
+  .down{color:var(--crit);font-weight:700}
+  .kpi-a{margin-top:auto;padding-top:6px}
+  .kpi-a button{color:var(--brand-ink);font-weight:700;font-size:12.5px}
+  .kpi-a button:hover{text-decoration:underline}
+
+  /* ---------- layout ---------- */
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:16px;margin-top:16px;align-items:start}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+  .card-h{display:flex;align-items:baseline;gap:10px;padding:14px 18px 0}
+  .card-h h2{font-size:15px;font-weight:700}
+  .card-h .sub{font-size:12px;color:var(--ink-3)}
+  .card-h .right{margin-left:auto}
+  .card-b{padding:12px 18px 16px}
+  .stack{display:flex;flex-direction:column;gap:16px;min-width:0}
+
+  /* bars */
+  .barrow{display:grid;grid-template-columns:110px 1fr 86px;gap:10px;align-items:center;padding:9px 0}
+  .barrow .lbl{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .barrow .lbl small{display:block;font-weight:500;color:var(--ink-3);font-size:11px}
+  .track{height:10px;background:var(--line-soft);border-radius:6px;overflow:hidden}
+  .fill{height:100%;border-radius:6px;background:var(--brand)}
+  .fill.dim{background:#9DBFBA}
+  .barrow .val{font-size:13px;font-weight:700;text-align:right;white-space:nowrap}
+  .barrow .val small{display:block;font-weight:500;color:var(--ink-3);font-size:11px}
+  .footnote{font-size:11.5px;color:var(--ink-3);margin-top:8px}
+
+  /* flow do mês */
+  .flow{display:flex;gap:10px}
+  .flow div{flex:1;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .flow b{font-size:17px;display:block}
+  .flow span{font-size:11.5px;color:var(--ink-3)}
+
+  /* accounts */
+  .acct{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--line-soft)}
+  .acct:first-of-type{border-top:none}
+  .acct .n{font-size:12px;color:var(--ink-3);font-weight:700;width:20px}
+  .acct .nm{font-weight:600;font-size:13.5px}
+  .acct .meta{font-size:11.5px;color:var(--ink-3)}
+  .acct .val{margin-left:auto;font-weight:700;white-space:nowrap}
+
+  /* ---------- trilha ---------- */
+  .trail{position:sticky;top:14px;display:flex;flex-direction:column;max-height:calc(100vh - 28px)}
+  .trail-h{display:flex;align-items:center;gap:9px;padding:14px 16px 10px;border-bottom:1px solid var(--line-soft)}
+  .trail-h b{font-size:14px}
+  .trail-h .cnt{font-size:11px;font-weight:800;color:var(--brand-ink);background:var(--brand-soft);border-radius:999px;padding:2px 8px}
+  .trail-h .sub{margin-left:auto;font-size:10.5px;color:var(--ink-3);font-weight:600;white-space:nowrap}
+  .trail-b{padding:10px 12px;overflow:auto;display:flex;flex-direction:column;gap:8px}
+  .sec-h{font-size:10.5px;letter-spacing:.12em;color:var(--ink-3);font-weight:700;text-transform:uppercase;margin:6px 4px 0}
+
+  details.item{border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+  details.item.hot{border-color:#F0C8BB;background:#FFFBF9}
+  details.item>summary{list-style:none;display:flex;align-items:center;gap:10px;padding:11px 12px;cursor:pointer}
+  details.item>summary::-webkit-details-marker{display:none}
+  .sev{width:9px;height:9px;border-radius:50%;flex:none}
+  .sev.crit{background:var(--crit)} .sev.warn{background:#D9A413} .sev.ok{background:var(--brand)}
+  .item .t{font-weight:600;font-size:13px;line-height:1.3;flex:1;min-width:0}
+  .item .v{font-weight:700;font-size:13px;white-space:nowrap}
+  .item .v small{display:block;font-weight:500;color:var(--ink-3);font-size:10.5px;text-align:right}
+  .chev{color:var(--ink-3);font-size:11px;flex:none}
+  details[open] .chev{transform:rotate(180deg)}
+  .item .body{padding:0 12px 12px;border-top:1px solid var(--line-soft);margin-top:2px;padding-top:10px;font-size:12.5px;color:var(--ink-2);display:flex;flex-direction:column;gap:9px}
+  .item .body .row{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:6px;background:var(--brand);color:#fff;font-weight:700;font-size:12px;border-radius:9px;padding:6px 12px}
+  .btn:hover{background:var(--brand-ink)}
+  .btn.ghost{background:var(--surface);color:var(--brand-ink);border:1px solid var(--line)}
+  .btn.ghost:hover{background:var(--brand-soft)}
+  .tag{font-size:10px;font-weight:800;letter-spacing:.05em;border-radius:6px;padding:3px 7px;background:#E7EBFB;color:#3B4FB8;align-self:center}
+  .tag.fut{background:#EEF1F4;color:#5B6B77}
+  .sim-result{background:var(--brand-soft);border:1px solid #CBE5DF;border-radius:9px;padding:8px 10px;font-size:12.5px;display:none}
+  .sim-result.show{display:block}
+  .spinner{width:13px;height:13px;border:2px solid #BFDCD6;border-top-color:var(--brand);border-radius:50%;display:inline-block;animation:spin .7s linear infinite;vertical-align:-2px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .trail-foot{border-top:1px solid var(--line-soft);padding:10px 16px 12px;font-size:10.5px;color:var(--ink-3)}
+
+  /* ---------- mobile ---------- */
+  @media (max-width:1180px){ .kpis{grid-template-columns:repeat(2,1fr)} }
+  @media (max-width:960px){
+    .side{display:none}
+    .grid{grid-template-columns:1fr}
+    .trail{position:static;max-height:none}
+  }
+  @media (max-width:560px){ .kpis{grid-template-columns:1fr 1fr} .kpi-v{font-size:21px} }
+</style>
+</head>
+<body>
+
+<aside class="side">
+  <div>
+    <div class="wordmark"><i></i>Senior</div>
+    <div class="side-sub">Central de Receita<br>Inteligência comercial · local</div>
+  </div>
+  <div class="nav-h">Trabalho</div>
+  <nav class="nav" aria-label="Navegação principal">
+    <a href="#" class="on" aria-current="page"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Briefing</a>
+    <a href="#"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 1 1-3.6-6.7L21 4l-1 4.2A8 8 0 0 1 21 12Z"/></svg>Pergunte à Receita</a>
+    <a href="#"><svg viewBox="0 0 24 24"><path d="M4 19V5m0 14h16M8 15l3-4 3 2 5-7"/></svg>Explorar</a>
+    <a href="#"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4Z"/></svg>Visões</a>
+  </nav>
+  <div class="nav-h">Apoio</div>
+  <nav class="nav" aria-label="Apoio">
+    <a href="#"><svg viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5-9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></svg>Fontes &amp; Regras</a>
+  </nav>
+  <div class="side-foot">
+    <b>Base sintética local</b><br>Snapshot 22 set 2026 · 17:24<br>Sem integração corporativa
+  </div>
+</aside>
+
+<main>
+  <header class="topbar">
+    <div class="crumbs">Central de Receita / <strong>Briefing</strong></div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Horizonte">
+        <button aria-pressed="true">30 dias</button>
+        <button aria-pressed="false">60</button>
+        <button aria-pressed="false">90</button>
+      </div>
+      <button class="chip">PEX set/2026 <span aria-hidden="true">▾</span></button>
+      <button class="chip">Executiva <span aria-hidden="true">▾</span></button>
+      <span class="badge-syn">dados sintéticos · 22 set 17:24</span>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <section class="kpis" aria-label="Indicadores essenciais">
+      <article class="kpi">
+        <div class="kpi-h">Pipeline aberto</div>
+        <div class="kpi-v">R$ 18,33 <small>mi</small></div>
+        <div class="kpi-d">59 oportunidades · <span class="up">+R$ 363 mil</span> vs leitura anterior</div>
+        <div class="kpi-a"><button>Ver movimentos →</button></div>
+      </article>
+      <article class="kpi">
+        <div class="kpi-h">Forecast PEX · set/2026</div>
+        <div class="kpi-v">R$ 408,5 <small>mil</small></div>
+        <div class="kpi-d">Elegível: 1 · R$ 168,5 mil · ganhas no mês: 2 · R$ 240 mil</div>
+        <div class="kpi-a"><button>Abrir régua PEX →</button></div>
+      </article>
+      <article class="kpi">
+        <div class="kpi-h">Projeção móvel · 30 dias</div>
+        <div class="kpi-v">R$ 5,56 <small>mi</small></div>
+        <div class="kpi-d">23 oportunidades · <span class="down">−R$ 2,19 mi</span> desde 15/09</div>
+        <div class="kpi-a"><button>Explicar queda →</button></div>
+      </article>
+      <article class="kpi">
+        <div class="kpi-h">Previsão vencida <span class="sev crit" style="width:auto;height:auto;border-radius:6px;padding:3px 7px;font-size:10px;font-weight:800;margin-left:auto">crítica</span></div>
+        <div class="kpi-v">R$ 6,06 <small>mi</small></div>
+        <div class="kpi-d">16 oportunidades · 6 responsáveis</div>
+        <div class="kpi-a"><button>Ver plano na trilha ↓</button></div>
+      </article>
+    </section>
+
+    <div class="grid">
+
+      <!-- ===== área de dados ===== -->
+      <div class="stack">
+
+        <section class="card" aria-label="Pipeline por etapa">
+          <div class="card-h">
+            <h2>Pipeline aberto · por etapa</h2>
+            <span class="sub">R$ 18,33 mi · 59 oportunidades</span>
+            <span class="right"><button class="btn ghost">Abrir pipeline →</button></span>
+          </div>
+          <div class="card-b">
+            <div class="barrow"><span class="lbl">Negociação<small>observado · PDF CRM Integrado MG</small></span><span class="track"><span class="fill" style="width:99%"></span></span><span class="val">R$ 2,43 mi<small>9 opp</small></span></div>
+            <div class="barrow"><span class="lbl">SQL<small>funil privado</small></span><span class="track"><span class="fill" style="width:100%"></span></span><span class="val">R$ 2,45 mi<small>8 opp</small></span></div>
+            <div class="barrow"><span class="lbl">Fechamento<small>não mapeada</small></span><span class="track"><span class="fill dim" style="width:92%"></span></span><span class="val">R$ 2,25 mi<small>8 opp</small></span></div>
+            <div class="barrow"><span class="lbl">Demais etapas<small>agregado · 6 etapas</small></span><span class="track"><span class="fill dim" style="width:100%"></span></span><span class="val">R$ 11,2 mi<small>34 opp</small></span></div>
+            <p class="footnote">Barra em cinza: agregado de 6 etapas. Fonte por etapa indicada no detalhe. Etapas não indicam conversão entre populações.</p>
+          </div>
+        </section>
+
+        <section class="card" aria-label="Movimento do mês">
+          <div class="card-h">
+            <h2>Movimento desde a última leitura</h2>
+            <span class="sub">janela 30 dias</span>
+          </div>
+          <div class="card-b">
+            <div class="flow">
+              <div><b class="up">+R$ 363 mil</b><span>variação líquida do pipeline aberto</span></div>
+              <div><b>6 entraram</b><span>novas oportunidades na janela</span></div>
+              <div><b>4 saíram</b><span>fechadas ou retiradas da leitura</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" aria-label="Concentração por conta">
+          <div class="card-h">
+            <h2>Concentração por conta</h2>
+            <span class="sub">maior valor previsto em aberto</span>
+          </div>
+          <div class="card-b">
+            <div class="acct"><span class="n">01</span><div><div class="nm">Cooperativa Vale do Sol</div><div class="meta">2 oportunidades · Cooperativa (fixture)</div></div><span class="val">R$ 1,18 mi</span></div>
+            <div class="acct"><span class="n">02</span><div><div class="nm">Sementes Vale Verde</div><div class="meta">2 oportunidades · Agroinsumos (fixture)</div></div><span class="val">R$ 1,11 mi</span></div>
+            <div class="acct"><span class="n">03</span><div><div class="nm">Casa &amp; Obra Ponta Firme</div><div class="meta">2 oportunidades · Varejo (fixture)</div></div><span class="val">R$ 1,10 mi</span></div>
+            <p class="footnote">Top 3 concentram ≈ 19% do pipeline aberto.</p>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- ===== trilha de execução ===== -->
+      <aside class="card trail" aria-label="Trilha de execução">
+        <div class="trail-h">
+          <b>Trilha de resultado</b><span class="cnt">6 itens</span>
+          <span class="sub">R$ 17,4 mi em jogo</span>
+        </div>
+
+        <div class="trail-b">
+          <span class="sec-h">Desbloquear agora · por valor</span>
+
+          <details class="item hot">
+            <summary>
+              <span class="sev warn" aria-hidden="true"></span>
+              <span class="t">Previsão deslocada · 23 opp · 5 resp.</span>
+              <span class="v">R$ 6,93 mi</span>
+              <span class="chev" aria-hidden="true">▾</span>
+            </summary>
+            <div class="body">
+              Previsões reagendadas: reforecast e validar a nova data com o cliente. Impacto no horizonte 30/60/90 no Radar.
+              <div class="row">
+                <button class="btn" data-sim="sim-deslocada">Simular reforecast</button>
+                <button class="btn ghost">Abrir 23 oportunidades</button>
+              </div>
+              <div class="sim-result" id="sim-deslocada" role="status"><span class="spinner"></span> simulando…</div>
+            </div>
+          </details>
+
+          <details class="item hot">
+            <summary>
+              <span class="sev crit" aria-hidden="true"></span>
+              <span class="t">Previsão vencida · 16 opp · 6 resp.</span>
+              <span class="v">R$ 6,06 mi</span>
+              <span class="chev" aria-hidden="true">▾</span>
+            </summary>
+            <div class="body">
+              Filas possíveis: manter no mês, deslocar com nova data ou retirar da expectativa.
+              <div class="row">
+                <button class="btn" data-sim="sim-vencida">Simular recuperação</button>
+                <button class="btn ghost">Abrir 16 oportunidades</button>
+                <span class="tag">simulação</span>
+              </div>
+              <div class="sim-result" id="sim-vencida" role="status"><span class="spinner"></span> simulando…</div>
+            </div>
+          </details>
+
+          <details class="item">
+            <summary>
+              <span class="sev crit" aria-hidden="true"></span>
+              <span class="t">Projeção caiu desde 15/09 · 6 opp</span>
+              <span class="v">R$ 2,19 mi</span>
+              <span class="chev" aria-hidden="true">▾</span>
+            </summary>
+            <div class="body">
+              Variação concentrada em 2 contas (Vale Verde −R$ 1,31 mi · Casa &amp; Obra −R$ 640 mil), por deslocamento de previsão.
+              <div class="row">
+                <button class="btn ghost">Ver as 6 oportunidades</button>
+                <button class="btn ghost">Preparar cobrança</button>
+              </div>
+            </div>
+          </details>
+
+          <details class="item">
+            <summary>
+              <span class="sev ok" aria-hidden="true"></span>
+              <span class="t">Sem movimento · 8 opp · R$ 2,23 mi</span>
+              <span class="v">R$ 2,23 mi</span>
+              <span class="chev" aria-hidden="true">▾</span>
+            </summary>
+            <div class="body">
+              Sem atividade registrada não significa sem trabalho. Fila de follow-up priorizada por valor: 3 contas respondem por R$ 1,64 mi.
+              <div class="row">
+                <button class="btn" data-sim="sim-movimento">Preparar follow-ups</button>
+                <span class="tag">simulação</span>
+              </div>
+              <div class="sim-result" id="sim-movimento" role="status"><span class="spinner"></span> priorizando…</div>
+            </div>
+          </details>
+
+          <span class="sec-h">Decisões pendentes</span>
+
+          <details class="item">
+            <summary>
+              <span class="sev ok" aria-hidden="true"></span>
+              <span class="t">12 previsões vencidas sem fila definida</span>
+              <span class="v">Pendência</span>
+              <span class="chev" aria-hidden="true">▾</span>
+            </summary>
+            <div class="body">
+              Definir fila por oportunidade: manter, deslocar ou retirar. Pendências hoje: sem previsão 4 · vencida 12 · sem compromisso 7.
+              <div class="row">
+                <button class="btn" data-sim="sim-decisao">Simular cenários</button>
+                <button class="btn ghost fut">Aprovar em massa</button><span class="tag fut">futuro</span>
+              </div>
+              <div class="sim-result" id="sim-decisao" role="status"><span class="spinner"></span> simulando…</div>
+            </div>
+          </details>
+
+          <details class="item">
+            <summary>
+              <span class="sev ok" aria-hidden="true"></span>
+              <span class="t">Elegíveis ao PEX do mês · 0 acionadas</span>
+              <span class="v">R$ 0</span>
+              <span class="chev" aria-hidden="true">▾</span>
+            </summary>
+            <div class="body">
+              Nenhum item elegível nesta leitura. Régua PEX do mês: R$ 408,5 mil · 3 oportunidades.
+              <div class="row"><button class="btn ghost">Abrir régua PEX</button></div>
+            </div>
+          </details>
+
+          <span class="sec-h">Perguntas rápidas</span>
+
+          <details class="item">
+            <summary><span class="t" style="color:var(--brand-ink)">O que perdeu valor esta semana?</span><span class="chev" aria-hidden="true">▾</span></summary>
+            <div class="body">Projeção móvel −R$ 2,19 mi desde 15/09, concentrada em 2 contas. Detalhe em “Projeção caiu” acima.</div>
+          </details>
+          <details class="item">
+            <summary><span class="t" style="color:var(--brand-ink)">Quem devo cobrar primeiro?</span><span class="chev" aria-hidden="true">▾</span></summary>
+            <div class="body">Fila sugerida por valor: Cooperativa Vale do Sol, Sementes Vale Verde, Casa &amp; Obra — juntas somam R$ 3,39 mi em aberto.</div>
+          </details>
+          <details class="item">
+            <summary><span class="t" style="color:var(--brand-ink)">E a meta do mês?</span><span class="chev" aria-hidden="true">▾</span></summary>
+            <div class="body">Sem fonte de meta nesta leitura — atingimento não é exibido. Forecast PEX set/2026: R$ 408,5 mil · 3 oportunidades.</div>
+          </details>
+        </div>
+
+        <div class="trail-foot">Propostas ≠ execução: simulações locais, nada é escrito no CRM. Execução real: <b>futuro</b>.</div>
+      </aside>
+
+    </div>
+  </div>
+</main>
+
+<script>
+  // estados da simulação: consultando -> resultado
+  const results={
+    'sim-deslocada':'Reforecast simulado: <b>R$ 4,10 mi</b> voltam para o horizonte de 60 dias; R$ 2,83 mi permanecem fora de 90d. Simulação local.',
+    'sim-vencida':'Recuperação simulada: <b>9 de 16</b> cabem em 30 dias (<b>R$ 3,42 mi</b>); 4 manter no mês; 3 retirar (R$ 1,52 mi). Simulação local.',
+    'sim-movimento':'Fila pronta: <b>3 contas · R$ 1,64 mi</b>. Follow-up sugerido hoje para as duas primeiras. Simulação local.',
+    'sim-decisao':'Cenários: manter = R$ 2,0 mi no mês; deslocar 30d = R$ 3,4 mi preservados; retirar = −R$ 1,5 mi de expectativa. Simulação local.'
+  };
+  document.querySelectorAll('[data-sim]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const el=document.getElementById(btn.dataset.sim);
+      el.classList.add('show');
+      el.innerHTML='<span class="spinner"></span> consultando snapshot local…';
+      setTimeout(()=>{ el.textContent=''; el.innerHTML=results[btn.dataset.sim]; },550);
+    });
+  });
+  document.querySelectorAll('.seg button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed','false'));
+      b.setAttribute('aria-pressed','true');
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,45 +1,47 @@
-# Rastreador de issues: Markdown local
+# Rastreador de issues: GitHub
 
-Issues e specs deste projeto ficam como arquivos markdown dentro da pasta `.scratch/`.
-Nada aqui depende de GitHub, de rede ou de login.
+Issues e specs deste projeto ficam no GitHub Issues do repositório
+`brunolimaff-jpg/central-receita` (privado). Toda operação usa o `gh`; o repositório
+vem do `git remote -v`.
 
-## Onde fica
+Specs e tickets anteriores a 20/10/2026 continuam em `.scratch/<feature>/` como histórico.
+Não abra ticket novo lá.
 
-- Uma feature por pasta: `.scratch/<feature-slug>/`
-- A spec da feature: `.scratch/<feature-slug>/spec.md`
-- Cada ticket é um arquivo: `.scratch/<feature-slug>/issues/<NN>-<slug>.md`
-  - A numeração começa em `01`
-  - Um arquivo por ticket. Nunca um arquivo com todos os tickets juntos
-- O estado do ticket fica na linha `Status:` no topo do arquivo
-- Conversas e histórico vão no fim do arquivo, sob o título `## Comments`
+## Operações
 
-## Status do ticket
+- **Criar:** `gh issue create --title "..." --body "..." --label pronto-pra-agente` (corpo longo via heredoc)
+- **Ler:** `gh issue view <n> --comments`
+- **Listar:** `gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'`, com `--label` e `--state` quando precisar
+- **Comentar:** `gh issue comment <n> --body "..."`
+- **Labels:** `gh issue edit <n> --add-label "..."` / `--remove-label "..."` (nomes em `triage-labels.md`)
+- **Fechar:** `gh issue close <n> --comment "..."`
 
-O estado usa os mesmos nomes das labels de triagem. Veja `triage-labels.md`.
+## Pull requests como entrada de triagem
 
-| Status | Quando usar |
-| --- | --- |
-| `pra-avaliar` | Ticket novo. Alguém precisa dar uma olhada antes de seguir |
-| `falta-info` | Falta informação de quem abriu |
-| `pronto-pra-agente` | Está tudo descrito. Um agente pode rodar sozinho |
-| `decisao-do-bruno` | Precisa de decisão ou ação do Bruno |
-| `deixado-de-lado` | Não vamos fazer. Fica registrado |
+**PRs como pedido: não.** _(Troque para `sim` se PRs externos virarem pedidos; o `/triage` lê esta linha.)_
 
 ## Quando uma skill disser "publicar no rastreador"
 
-Criar a pasta da feature dentro de `.scratch/` (se ainda não existir) e gravar o ticket nela.
+Criar uma issue no GitHub.
 
 ## Quando uma skill disser "buscar o ticket"
 
-Ler o arquivo no caminho indicado.
+`gh issue view <n> --comments`.
+
+## Spec e tickets
+
+- A spec é uma issue com a label `pronto-pra-agente` e o título começando por `Spec:`.
+- Cada ticket é uma issue própria, com `Parte de #<spec>` na primeira linha do corpo.
+- **Bloqueio:** dependência nativa do GitHub
+  (`gh api --method POST repos/brunolimaff-jpg/central-receita/issues/<filho>/dependencies/blocked_by -F issue_id=<id-numérico-do-bloqueador>`,
+  com o id de `gh api repos/brunolimaff-jpg/central-receita/issues/<n> --jq .id`).
+  Sem esse recurso, a linha `Bloqueado por: #<n>, #<n>` no topo do corpo.
+  O ticket está livre quando todos os bloqueadores estão fechados.
 
 ## Operações de wayfinding (`/wayfinder`)
 
-- **Mapa:** `.scratch/<esforço>/map.md`, com o corpo Notas / Decisões até agora / Neblina.
-- **Ticket filho:** `.scratch/<esforço>/issues/<NN>-<slug>.md`, numerado a partir de `01`.
-  - A linha `Type:` registra o tipo (`research` / `prototype` / `grilling` / `task`).
-  - A linha `Status:` registra `claimed` / `resolved`.
-- **Bloqueio:** linha `Blocked by: NN, NN` no topo. O ticket está liberado quando todos os listados estão `resolved`.
-- **Fronteira:** varrer `issues/` procurando tickets abertos, sem bloqueio e sem responsável. O primeiro da lista vence.
-- **Assumir:** colocar `Status: claimed` e salvar antes de começar.
-- **Resolver:** escrever a resposta em `## Answer`, marcar `Status: resolved` e apontar o contexto no `map.md`.
+- **Mapa:** uma issue com a label `wayfinder:map` (Notas / Decisões até agora / Neblina).
+- **Filho:** sub-issue do mapa, label `wayfinder:<research|prototype|grilling|task>`.
+- **Fronteira:** filhos abertos do mapa, sem bloqueador aberto e sem responsável; o primeiro na ordem do mapa vence.
+- **Assumir:** `gh issue edit <n> --add-assignee @me`, antes de qualquer outra escrita.
+- **Resolver:** comentar a resposta, fechar a issue e anotar o ponteiro nas Decisões do mapa.

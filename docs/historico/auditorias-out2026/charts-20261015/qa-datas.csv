@@ -1,0 +1,4 @@
+Oportunidade ID;Conta ID;Conta;Etapa;Previsão de Fechamento;Valor Previsto;Valor Fechado;Representante
+90001;99001;Teste Gráfico A;Negociação;01/10/2026;1000;;QA local
+90002;99002;Teste Gráfico B;Negociação;02/10/2026;2000;;QA local
+90003;99003;Teste Gráfico C;Negociação;31/10/2026;3000;;QA local

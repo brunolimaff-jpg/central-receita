@@ -1,0 +1,5 @@
+# Mesmo plano já aprovado — liberação do modo plano para executar
+
+O plano abaixo é o que você acabou de aprovar (com "vai agora"), inalterado. A camada de permissão do ZCode continua em **modo plano** e bloqueou 3 comandos de escrita (Fase 0 e branch), então não consegui começar. Aprovar aqui (ou desligar o toggle do plan mode) libera a execução imediata na ordem: **Fase 0** (strings nos .md de v3/) → **Fase 1** (branch `comercial-v3` + `src/features/comercial-v3`) → **Fases 2-3** (workflow de implementação em Verboo 4.1-flash com gates lint/tsc) → **Fase 4** (gate visual com as 2 skills + referências, ao vivo com você) → **Fase 5** (build + testes + review + commit no branch, sem push).
+
+Resumo do mapa (inalterado): zips extraídos em `v3/`; mapa-fonte-única em `v3/ONDE-TA-TUDO-V3.md`; destino = `Dash com IA/src/features/comercial-v3` (05:5,7); preview HTML vanilla = régua visual, não código a colar; fixture travada 12,0/8,4/11,0/10,2 mi; §18 governa o hero; FILIAL ≠ HEAD; Top 10 por abs(deltaForecast); sem GSAP, motion 180-280ms.

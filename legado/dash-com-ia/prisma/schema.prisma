@@ -1,0 +1,169 @@
+// Central de Receita V1 — Mock Executável
+// Schema sintético, fiel ao contrato físico conhecido do CRM.
+// Nenhum dado real é armazenado: todos os registros são fictícios.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Metadados do snapshot sintético (chave/valor)
+model Meta {
+  chave      String   @id
+  valor      String
+  atualizado DateTime @updatedAt
+}
+
+// Usuários sintéticos (vendedores, consultores de conta, reguladores)
+model Usuario {
+  usuario_id Int    @id
+  nome       String
+  email      String
+  cargo      String
+}
+
+// CONTA ≠ OPORTUNIDADE. conta_id ≠ conta_id_erp (ERP é opcional).
+model Conta {
+  conta_id       Int      @id
+  conta_id_erp   Int?     @unique
+  razao_social   String
+  fantasia       String
+  cnpj_ficticio  String
+  segmento       String
+  filial         String
+  municipio      String
+  uf             String
+  responsavel_id Int
+  criado_em      DateTime
+  oportunidades  Oportunidade[]
+  compromissos   Compromisso[]
+}
+
+// Núcleo da experiência. Estado atual ≠ histórico (histórico está em Ação).
+model Oportunidade {
+  oportunidade_id    Int       @id
+  conta_id           Int
+  nome               String
+  descricao          String?
+  responsavel_id     Int
+  // Classificação e tipo/subtipo são rótulos do fixture local, não regras de produção.
+  classificacao_fixture String?
+  tipo_oportunidade     String?
+  subtipo_oportunidade  String?
+  etapa              String // Originação | SQL | Qualificação | Proposta | Negociação | Fechamento
+  situacao           String // Aberta | Ganha | Perdida
+  probabilidade      Int
+  origem             String
+  suborigem          String?
+  previsao_inicial   DateTime
+  previsao_atual     DateTime?
+  fechamento_efetivo DateTime?
+  valor_previsto     Float
+  valor_fechado      Float?
+  motivo_fechamento  String?
+  motivo_perda       String?
+  criada_em          DateTime
+  // Marcador explícito para registros de teste (ex.: data inconsistente simulada)
+  marcador_teste     String?
+  conta              Conta     @relation(fields: [conta_id], references: [conta_id])
+  acoes              Acao[]
+  compromissos       Compromisso[]
+  propostas          Proposta[]
+  ocorrencias        Ocorrencia[]
+  qics               Qic[]
+  concorrentes       Concorrente[]
+  pedido             Pedido?
+}
+
+// Uma linha por ação — contrato físico real conhecido (auditoria completa)
+model Acao {
+  acao_id                Int      @id
+  oportunidade_id        Int
+  data_acao              DateTime
+  acao_pedido            Boolean  @default(false)
+  tipo_acao              String
+  muda_oportunidade      Boolean  @default(false)
+  muda_status            Boolean  @default(false)
+  notificado             Boolean  @default(false)
+  observacoes_acao       String?
+  usuario_cadastro_id    Int
+  usuario_cadastro_nome  String
+  data_cadastro          DateTime
+  usuario_alteracao_id   Int?
+  usuario_alteracao_nome String?
+  data_alteracao         DateTime?
+  oportunidade           Oportunidade @relation(fields: [oportunidade_id], references: [oportunidade_id])
+}
+
+model Compromisso {
+  compromisso_id   Int      @id
+  oportunidade_id  Int
+  conta_id         Int
+  data_hora        DateTime
+  assunto          String
+  atividade        String // Reunião | Ligação | Demonstração | Visita técnica | Workshop
+  descricao        String?
+  responsavel_id   Int
+  responsavel_nome String
+  situacao         String // Agendado | Realizado | Cancelado | Reagendado | No-show
+  aceite           String // Aceito | Pendente | Recusado
+  oportunidade     Oportunidade @relation(fields: [oportunidade_id], references: [oportunidade_id])
+  conta            Conta     @relation(fields: [conta_id], references: [conta_id])
+}
+
+// Somente uma proposta explicitamente marcada como válida por oportunidade
+model Proposta {
+  proposta_id     Int      @id
+  oportunidade_id Int
+  numero          String
+  versao          Int
+  data_emissao    DateTime
+  valor           Float
+  situacao        String // Válida | Substituída | Cancelada
+  valida          Boolean  @default(false)
+  oportunidade    Oportunidade @relation(fields: [oportunidade_id], references: [oportunidade_id])
+}
+
+// Ocorrência: apenas tipo, situação e data (contrato mínimo)
+model Ocorrencia {
+  ocorrencia_id   Int      @id
+  oportunidade_id Int
+  tipo            String
+  situacao        String // Aberta | Resolvida
+  data            DateTime
+  oportunidade    Oportunidade @relation(fields: [oportunidade_id], references: [oportunidade_id])
+}
+
+// QIC: identificador opcional + situação ("possui_qic" é derivado)
+model Qic {
+  qic_id          Int      @id
+  oportunidade_id Int
+  identificador   String?
+  situacao        String // Ativo | Encerrado
+  oportunidade    Oportunidade @relation(fields: [oportunidade_id], references: [oportunidade_id])
+}
+
+// Concorrente: zero ou múltiplos por oportunidade
+model Concorrente {
+  concorrente_id  Int      @id
+  oportunidade_id Int
+  nome            String
+  situacao        String // Presente | Forte | Citado
+  oportunidade    Oportunidade @relation(fields: [oportunidade_id], references: [oportunidade_id])
+}
+
+// Win ≠ Pedido ≠ Pedido conferido. Pedido é evento posterior ao ganho.
+model Pedido {
+  pedido_id        Int      @id
+  oportunidade_id  Int      @unique
+  numero           String
+  data_pedido      DateTime
+  valor            Float
+  conferido        Boolean  @default(false)
+  data_conferencia DateTime?
+  oportunidade     Oportunidade @relation(fields: [oportunidade_id], references: [oportunidade_id])
+}

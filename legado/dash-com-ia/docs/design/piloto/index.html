@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Piloto Briefing · duas direções — Central de Receita</title>
+<style>
+  :root{--bg:#F4F7F6;--surface:#fff;--line:#E3EAE7;--ink:#0F2420;--ink-2:#48605A;--brand:#0E8C7D;--brand-ink:#0A6A5F;--brand-soft:#E3F2EF}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Public Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);padding:26px clamp(16px,4vw,48px)}
+  h1{font-size:22px;letter-spacing:-.01em}
+  .lead{color:var(--ink-2);font-size:13.5px;margin-top:6px;max-width:900px}
+  .meta{font-size:11.5px;color:#7C9089;margin-top:4px}
+  .bar{display:flex;gap:10px;margin:18px 0 14px;flex-wrap:wrap}
+  .badge{font-size:11px;font-weight:700;border-radius:999px;padding:4px 11px;background:var(--brand-soft);color:var(--brand-ink)}
+  .badge.gray{background:#EEF1F4;color:#5B6B77}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:1100px){.cols{grid-template-columns:1fr}}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .panel-h{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+  .panel-h b{font-size:14px}
+  .panel-h .rec{margin-left:auto;font-size:11px;font-weight:800;color:var(--brand-ink)}
+  .framebox{height:760px;overflow:hidden;position:relative}
+  .framebox iframe{width:1500px;height:1500px;border:0;transform:scale(.52);transform-origin:0 0;position:absolute;top:0;left:50%;translate:-50% 0}
+  .panel-f{padding:10px 16px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}
+  a.btn{text-decoration:none;font-size:12.5px;font-weight:700;color:var(--brand-ink);border:1px solid var(--line);border-radius:9px;padding:7px 13px;background:#fff}
+  a.btn.solid{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .rules{margin-top:20px;font-size:12.5px;color:var(--ink-2);max-width:1100px}
+  .rules li{margin:4px 0 4px 18px}
+</style>
+</head>
+<body>
+  <h1>Piloto Briefing · duas direções, mesmos dados</h1>
+  <p class="lead">Substituição da direção editorial por dashboard de leitura rápida com assistência agêntica. Primeira viewport: nome curto, valor, comparação e ação — zero parágrafos de instrução.</p>
+  <p class="meta">28/09/2026 · dados sintéticos v1.1.0-mock (snapshot 22 set 2026 17:24) · 1440×900 · aguardando escolha de Bruno</p>
+
+  <div class="bar">
+    <span class="badge">A · Painel do Agente — recomendada</span>
+    <span class="badge gray">B · Trilha de Execução</span>
+    <span class="badge gray">Dados idênticos nos dois</span>
+  </div>
+
+  <div class="cols">
+    <div class="panel">
+      <div class="panel-h"><b>A · Painel do Agente</b><span class="rec">hipótese inicial</span></div>
+      <div class="framebox"><iframe src="piloto-a-painel-agente.html" title="Piloto A — Painel do Agente"></iframe></div>
+      <div class="panel-f">
+        <a class="btn solid" href="piloto-a-painel-agente.html" target="_blank">Abrir A em tela cheia</a>
+        <span style="font-size:12px;color:var(--ink-2);align-self:center">Agente conversa no contexto da tela: propostas por valor, evidência e simulação. Reaproveita o painel existente (agente.tsx / assistant-trigger.tsx).</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-h"><b>B · Trilha de Execução</b></div>
+      <div class="framebox"><iframe src="piloto-b-trilha-execucao.html" title="Piloto B — Trilha de Execução"></iframe></div>
+      <div class="panel-f">
+        <a class="btn" href="piloto-b-trilha-execucao.html" target="_blank">Abrir B em tela cheia</a>
+        <span style="font-size:12px;color:var(--ink-2);align-self:center">Sem chat: fila de desbloqueios por valor, decisões pendentes e perguntas rápidas expansíveis. Aposta maior de produto.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="rules">
+    <b style="font-size:13px">Regras aplicadas nos dois desenhos (do plano 28/09)</b>
+    <ul>
+      <li>Primeira camada: nome curto + valor + unidade/período + comparação + ação. Nenhuma instrução de uso.</li>
+      <li>Detalhe, fonte e regra abrem por clique ou teclado (dialog / details) — nunca só hover.</li>
+      <li>“Dados sintéticos” aparece uma vez no contexto global; limitação curta fica junto da métrica.</li>
+      <li>Sem cartões dentro de cartões; proposta ≠ simulação ≠ execução real, marcado em toda ação.</li>
+      <li>Meta/atingimento não é exibido (sem fonte); zero real vs indisponível distinguidos.</li>
+    </ul>
+  </div>
+</body>
+</html>
