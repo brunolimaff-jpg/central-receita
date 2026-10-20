@@ -21,5 +21,5 @@ Veja `docs/agents/triage-labels.md`.
 
 ### Domain docs
 
-Contexto único: ADRs em `docs/adr/` glossário em `GLOSSARY.md` na raiz. Veja `docs/agents/domain.md`.
+Contexto único: ADRs em `docs/adr/` e glossário em `GLOSSARY.md` na raiz. Veja `docs/agents/domain.md`.
 
