@@ -10,7 +10,9 @@ Each accepted write adds an immutable version row and bounded record chunks. A D
 
 Chunks are at most 800,000 UTF-8 bytes, below D1's 2 MB row limit. The request body is capped at 32 MiB. No original CSV or XLSX is stored. Historical versions are retained without an automatic deletion policy, so choose a retention and capacity policy before sustained use.
 
-`db/schema.ts` is the schema source and `drizzle/0000_shared_import.sql` is the generated initial migration used by Sites. Sites applies pending migrations before uploading the Worker. Do not apply a second copy manually.
+`db/schema.ts` is the schema source; `drizzle/0000_shared_import.sql` and `drizzle/0001_shared_import.sql` are the generated migrations used by Sites. Sites applies pending migrations before uploading the Worker. Do not apply a second copy manually.
+
+`import_versions.snapshot_json` stores the numeric summary of each import (forecast total, entered, exited, changed and realized, in reais) for the trajectory history. The Worker computes it from the validated workspace — the `PUT` body still rejects any unknown key, so the client never sends it. Rows written before the migration keep `snapshot_json` null; reads omit the field instead of failing.
 
 ## Identity and roles
 
