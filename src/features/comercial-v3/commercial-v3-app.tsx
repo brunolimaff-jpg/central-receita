@@ -277,7 +277,7 @@ export function CommercialV3App() {
       {view === 'agent' && <AgentScreen briefing={briefing} from={from} nav={nav} />}
 
       {view === 'journey' && (
-        <JourneyScreen rows={forecast.oportunidades} detalhes={detalhes} query={query} nav={nav} />
+        <JourneyScreen rows={forecast.oportunidades} detalhes={detalhes} query={query} nav={nav} solucao={solution} />
       )}
 
       {view === 'system' && (
@@ -301,6 +301,7 @@ export function CommercialV3App() {
           detalhes={detalhes}
           from={from}
           nav={nav}
+          solucao={solution}
         />
       )}
 
@@ -311,6 +312,7 @@ export function CommercialV3App() {
           busca={busca || query}
           semanas={home.semanas}
           from={from}
+          solucao={solution}
           nav={nav}
         />
       )}
@@ -336,6 +338,7 @@ export function CommercialV3App() {
           detalhes={detalhes}
           from={from}
           nav={nav}
+          solucao={solution}
         />
       )}
 

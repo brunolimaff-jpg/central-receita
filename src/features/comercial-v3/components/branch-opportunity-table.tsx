@@ -17,9 +17,11 @@ type BranchOpportunityTableProps = {
   detalhes: Map<string, OpportunityDetail>
   nav: CommercialNav
   acao?: React.ReactNode
+  /** Solução ativa no recorte; o cabeçalho da lista mostra o produto com o nome. */
+  solucao?: string
 }
 
-export function BranchOpportunityTable({ rows, detalhes, nav, acao }: BranchOpportunityTableProps) {
+export function BranchOpportunityTable({ rows, detalhes, nav, acao, solucao }: BranchOpportunityTableProps) {
   return (
     <TopOpportunitiesTable
       rows={rows}
@@ -27,6 +29,7 @@ export function BranchOpportunityTable({ rows, detalhes, nav, acao }: BranchOppo
       nav={nav}
       titulo={FILIAIS_COPY.oportunidadesTitulo}
       subtitulo={FILIAIS_COPY.oportunidadesSubtitulo}
+      solucao={solucao}
       acao={acao}
       hrefDe={(linha) => nav.href('opportunity', { opportunityId: linha.id, from: 'branch' })}
     />

@@ -29,9 +29,11 @@ type OpportunitiesScreenProps = {
   from?: CommercialView
   nav: CommercialNav
   semanas?: SemanaRow[]
+  /** Solução ativa no recorte; o cabeçalho da lista mostra o produto com o nome. */
+  solucao?: string
 }
 
-export function OpportunitiesScreen({ rows, detalhes, busca, from, nav, semanas = [] }: OpportunitiesScreenProps) {
+export function OpportunitiesScreen({ rows, detalhes, busca, from, nav, semanas = [], solucao }: OpportunitiesScreenProps) {
   const [termo, setTermo] = useState(busca)
   const [buscaSincronizada, setBuscaSincronizada] = useState(busca)
   if (busca !== buscaSincronizada) {
@@ -100,7 +102,7 @@ export function OpportunitiesScreen({ rows, detalhes, busca, from, nav, semanas 
         </section>
       </div>
       <div className="min-w-0 [&>section]:border-white/90 [&>section]:bg-white/95 [&_th]:bg-[#f0f6fb] [&_th]:text-[#476284]">
-        <TopOpportunitiesTable rows={linhas} detalhes={detalhes} nav={nav} titulo="Principais oportunidades do mês" subtitulo={filtrando ? `${linhas.length} de ${rows.length} oportunidades para “${busca.trim()}”.` : 'Maiores impactos nas entradas, saídas, postergações e alterações de valor.'} hrefDe={(linha) => nav.href('opportunity', { opportunityId: linha.id, from: 'opportunities' })} acao={
+        <TopOpportunitiesTable rows={linhas} detalhes={detalhes} nav={nav} titulo="Principais oportunidades do mês" solucao={solucao} subtitulo={filtrando ? `${linhas.length} de ${rows.length} oportunidades para “${busca.trim()}”.` : 'Maiores impactos nas entradas, saídas, postergações e alterações de valor.'} hrefDe={(linha) => nav.href('opportunity', { opportunityId: linha.id, from: 'opportunities' })} acao={
           <form role="search" onSubmit={(event) => { event.preventDefault(); nav.onListQuery(termo.trim()) }} className="flex max-w-full flex-wrap items-center gap-1.5">
             <label className="relative min-w-0"><span className="sr-only">{OPORTUNIDADES_COPY.buscaLabel}</span><Search aria-hidden className="pointer-events-none absolute left-2.5 top-2.5 size-3.5 text-[#607389]" /><input type="search" value={termo} onChange={(event) => setTermo(event.target.value)} placeholder={OPORTUNIDADES_COPY.buscaPlaceholder} className="h-8 w-[230px] max-w-full rounded-[6px] border border-[#dfe8ef] bg-white pl-8 pr-2 text-[11px] text-[#33466c] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b]" /></label>
             <button type="submit" className="h-8 rounded-[6px] border border-[#dfe8ef] bg-white px-2.5 text-[11px] font-semibold text-[#33466c] hover:bg-[#f0f6fb] focus-visible:outline-2 focus-visible:outline-[#086b6b]">Buscar</button>

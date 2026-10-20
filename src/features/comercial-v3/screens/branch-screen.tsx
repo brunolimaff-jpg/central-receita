@@ -27,9 +27,11 @@ type BranchScreenProps = {
   detalhes: Map<string, OpportunityDetail>
   from?: CommercialView
   nav: CommercialNav
+  /** Solução ativa no recorte; o cabeçalho da lista mostra o produto com o nome. */
+  solucao?: string
 }
 
-export function BranchScreen({ model, branch, filiais, agregadoReal, detalhes, from, nav }: BranchScreenProps) {
+export function BranchScreen({ model, branch, filiais, agregadoReal, detalhes, from, nav, solucao }: BranchScreenProps) {
   const voltar = {
     label: VOLTAR_POR_ORIGEM[from ?? 'home'],
     href: nav.href(from ?? 'home'),
@@ -52,6 +54,7 @@ export function BranchScreen({ model, branch, filiais, agregadoReal, detalhes, f
           rows={model.oportunidades}
           detalhes={detalhes}
           nav={nav}
+          solucao={solucao}
           acao={
             <Link
               href={nav.href('opportunities', { from: 'branch' })}
