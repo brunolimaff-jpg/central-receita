@@ -2,6 +2,7 @@ import { OPORTUNIDADE_COPY } from '../copy'
 import { formatarValorOportunidade } from '../format'
 import type { OpportunityModel } from '../model'
 import type { ForecastMovement } from '../types'
+import { ProductLabel } from './product-icon'
 
 /**
  * Cabeçalho da Oportunidade (plano Task 9 Step 1, l.736-755; spec §7, l.317-341).
@@ -64,7 +65,9 @@ export function OpportunitySummary({ model }: { model: OpportunityModel }) {
           <h1 className="text-[26px] font-bold tracking-[-0.04em] text-[#0d2340]">Oportunidade {model.id}</h1>
           <p className="mt-1 text-[15px] font-semibold text-[#33466c]">{model.account} · {model.solution}</p>
           <div aria-label="Classificação da oportunidade" className="mt-2.5 flex flex-wrap items-center gap-2 text-[12px] font-semibold">
-            <span className="rounded-full border border-[#d4e4ff] bg-[#eaf3ff] px-3 py-1.5 text-[#2368bf]" title="Solução / produto">{model.solution}</span>
+            <span className="rounded-full border border-[#d4e4ff] bg-[#eaf3ff] px-3 py-1.5 text-[#2368bf]" title="Solução / produto">
+              <ProductLabel solucao={model.solution} tamanho={15} />
+            </span>
             <span className="rounded-full border border-[#e5d9f5] bg-[#f3ecfb] px-3 py-1.5 text-[#7142a1]" title="Etapa comercial">{model.stage}</span>
             <span className="rounded-full border border-[#dfe8ef] bg-[#f5f8fb] px-3 py-1.5 text-[#33466c]" title="Classificação informada no cenário; a classificação validada permanece indisponível">{model.origin} · informado no cenário</span>
           </div>

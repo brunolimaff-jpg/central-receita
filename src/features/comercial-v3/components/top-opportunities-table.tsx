@@ -2,13 +2,13 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ProductIcon } from './product-icon'
+import { ProductLabel } from './product-icon'
 import { FORECAST_OFFICIAL_LABEL } from '../demo-display'
 import { formatarComSinal, formatarMilhoes } from '../format'
 import type { Top10Row } from '../model'
 import type { CommercialNav } from '../nav'
 import type { OpportunityDetail } from '../opportunity-details'
-import type { ForecastMovement } from '../types'
+import { ALL_FILTERS, type ForecastMovement } from '../types'
 
 /**
  * `Top 10 oportunidades que mais explicam o mês` (plano Task 5 Step 4, l.501-509).
@@ -57,6 +57,12 @@ type TopOpportunitiesTableProps = {
    * movimento selecionado (plano Task 7 Step 4, l.660-662; Task 8 Step 2, l.704-706).
    */
   hrefDe?: (linha: Top10Row) => string
+  /**
+   * Solução ativa no recorte. Quando há uma única solução selecionada, o
+   * cabeçalho da seção mostra o produto ao lado do título — sempre com o nome,
+   * nunca o ícone sozinho. Em "Todas as soluções", nada é exibido.
+   */
+  solucao?: string
 }
 
 /** Recuo: generoso nas pontas, constante no miolo. A tabela respira sem virar planilha. */
@@ -72,16 +78,25 @@ export function TopOpportunitiesTable({
   subtitulo,
   acao,
   hrefDe,
+  solucao,
 }: TopOpportunitiesTableProps) {
   const router = useRouter()
   const destino =
     hrefDe ?? ((linha: Top10Row) => nav.href('opportunity', { opportunityId: linha.id, from: 'home' }))
+  const solucaoAtiva = solucao && solucao !== ALL_FILTERS ? solucao : null
 
   return (
     <section className="overflow-hidden rounded-[10px] border border-[#dfe8ef] bg-white shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
       <div className="flex flex-wrap items-start justify-between gap-2 px-4 pt-3.5">
         <div>
-          <h2 className="text-[15px] font-bold tracking-[-0.02em] text-[#0d2340]">{titulo}</h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-[15px] font-bold tracking-[-0.02em] text-[#0d2340]">{titulo}</h2>
+            {solucaoAtiva && (
+              <span className="inline-flex items-center rounded-full bg-[#eef4f8] px-2.5 py-1 text-[11px] font-semibold text-[#476284]">
+                <ProductLabel solucao={solucaoAtiva} tamanho={15} />
+              </span>
+            )}
+          </div>
           <p className="mt-0.5 pb-2 text-[12px] text-[#63748a]">{subtitulo}</p>
         </div>
         {acao}
@@ -146,10 +161,7 @@ export function TopOpportunitiesTable({
                   </td>
 
                   <td className={`${CELULA} whitespace-nowrap`}>
-                    <span className="inline-flex items-center gap-2">
-                      <ProductIcon solucao={linha.solution} tamanho={15} />
-                      {linha.solution}
-                    </span>
+                    <ProductLabel solucao={linha.solution} tamanho={15} />
                   </td>
 
                   <td className={`${CELULA} whitespace-nowrap`}>{linha.executive}</td>

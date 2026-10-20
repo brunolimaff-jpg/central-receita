@@ -306,7 +306,7 @@ export function CommercialTopbar({
           label="Solução"
           value={solution}
           onChange={nav.onSolution}
-          icone={<ProductIcon solucao={solution === ALL_FILTERS ? null : solution} tamanho={16} />}
+          icone={<ProductIcon solucao={solution === ALL_FILTERS ? null : solution} tamanho={16} prioridade />}
           options={[
             { value: ALL_FILTERS, label: FILTER_LABELS.solucao },
             ...solutions.map((item) => ({ value: item, label: item })),
