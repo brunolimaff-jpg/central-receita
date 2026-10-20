@@ -1074,14 +1074,17 @@
    * controle de expandir/recolher não se aplica, por isso some. O cartão de
    * rótulo também não faz sentido numa barra horizontal.
    */
+  /*
+   * Fora do estado recolhido o cartão de rótulo não existe (a regra base já o
+   * esconde), mas a barra inferior abaixo de 780px pode herdar `recolhida` de
+   * uma preferência gravada em tela larga — e aí o cartão apareceria numa barra
+   * horizontal. Por isso ele é ocultado aqui sem condição.
+   */
   .revenue-app .revenue-sidebar .revenue-nav-rotulo,
   .revenue-app .revenue-sidebar .revenue-marca-texto,
-  .revenue-app[data-nav='recolhida'] .revenue-nav-dica {
-    display: none;
-  }
-
+  .revenue-app .revenue-sidebar .revenue-nav-dica,
   .revenue-app .revenue-nav-toggle {
-    display: none;
+    display: none !important;
   }
 
   /* O estado recolhido não deve mexer no recorte de rolagem da barra. */
