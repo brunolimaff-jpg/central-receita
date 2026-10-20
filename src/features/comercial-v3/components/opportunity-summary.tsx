@@ -58,17 +58,17 @@ export function OpportunitySummary({ model }: { model: OpportunityModel }) {
   ]
 
   return (
-    <section className="rounded-[20px] border border-[#dfe8ef] bg-white px-5 py-4 shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
+    <section className="rounded-[10px] border border-[#dfe8ef] bg-white px-5 py-4 shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-[27px] font-bold tracking-[-0.04em] text-[#0d2340]">Oportunidade {model.id}</h1>
+          <h1 className="text-[26px] font-bold tracking-[-0.04em] text-[#0d2340]">Oportunidade {model.id}</h1>
           <p className="mt-1 text-[15px] font-semibold text-[#33466c]">{model.account} · {model.solution}</p>
           <div aria-label="Classificação da oportunidade" className="mt-2.5 flex flex-wrap items-center gap-2 text-[12px] font-semibold">
             <span className="rounded-full border border-[#d4e4ff] bg-[#eaf3ff] px-3 py-1.5 text-[#2368bf]" title="Solução / produto">{model.solution}</span>
             <span className="rounded-full border border-[#e5d9f5] bg-[#f3ecfb] px-3 py-1.5 text-[#7142a1]" title="Etapa comercial">{model.stage}</span>
             <span className="rounded-full border border-[#dfe8ef] bg-[#f5f8fb] px-3 py-1.5 text-[#33466c]" title="Classificação informada no cenário; a classificação validada permanece indisponível">{model.origin} · informado no cenário</span>
           </div>
-          <p className="num mt-2 text-[12.5px] text-[#50647d]">
+          <p className="num mt-2 text-[13px] text-[#50647d]">
             {model.executive} · Filial {model.branch}
           </p>
         </div>
@@ -99,7 +99,7 @@ export function OpportunitySummary({ model }: { model: OpportunityModel }) {
         {celulas.map((celula) => (
           <article
             key={celula.chave}
-            className={`rounded-[12px] border px-3.5 py-3.5 ${
+            className={`rounded-[10px] border px-3.5 py-3.5 ${
               celula.negativo
                 ? 'border-[#f3d9de] bg-[linear-gradient(180deg,#ffffff,#fff7f8)]'
                 : 'border-[#dfe8ef] bg-[#fbfdfe]'

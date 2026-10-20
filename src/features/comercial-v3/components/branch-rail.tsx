@@ -24,11 +24,11 @@ type BranchRailProps = {
 
 export function BranchRail({ filiais, nav, from, real, compact = false }: BranchRailProps) {
   return (
-    <section className="rounded-[14px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
+    <section className="rounded-[10px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
       <div className="mb-2">
-        <h2 className="text-[16px] font-bold tracking-[-0.02em] text-[#0d2340]">{real ? 'Filiais · setembro/2026' : BLOCOS_HOME.filiais}</h2>
+        <h2 className="text-[15px] font-bold tracking-[-0.02em] text-[#0d2340]">{real ? 'Filiais · setembro/2026' : BLOCOS_HOME.filiais}</h2>
         <p className="mt-0.5 text-[12px] text-[#63748a]">{real ? 'Dados reais · totais por filial, sem corte por solução' : 'Realizado, meta e forecast atual'}</p>
-        {real && <div className="mt-3 rounded-[9px] bg-[#f3faf8] p-3 text-[11px] leading-5 text-[#086b6b]"><strong>Total consolidado da exportação</strong><p>Meta: {REAL_BRANCH_TOTAL.meta === null ? '—' : formatarMilhoes(REAL_BRANCH_TOTAL.meta)}</p><p>Integrado: {REAL_BRANCH_TOTAL.realizado === null ? '—' : formatarMilhoes(REAL_BRANCH_TOTAL.realizado)}</p><p>Forecast: {REAL_BRANCH_TOTAL.forecastAtual === null ? '—' : formatarMilhoes(REAL_BRANCH_TOTAL.forecastAtual)}</p></div>}
+        {real && <div className="mt-3 rounded-[8px] bg-[#f3faf8] p-3 text-[11px] leading-5 text-[#086b6b]"><strong>Total consolidado da exportação</strong><p>Meta: {REAL_BRANCH_TOTAL.meta === null ? '—' : formatarMilhoes(REAL_BRANCH_TOTAL.meta)}</p><p>Integrado: {REAL_BRANCH_TOTAL.realizado === null ? '—' : formatarMilhoes(REAL_BRANCH_TOTAL.realizado)}</p><p>Forecast: {REAL_BRANCH_TOTAL.forecastAtual === null ? '—' : formatarMilhoes(REAL_BRANCH_TOTAL.forecastAtual)}</p></div>}
       </div>
 
       <div
@@ -57,7 +57,7 @@ export function BranchRail({ filiais, nav, from, real, compact = false }: Branch
                     style={{ width: `${largura}%` }}
                   />
                 </span>
-                <span className="num mt-1 flex flex-wrap gap-x-1 text-[10px] leading-4 text-[#50647d]">
+                <span className="num mt-1 flex flex-wrap gap-x-1 text-[11px] leading-4 text-[#50647d]">
                   <span className="whitespace-nowrap">{valor('realizado')} {real ? 'integrado' : 'realizado'}</span>
                   <span aria-hidden="true">·</span>
                   <span className="whitespace-nowrap">meta {valor('meta')}</span>
@@ -71,7 +71,7 @@ export function BranchRail({ filiais, nav, from, real, compact = false }: Branch
         })}
       </div>
 
-      <p className="mt-2.5 border-t border-[#edf2f6] pt-2 text-[10px] text-[#8190a2]">
+      <p className="mt-2.5 border-t border-[#edf2f6] pt-2 text-[11px] text-[#8190a2]">
         A leitura é por filial; HEAD não substitui filial em nenhum nível.
       </p>
     </section>

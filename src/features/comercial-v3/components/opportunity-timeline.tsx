@@ -14,9 +14,9 @@ export function OpportunityTimeline({ historico }: { historico: OpportunityModel
   const eventos = [...historico].sort((a, b) => a.at.localeCompare(b.at))
 
   return (
-    <section className="rounded-[14px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
+    <section className="rounded-[10px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
       <div className="mb-2.5">
-        <h2 className="text-[16px] font-bold tracking-[-0.02em] text-[#0d2340]">
+        <h2 className="text-[15px] font-bold tracking-[-0.02em] text-[#0d2340]">
           {OPORTUNIDADE_COPY.historico}
         </h2>
         <p className="mt-0.5 text-[12px] text-[#63748a]">{OPORTUNIDADE_COPY.historicoSubtitulo}</p>
@@ -39,7 +39,7 @@ export function OpportunityTimeline({ historico }: { historico: OpportunityModel
           </li>
         ))}
         {eventos.length === 0 && (
-          <li className="rounded-[10px] border border-[#edf1f3] bg-[#fbfdfe] px-3 py-2.5 text-[12.5px] text-[#63748a]">
+          <li className="rounded-[10px] border border-[#edf1f3] bg-[#fbfdfe] px-3 py-2.5 text-[13px] text-[#63748a]">
             {OPORTUNIDADE_COPY.semMovimento}
           </li>
         )}

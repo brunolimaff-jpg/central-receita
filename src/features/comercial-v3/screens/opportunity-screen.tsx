@@ -42,11 +42,11 @@ export function OpportunityScreen({ oportunidade, life, from, nav }: Opportunity
           voltar={voltar}
         />
 
-        <section className="rounded-[20px] border border-[#dfe8ef] bg-white px-5 py-5 shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
+        <section className="rounded-[10px] border border-[#dfe8ef] bg-white px-5 py-5 shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
           <h1 className="text-[22px] font-bold tracking-[-0.035em] text-[#0d2340]">
             {OPORTUNIDADE_COPY.naoEncontradaTitulo}
           </h1>
-          <p className="mt-2 max-w-[720px] text-[13.5px] leading-relaxed text-[#4b5f76]">
+          <p className="mt-2 max-w-[720px] text-[13px] leading-relaxed text-[#4b5f76]">
             {OPORTUNIDADE_COPY.naoEncontradaTexto}
           </p>
           <Link

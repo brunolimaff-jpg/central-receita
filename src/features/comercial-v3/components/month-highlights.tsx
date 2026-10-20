@@ -54,8 +54,8 @@ export function MonthHighlights({ origem, movimentos, atencao }: MonthHighlights
   ]
 
   return (
-    <section className="rounded-[14px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
-      <h2 className="mb-2 text-[16px] font-bold tracking-[-0.02em] text-[#0d2340]">
+    <section className="rounded-[10px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
+      <h2 className="mb-2 text-[15px] font-bold tracking-[-0.02em] text-[#0d2340]">
         {BLOCOS_HOME.destaques}
       </h2>
 
@@ -75,7 +75,7 @@ export function MonthHighlights({ origem, movimentos, atencao }: MonthHighlights
               <strong className="block text-[11px] leading-snug font-bold text-[#0d2340]">
                 {item.titulo}
               </strong>
-              <span className="num mt-0.5 block text-[10px] leading-snug text-[#6b7d91]">
+              <span className="num mt-0.5 block text-[11px] leading-snug text-[#6b7d91]">
                 {item.detalhe}
               </span>
             </span>

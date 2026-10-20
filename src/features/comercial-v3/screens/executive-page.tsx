@@ -7,7 +7,8 @@ import { calculateNewNameModel } from '../new-name-model'
 import { buildPipelineOverview } from '../pipeline-model'
 import { formatarOportunidades, formatarPercentualInteiro, formatarRealCompacto } from '../format'
 import { AgentHero } from '../components/agent-hero'
-import { BarraProgresso, Donut, ImpactRing, MetricCard, MovementCard, PAINEL, Panel, PanelSection, Selo, formatarDataCurta, type RingGroup, type Tom } from '../components/executive-ui'
+import { FadeUp, Stagger, StaggerItem } from '../components/motion-primitives'
+import { BarraProgressoAnimada, Donut, ImpactRing, MetricCard, MovementCard, PAINEL, Panel, PanelSection, Selo, formatarDataCurta, type RingGroup, type Tom } from '../components/executive-ui'
 import { NewNameSection } from '../components/new-name-section'
 import { PipelineSection } from '../components/pipeline-section'
 import type { CommercialNav } from '../nav'
@@ -32,9 +33,17 @@ const NOTAS_FORECAST: Record<string, string> = {
   Perdeu: 'Fechadas como perdidas no período',
 }
 
-/** Com zero contas novas, mostra quantos pedidos não têm classificação na fonte, para não parecer ausência de dados. */
+/**
+ * Com zero contas novas, mostra quantos pedidos não têm classificação na fonte,
+ * para não parecer ausência de dados. O singular importa: "1 pedidos" é o tipo
+ * de detalhe que faz o diretor duvidar do resto do número.
+ */
+const umOuVarios = (n: number, singular: string, plural: string) => `${n} ${n === 1 ? singular : plural}`
+
 const newNameDetalhe = (contas: number, pedidos: number, semClassificacao: number) =>
-  contas === 0 && semClassificacao > 0 ? `${semClassificacao} pedidos sem classificação` : `${pedidos} pedidos no período`
+  contas === 0 && semClassificacao > 0
+    ? `${umOuVarios(semClassificacao, 'pedido sem classificação', 'pedidos sem classificação')}`
+    : `${umOuVarios(pedidos, 'pedido no período', 'pedidos no período')}`
 
 /** Linha do briefing: um sinal curto com ícone tingido e seta. */
 function Sinal({ icone: Icone, tom, titulo, detalhe, href }: {
@@ -113,7 +122,15 @@ export function ExecutivePage({ opportunities, orders, previous, nav, demoWeeks,
   const grupo = (key: string) => forecast?.grupos.find(item => item.key === key) ?? null
   const ganhou = grupo('Ganhou')
   const perdeu = grupo('Perdeu')
-  const saldo = forecast && !forecast.grupos.some(item => item.value === null)
+  /*
+   * O saldo só existe quando os quatro movimentos têm valor. Sem carga anterior,
+   * Entrou e Saiu são desconhecidos: somar Ganhou e Perdeu sozinhos e chamar de
+   * "saldo do mês" esconderia metade do movimento.
+   */
+  const saldo = forecast
+    && resultado?.entered !== null
+    && resultado?.exited !== null
+    && !forecast.grupos.some(item => item.value === null)
     ? forecast.grupos.reduce((soma, item) => soma + (item.value ?? 0), 0)
     : null
 
@@ -125,9 +142,15 @@ export function ExecutivePage({ opportunities, orders, previous, nav, demoWeeks,
     { rotulo: 'Pipeline aberto', valor: formatarRealCompacto(pipelineValor), nota: 'Mês atual + 3', tom: 'info', href: '#opportunities' },
   ]
 
+  /*
+   * Entrou e Saiu exigem uma carga anterior. Sem ela, a leitura correta é "sem
+   * base de comparação" — não "R$ 0", que sugere movimento nulo e mente sobre
+   * o motivo. Ganhou e Perdeu vêm de uma única carga e sempre têm valor.
+   */
+  const temAnterior = resultado?.entered !== null && resultado?.exited !== null
   const anelForecast: RingGroup[] = forecast ? [
-    { rotulo: 'Entrou', movimento: 'Entrou', valor: grupo('Entrou')?.value ?? null, peso: grupo('Entrou')?.weight ?? 0 },
-    { rotulo: 'Saiu e postergou', movimento: 'Saiu', valor: grupo('Saiu')?.value ?? null, peso: grupo('Saiu')?.weight ?? 0 },
+    { rotulo: 'Entrou', movimento: 'Entrou', valor: temAnterior ? grupo('Entrou')?.value ?? null : null, peso: temAnterior ? grupo('Entrou')?.weight ?? 0 : 0 },
+    { rotulo: 'Saiu e postergou', movimento: 'Saiu', valor: temAnterior ? grupo('Saiu')?.value ?? null : null, peso: temAnterior ? grupo('Saiu')?.weight ?? 0 : 0 },
     { rotulo: 'Ganhou', movimento: 'Ganhou', valor: grupo('Ganhou')?.value ?? null, peso: grupo('Ganhou')?.weight ?? 0 },
     { rotulo: 'Perdeu', movimento: 'Perdeu', valor: grupo('Perdeu')?.value ?? null, peso: grupo('Perdeu')?.weight ?? 0 },
   ] : []
@@ -140,34 +163,46 @@ export function ExecutivePage({ opportunities, orders, previous, nav, demoWeeks,
   return (
     <div className="grid min-w-0 gap-5">
       <section id="home" data-home-nav="home" aria-labelledby="executive-title" className="scroll-mt-6 grid min-w-0 gap-4">
-        <header className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 px-1">
-          <div>
-            <h1 id="executive-title" className="text-[32px] font-bold leading-[1.08] tracking-[-0.04em] text-ink-strong">
-              {temCarga ? `Bom dia, ${nome}` : 'Visão Executiva'}
-            </h1>
-            <p className="mt-1.5 text-[15px] text-ink-strong/80">
-              {temCarga
-                ? `Aqui está o panorama da sua receita em ${mesCurto} de ${referenceDate.slice(0, 4)}.`
-                : 'Importe as planilhas de Forecast e New Name para ver os números do mês.'}
-            </p>
-            {referenceMismatch && <p className="mt-1 text-[12px] text-dado-atencao">Pedidos de {formatarDataCurta(ordersReferenceDate)} · data diferente do forecast.</p>}
-          </div>
-          {temCarga && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-dado-positivo-suave px-3 py-1.5 text-[12px] font-semibold text-brand-escuro">
-              <CheckCircle2 aria-hidden className="h-4 w-4" />
-              Carga de {formatarDataCurta(referenceDate)}
-            </span>
-          )}
-        </header>
+        <FadeUp>
+          <header className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 px-1">
+            <div>
+              <h1 id="executive-title" className="text-[32px] font-bold leading-[1.08] tracking-[-0.04em] text-ink-strong">
+                {temCarga ? `Bom dia, ${nome}` : 'Visão Executiva'}
+              </h1>
+              {/*
+                O design system não tem texto em `azul-escuro` a 80%: a cor de
+                apoio é `text-muted` (cinza-600, 4,6:1). A opacidade sobre o
+                azul-escuro reduzia o contraste justamente na linha que explica
+                o mês, e sobre o fundo aurora ela ficava no limite.
+              */}
+              <p className="mt-1.5 text-[15px] leading-6 text-ink-muted">
+                {temCarga
+                  ? `Aqui está o panorama da sua receita em ${mesCurto} de ${referenceDate.slice(0, 4)}.`
+                  : 'Importe as planilhas de Forecast e New Name para ver os números do mês.'}
+              </p>
+              {referenceMismatch && <p className="mt-1 text-[12px] text-dado-atencao">Pedidos de {formatarDataCurta(ordersReferenceDate)} · data diferente do forecast.</p>}
+            </div>
+            {temCarga && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-dado-positivo-suave px-3 py-1.5 text-[12px] font-semibold text-brand-escuro">
+                <CheckCircle2 aria-hidden className="h-4 w-4" />
+                Carga de {formatarDataCurta(referenceDate)}
+              </span>
+            )}
+          </header>
+        </FadeUp>
 
         {temCarga ? (
           <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_345px]">
             <div className="grid min-w-0 content-start gap-4">
               {/* Três por linha no desktop: cinco colunas deixavam cada número
                   com menos de 200px e truncavam "R$ 29,3 mi" em "R$ 2…". */}
-              <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-                {faixa.map(item => <MetricCard key={item.rotulo} rotulo={item.rotulo} valor={item.valor} nota={item.nota} tom={item.tom} href={item.href} />)}
-              </div>
+              <Stagger className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+                {faixa.map(item => (
+                  <StaggerItem key={item.rotulo} className="h-full">
+                    <MetricCard rotulo={item.rotulo} valor={item.valor} nota={item.nota} tom={item.tom} href={item.href} />
+                  </StaggerItem>
+                ))}
+              </Stagger>
 
               <Panel titulo="Movimento do forecast" subtitulo="Entradas, saídas, ganhos e perdas do mês contra a carga anterior.">
                 <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -195,7 +230,7 @@ export function ExecutivePage({ opportunities, orders, previous, nav, demoWeeks,
                     <span aria-hidden className="revenue-brief-icon grid place-items-center tone-marca"><Target className="h-[17px] w-[17px]" strokeWidth={2} /></span>
                     <span className="text-[13px] font-semibold text-ink-strong">Atingimento do previsto</span>
                   </div>
-                  <BarraProgresso valor={progresso ?? 0} rotulo="Realizado sobre previsto" />
+                  <BarraProgressoAnimada valor={progresso ?? 0} rotulo="Realizado sobre previsto" />
                   <p className="text-[12px] text-ink-muted">
                     {progresso === null
                       ? 'Sem previsto na carga para calcular o atingimento.'
@@ -209,9 +244,9 @@ export function ExecutivePage({ opportunities, orders, previous, nav, demoWeeks,
                     {saldo === null ? '—' : `${saldo > 0 ? '+' : saldo < 0 ? '−' : ''}${formatarRealCompacto(Math.abs(saldo))}`}
                   </strong>
                   <p className="text-[12px] text-ink-muted">
-                    {ganhou && perdeu
-                      ? `${formatarRealCompacto(ganhou.value)} ganhos · ${formatarRealCompacto(perdeu.value)} perdidos.`
-                      : 'Depende da carga anterior.'}
+                    {saldo === null
+                      ? 'Entrou e Saiu só aparecem a partir da segunda carga.'
+                      : `${formatarRealCompacto(ganhou?.value ?? null)} ganhos · ${formatarRealCompacto(perdeu?.value ?? null)} perdidos.`}
                   </p>
                 </Panel>
 
@@ -223,7 +258,7 @@ export function ExecutivePage({ opportunities, orders, previous, nav, demoWeeks,
                       <strong className="num block text-[20px] font-bold leading-none tracking-[-0.03em] text-ink-strong">
                         {newName ? formatarRealCompacto(newName.indicators.realizedValue) : '—'}
                       </strong>
-                      <small className="mt-1 block text-[11.5px] text-ink-muted">
+                      <small className="mt-1 block text-[12px] text-ink-muted">
                         {newName ? `${newName.indicators.newAccounts} ${newName.indicators.newAccounts === 1 ? 'conta nova' : 'contas novas'} no período` : 'Sem carga de pedidos'}
                       </small>
                     </div>

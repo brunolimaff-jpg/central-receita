@@ -89,7 +89,7 @@ function BriefRow({
   }
   return (
     <li className="min-w-0">
-      <Link href={href} className="group grid h-full min-h-[64px] grid-cols-[32px_minmax(0,1fr)_14px] items-center gap-2 rounded-[9px] px-2 py-2.5 transition-colors hover:bg-[#f0f8f6] focus-visible:outline-2 focus-visible:outline-[#086b6b]">
+      <Link href={href} className="group grid h-full min-h-[64px] grid-cols-[32px_minmax(0,1fr)_14px] items-center gap-2 rounded-[8px] px-2 py-2.5 transition-colors hover:bg-[#f0f8f6] focus-visible:outline-2 focus-visible:outline-[#086b6b]">
         <span aria-hidden className={'grid h-[32px] w-[32px] place-items-center rounded-[10px] ' + tones[tone]}>{icon}</span>
         <span className="min-w-0">
           <strong className="block text-[13px] font-bold leading-5 text-[#10294c]">{title}</strong>

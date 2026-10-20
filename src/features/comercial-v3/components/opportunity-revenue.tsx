@@ -38,9 +38,9 @@ export function OpportunityRevenue({ model }: { model: OpportunityModel }) {
   ]
 
   return (
-    <section className="h-full rounded-[14px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
+    <section className="h-full rounded-[10px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
       <div className="mb-2.5">
-        <h2 className="text-[16px] font-bold tracking-[-0.02em] text-[#0d2340]">
+        <h2 className="text-[15px] font-bold tracking-[-0.02em] text-[#0d2340]">
           {OPORTUNIDADE_COPY.composicaoTitulo}
         </h2>
         <p className="mt-0.5 text-[12px] text-[#63748a]">
@@ -54,7 +54,7 @@ export function OpportunityRevenue({ model }: { model: OpportunityModel }) {
           return (
             <li
               key={parte.chave}
-              className={`rounded-[11px] border px-3 py-2.5 ${
+              className={`rounded-[10px] border px-3 py-2.5 ${
                 parte.destaque ? 'border-[#cfe9e2] bg-[#f3faf8]' : 'border-[#edf2f6] bg-[#fbfdfe]'
               }`}
             >
@@ -62,7 +62,7 @@ export function OpportunityRevenue({ model }: { model: OpportunityModel }) {
                 <span className="block text-left">
                   <span className="flex items-baseline justify-between gap-3">
                     <span className="min-w-0">
-                      <strong className={`block ${parte.destaque ? 'text-[14px] font-extrabold text-[#0d2340]' : 'text-[12.5px] font-semibold text-[#3d5069]'}`}>
+                      <strong className={`block ${parte.destaque ? 'text-[13px] font-extrabold text-[#0d2340]' : 'text-[13px] font-semibold text-[#3d5069]'}`}>
                         {parte.rotulo}
                       </strong>
                       <span className="block text-[11px] text-[#75869a]">{parte.nota}</span>

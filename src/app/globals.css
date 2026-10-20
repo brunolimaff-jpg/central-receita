@@ -98,8 +98,13 @@
    * muted, ainda dentro do cinza oficial. Ícone decorativo pode usar
    * `--azul-medio` direto, porque não carrega informação.
    */
+  /*
+   * `ink-muted` é #77736E (cinza-600), que mede 4,46:1 sobre o branco e
+   * reprova o AA por uma fração — justamente no subtítulo que explica o mês.
+   * Um passo mais escuro no mesmo cinza oficial resolve sem mudar a família.
+   */
   --ink-strong: var(--azul-escuro);
-  --ink-muted: var(--cinza-600);
+  --ink-muted: #6b6763;
   --ink-subtle: #6f6b66;
   --hairline: var(--cinza-300);
   --hairline-suave: var(--cinza-100);
@@ -134,12 +139,27 @@
   --dado-info-suave: #eaf2fb;
 
   /* ---------- Superfície de vidro (glassmorphism) ---------- */
-  --vidro: rgb(255 255 255 / 86%);
-  --vidro-forte: rgb(255 255 255 / 94%);
+  --vidro: rgb(255 255 255 / 88%);
+  --vidro-forte: rgb(255 255 255 / 95%);
   --vidro-borda: rgb(255 255 255 / 82%);
   --vidro-borda-suave: rgb(14 63 88 / 10%);
   --vidro-sombra: 0 18px 60px -28px rgb(23 79 73 / 26%);
   --vidro-brilho: inset 0 1px 0 rgb(255 255 255 / 90%);
+
+  /*
+   * ---------- Aurora ----------
+   *
+   * O fundo deixou de ser a foto por baixo de tudo: a fotografia da sede ocupa
+   * só a faixa superior (atrás do cabeçalho) e se dissolve num esmeralda claro.
+   * O corpo da página é gradiente, não imagem — texto de 11px sobre foto
+   * dessaturada nunca fica confortável, e a foto em tela cheia competia com os
+   * números. A referência aprovada usa exatamente esta divisão.
+   */
+  --aurora-base: #edf8f5;
+  --aurora-glow-a: rgb(0 150 140 / 16%);
+  --aurora-glow-b: rgb(111 211 198 / 20%);
+  --aurora-glow-c: rgb(0 175 155 / 8%);
+  --aurora-faixa: clamp(180px, 24vh, 300px);
 
   --sombra-painel: 0 1px 2px rgb(51 70 108 / 6%), 0 1px 3px rgb(51 70 108 / 4%);
 
@@ -255,18 +275,66 @@
   }
 
   /*
-   * Fundo institucional: foto da sede sob véu claro, dessaturada.
-   * O véu é forte o bastante para o texto de 11px manter contraste AA sobre
-   * qualquer região da foto; a foto permanece como textura, não como imagem.
+   * Fundo em duas camadas.
+   *
+   * `.revenue-bg-faixa` é a foto da sede, presa ao topo e limitada à altura do
+   * cabeçalho; ela se dissolve para o esmeralda antes de chegar ao conteúdo.
+   * `.revenue-bg` é a base: gradientes radiais de baixa frequência, sem imagem,
+   * cobrindo a página inteira.
+   *
+   * Antes era uma foto em tela cheia sob véu de 93–96%. Funcionava como textura,
+   * mas o véu quase apagava a foto e, ainda assim, o ruído dela atravessava
+   * tabelas e números pequenos. Separar as duas camadas dá a foto de volta (sem
+   * véu pesado, porque ela não tem texto em cima) e entrega ao corpo um fundo
+   * liso o suficiente para AA em texto de 11px.
    */
   .revenue-bg {
     position: fixed;
     inset: 0;
     z-index: 0;
     background:
-      linear-gradient(90deg, rgb(242 250 248 / 96%), rgb(246 251 250 / 93%) 42%, rgb(242 250 248 / 95%)),
-      url('/revenue/senior-hq.jpeg') center / cover no-repeat;
-    filter: saturate(0.8);
+      radial-gradient(1200px 620px at 12% -8%, var(--aurora-glow-b), transparent 58%),
+      radial-gradient(1000px 540px at 88% -4%, var(--aurora-glow-a), transparent 62%),
+      radial-gradient(900px 900px at 50% 118%, var(--aurora-glow-c), transparent 68%),
+      var(--aurora-base);
+  }
+
+  /*
+   * Faixa do topo: a foto da sede vira atmosfera, não paisagem.
+   *
+   * Desfocar a foto é o que resolve os três problemas de uma vez:
+   *   1. o texto do header fica sobre cor uniforme, não sobre grades e galhos;
+   *   2. o vidro tem o que refratar — é o contraste atrás dele que faz o blur
+   *      existir, não a opacidade do painel;
+   *   3. o verde da fachada entra como tom da marca em vez de competir.
+   *
+   * `inset` negativo existe só para o blur não vazar borda clara nas laterais.
+   */
+  .revenue-bg-faixa {
+    position: fixed;
+    inset: -40px -40px auto;
+    z-index: 0;
+    height: calc(var(--aurora-faixa) + 40px);
+    will-change: filter;
+    /*
+     * Véu claro por cima do desfoque. O degradê anterior deixava o topo escuro
+     * e o título azul-escuro sumia sobre a fachada — o design system pede texto
+     * `azul-escuro` sobre superfície clara, nunca sobre meio-tom. O véu chega a
+     * 86% no topo (onde fica a saudação) e só então dissolve para a base.
+     */
+    background:
+      linear-gradient(
+        180deg,
+        rgb(248 252 251 / 86%) 0%,
+        rgb(243 250 248 / 78%) 30%,
+        rgb(237 248 245 / 72%) 58%,
+        rgb(237 248 245 / 90%) 84%,
+        var(--aurora-base) 100%
+      ),
+      url('/revenue/senior-hq.jpeg') center 58% / cover no-repeat;
+    filter: blur(30px) saturate(1.25);
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 72%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 72%, transparent 100%);
   }
 
 
@@ -284,6 +352,13 @@
   }
 
   /* ---------- Sidebar ---------- */
+  /*
+   * A coluna é de vidro de verdade: no topo ela é quase transparente, para a
+   * foto da sede aparecer atrás da marca, e vai fechando para branco conforme
+   * desce — lá embaixo o texto de navegação precisa de fundo limpo para o AA.
+   * Antes era `vidro-forte` (95% branco) de ponta a ponta: a foto existia no
+   * DOM, mas não se via nada dela nesta coluna.
+   */
   .revenue-app .revenue-sidebar {
     position: sticky;
     top: 18px;
@@ -293,34 +368,72 @@
     min-height: 440px;
     flex-direction: column;
     overflow: hidden auto;
-    border-radius: 22px;
+    border-radius: 10px;
     padding: 18px 12px;
+    background: linear-gradient(
+      180deg,
+      rgb(255 255 255 / 62%) 0%,
+      rgb(255 255 255 / 66%) 26%,
+      rgb(255 255 255 / 80%) 50%,
+      rgb(255 255 255 / 91%) 72%,
+      var(--vidro-forte) 100%
+    );
+    -webkit-backdrop-filter: blur(2px) saturate(112%);
+    backdrop-filter: blur(2px) saturate(112%);
   }
 
+  /*
+   * Navegação sem a barra verde à esquerda.
+   *
+   * Aquele traço de 3px é o carimbo visual de "dashboard gerado": aparece em
+   * qualquer template, não diz nada sobre a Central e some quando o item é
+   * ícone-só. O estado ativo aqui é o ladrilho do ícone — o mesmo raio e a
+   * mesma superfície dos cartões — preenchido com o verde da marca. O texto
+   * reforça com peso 600. Um sinal, dois canais (forma e cor), nenhuma barra.
+   */
   .revenue-app .revenue-nav-item {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 11px;
-    min-height: 42px;
-    padding: 0 12px;
-    border-radius: 12px;
+    gap: 10px;
+    min-height: 40px;
+    padding: 0 10px;
+    border-radius: 8px;
     color: var(--azul-escuro);
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 500;
     text-decoration: none;
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s, color 0.25s;
+    transition: color 0.2s cubic-bezier(0.2, 0.7, 0.2, 1), background-color 0.2s;
   }
 
   .revenue-app .revenue-nav-item:hover {
-    background: rgb(0 150 140 / 7%);
-    transform: translateX(2px);
+    background: rgb(0 150 140 / 6%);
+    color: var(--verde-escuro);
+  }
+
+  .revenue-app .revenue-nav-icon {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 auto;
+    border-radius: 8px;
+    transition: background-color 0.2s cubic-bezier(0.2, 0.7, 0.2, 1), color 0.2s;
+  }
+
+  .revenue-app .revenue-nav-item:hover .revenue-nav-icon {
+    background: rgb(0 150 140 / 9%);
   }
 
   .revenue-app .revenue-nav-item[aria-current] {
     color: var(--verde-escuro);
-    background: rgb(0 150 140 / 11%);
-    font-weight: 700;
-    box-shadow: inset 3px 0 0 var(--verde-institucional);
+    font-weight: 600;
+  }
+
+  .revenue-app .revenue-nav-item[aria-current] .revenue-nav-icon {
+    background: var(--verde-institucional);
+    color: var(--branco);
+    box-shadow: 0 2px 8px -2px rgb(0 150 140 / 55%);
   }
 
   /* ---------- Cabeçalho ---------- */
@@ -333,10 +446,11 @@
   }
 
   /* ---------- Painel ---------- */
+  /* Padding unico de painel. Antes havia 16/18 e 12/14 competindo. */
   .revenue-app .revenue-panel {
     min-width: 0;
-    border-radius: 18px;
-    padding: 16px 18px;
+    border-radius: 10px;
+    padding: 16px;
   }
 
   /* ---------- Cabeçalho de página das telas internas ---------- */
@@ -400,7 +514,7 @@
     min-width: 0;
     align-items: center;
     gap: 8px;
-    border-radius: 16px;
+    border-radius: 10px;
     padding: 10px;
   }
 
@@ -433,7 +547,7 @@
     gap: 10px;
     min-height: 96px;
     border-radius: 10px;
-    padding: 12px 14px;
+    padding: 12px;
   }
 
   .revenue-app .revenue-metric-dot {
@@ -445,21 +559,35 @@
 
   .revenue-app .revenue-metric-value {
     display: block;
-    margin: 5px 0 4px;
-    font-size: 23px;
+    margin: 6px 0 5px;
+    color: var(--ink-strong);
+    font-size: 24px;
     font-weight: 700;
-    letter-spacing: -0.035em;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
   }
 
   .revenue-app .revenue-metric-label {
-    color: var(--azul-escuro);
-    font-size: 13px;
+    color: var(--ink-muted);
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
   }
 
+  /*
+   * A nota do cartão usa o tom do cartão, escurecido até passar AA.
+   *
+   * `tone-marca` aponta para `verde-institucional` (#00968C), que mede 3,66:1
+   * sobre branco — reprovado para texto de 12px, mesmo em negrito. Misturar 22%
+   * de `cinza-900` no tom leva o marca a 4,8:1 sem mudar a matiz; os tons de
+   * dado (positivo, negativo, atenção, informação) já passam e ficam como estão.
+   */
   .revenue-app .revenue-metric-note {
-    color: var(--tom, var(--verde-institucional));
-    font-size: 11.5px;
+    color: color-mix(in srgb, var(--tom, var(--verde-escuro)) 68%, var(--cinza-900));
+    font-size: 12px;
     font-weight: 700;
+    line-height: 1.35;
   }
 
 
@@ -483,7 +611,7 @@
     min-height: 66px;
     padding: 9px 10px;
     border: 1px solid var(--vidro-borda-suave);
-    border-radius: 14px;
+    border-radius: 10px;
     background: rgb(255 255 255 / 65%);
     text-align: left;
   }
@@ -510,7 +638,7 @@
 
   .revenue-app .revenue-table th {
     padding: 8px 10px;
-    border-radius: 9px;
+    border-radius: 8px;
     background: rgb(229 239 245 / 72%);
     color: var(--azul-escuro);
     font-size: 10.5px;
@@ -609,7 +737,8 @@
     backdrop-filter: none;
   }
 
-  .revenue-bg {
+  .revenue-bg,
+  .revenue-bg-faixa {
     background: var(--surface-base);
     filter: none;
   }
@@ -653,17 +782,39 @@
     padding: 6px 8px;
   }
 
+  /*
+   * Barra inferior: 4 destinos + Configurações, todos com a mesma largura.
+   * Antes, a navegação tomava 100% e o atalho de Configurações sobrava num canto
+   * com 19px de largura — o ícone aparecia espremido e cortado.
+   */
   .revenue-app .revenue-sidebar nav {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    width: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
     gap: 4px;
     overflow: visible;
+  }
+
+  .revenue-app .revenue-sidebar > div {
+    flex: 0 0 auto;
+    padding: 0;
+  }
+
+  .revenue-app .revenue-sidebar > div .revenue-nav-item {
+    width: 48px;
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .revenue-app .revenue-sidebar > div p {
+    display: none;
   }
 
   .revenue-app .revenue-nav-item {
     justify-content: center;
     min-height: 48px;
+    padding: 0;
   }
 
   .revenue-app .revenue-sidebar > a:first-child,
@@ -671,7 +822,7 @@
     display: none;
   }
 
-  .revenue-app .revenue-nav-item:nth-child(n + 5) {
+  .revenue-app .revenue-sidebar nav > .revenue-nav-item:nth-child(n + 5) {
     display: none;
   }
 }

@@ -10,6 +10,7 @@ import { sidebarViewFor, type CommercialNav } from '../nav'
 import { ALL_FILTERS, type CommercialPeriod, type CommercialView } from '../types'
 import { FilterSelect } from './filter-select'
 import { PeriodTabs } from './period-tabs'
+import { ProductIcon } from './product-icon'
 import { formatarDataCurta } from './executive-ui'
 
 type ItemNav = {
@@ -40,6 +41,15 @@ const PENDENTE = 'Em breve'
 
 export function sectionAtOffset(blocos: Array<{ view: CommercialView; top: number }>): CommercialView {
   return blocos.filter((bloco) => bloco.top <= 120).at(-1)?.view ?? 'home'
+}
+
+/** Ícone da navegação dentro de um ladrilho: é o ladrilho que marca o estado ativo. */
+function NavIcone({ icone: Icone }: { icone: typeof LayoutDashboard }) {
+  return (
+    <span aria-hidden className="revenue-nav-icon">
+      <Icone className="h-[17px] w-[17px]" strokeWidth={1.8} />
+    </span>
+  )
 }
 
 export function CommercialSidebar({
@@ -93,16 +103,21 @@ export function CommercialSidebar({
 
   return (
     <aside aria-label="Navegação principal" className="revenue-sidebar vidro-forte">
-      <Link href={nav.href('home')} className="mb-5 flex flex-col items-start gap-1.5 px-2 pb-1">
+      {/*
+        Marca centralizada. Antes o logo ficava alinhado à guia dos itens de
+        navegação; com a foto da sede atrás do topo, o bloco centralizado lê
+        como assinatura da casa, e a navegação abaixo mantém a guia própria.
+      */}
+      <Link href={nav.href('home')} className="mb-5 flex flex-col items-center gap-1 px-3 pb-1 text-center">
         <Image
           src="/brand/senior-official-logos/slide-12-logo-01.svg"
           alt="Senior"
-          width={118}
-          height={38}
+          width={112}
+          height={36}
           priority
-          className="h-[38px] w-auto"
+          className="h-[34px] w-auto"
         />
-        <span className="revenue-marca-texto text-[11.5px] font-medium tracking-[0.02em] text-ink-muted">Central de Receita</span>
+        <span className="revenue-marca-texto text-[11px] font-medium tracking-[0.02em] text-ink-muted">Central de Receita</span>
       </Link>
 
       <nav aria-label="Seções" className="grid gap-1">
@@ -120,7 +135,7 @@ export function CommercialSidebar({
                 title={`${item.label} · ${PENDENTE}`}
                 className="revenue-nav-item cursor-not-allowed opacity-50"
               >
-                <Icone aria-hidden className="h-[19px] w-[19px] shrink-0" strokeWidth={1.7} />
+                <NavIcone icone={Icone} />
                 <span className="revenue-nav-rotulo truncate">{item.label}</span>
                 <span className="sr-only"> ({PENDENTE})</span>
               </button>
@@ -134,7 +149,7 @@ export function CommercialSidebar({
               aria-current={ativo ? (pageView === 'home' ? 'location' : 'page') : undefined}
               className="revenue-nav-item"
             >
-              <Icone aria-hidden className="h-[19px] w-[19px] shrink-0" strokeWidth={1.7} />
+              <NavIcone icone={Icone} />
               <span className="revenue-nav-rotulo truncate">{item.label}</span>
             </Link>
           )
@@ -142,8 +157,8 @@ export function CommercialSidebar({
       </nav>
 
       {/* Os itens desabilitados ficam visíveis mas sem selo por item, que não cabe na largura da sidebar. */}
-      <p className="revenue-marca-texto mt-3 px-3 text-[10.5px] leading-4 text-ink-subtle">
-        Chegam em breve: Jornada, Sistema de Receita, Contas e Cross.
+      <p className="revenue-marca-texto mt-3 px-3 text-[11px] leading-4 text-ink-subtle">
+        Em breve: Jornada, Sistema de Receita, Contas e Cross.
       </p>
 
       <div className="mt-auto grid gap-1 pt-4">
@@ -152,7 +167,7 @@ export function CommercialSidebar({
           aria-current={configAtiva ? 'page' : undefined}
           className="revenue-nav-item border-t border-hairline-suave pt-3"
         >
-          <Settings2 aria-hidden className="h-[19px] w-[19px] shrink-0" strokeWidth={1.7} />
+          <NavIcone icone={Settings2} />
           <span className="revenue-nav-rotulo truncate">{VIEW_LABELS.config}</span>
         </Link>
         <p className="revenue-nav-rotulo px-3 pt-1 text-[11px] leading-4 text-ink-muted">{rodape}</p>
@@ -203,7 +218,7 @@ export function CommercialTopbar({
       <form
         role="search"
         onSubmit={(evento) => { evento.preventDefault(); nav.onQuery(busca.trim()) }}
-        className="revenue-control flex h-11 min-w-0 flex-1 basis-[280px] items-center gap-2.5 rounded-[16px] px-4"
+        className="revenue-control flex h-11 min-w-0 flex-1 basis-[280px] items-center gap-2.5 rounded-[10px] px-4"
       >
         <Search aria-hidden className="h-[18px] w-[18px] shrink-0 text-ink-muted" strokeWidth={1.8} />
         <label className="min-w-0 flex-1">
@@ -229,7 +244,7 @@ export function CommercialTopbar({
       </form>
 
       <div className="flex min-w-0 max-w-full items-center gap-2 overflow-x-auto scroll-discreta">
-        <span className="revenue-control inline-flex h-11 shrink-0 items-center gap-2 rounded-[14px] px-4 text-[13px] font-semibold text-ink-strong">
+        <span className="revenue-control inline-flex h-11 shrink-0 items-center gap-2 rounded-[10px] px-4 text-[13px] font-semibold text-ink-strong">
           {period === 'month' ? monthLabel : period === 'quarter' ? 'Trimestre' : '3 meses'}
         </span>
         <div className="shrink-0">
@@ -239,12 +254,13 @@ export function CommercialTopbar({
           label="Solução"
           value={solution}
           onChange={nav.onSolution}
+          icone={<ProductIcon solucao={solution === ALL_FILTERS ? null : solution} tamanho={16} />}
           options={[
             { value: ALL_FILTERS, label: FILTER_LABELS.solucao },
             ...solutions.map((item) => ({ value: item, label: item })),
           ]}
         />
-        <label className="revenue-control flex h-11 shrink-0 items-center gap-2 rounded-[14px] px-3.5">
+        <label className="revenue-control flex h-11 shrink-0 items-center gap-2 rounded-[10px] px-3.5">
           <Users aria-hidden className="h-[17px] w-[17px] shrink-0 text-ink-muted" strokeWidth={1.8} />
           <span className="sr-only">Filial</span>
           <select
@@ -256,11 +272,11 @@ export function CommercialTopbar({
             {branches.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
         </label>
-        <button type="button" aria-label="Avisos" className="revenue-control grid h-11 w-11 shrink-0 place-items-center rounded-[14px] text-ink-strong">
+        <button type="button" aria-label="Avisos" className="revenue-control grid h-11 w-11 shrink-0 place-items-center rounded-[10px] text-ink-strong">
           <Bell aria-hidden className="h-[19px] w-[19px]" strokeWidth={1.8} />
         </button>
-        <button type="button" className="revenue-control flex h-12 shrink-0 items-center gap-2.5 rounded-[16px] py-1 pl-1.5 pr-3 text-left">
-          <span aria-hidden className="grid h-9 w-9 place-items-center rounded-full bg-[linear-gradient(135deg,var(--verde-escuro),var(--verde-medio))] text-[14px] font-bold text-white">G</span>
+        <button type="button" className="revenue-control flex h-12 shrink-0 items-center gap-2.5 rounded-[10px] py-1 pl-1.5 pr-3 text-left">
+          <span aria-hidden className="grid h-9 w-9 place-items-center rounded-full bg-[linear-gradient(135deg,var(--verde-escuro),var(--verde-medio))] text-[13px] font-bold text-white">G</span>
           <span className="hidden leading-tight min-[1440px]:block">
             <strong className="block text-[13px] font-semibold text-ink-strong">Giovanni</strong>
             <small className="block text-[11px] text-ink-muted">Diretoria Comercial</small>

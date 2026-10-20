@@ -31,7 +31,7 @@ export function HomeOriginSummary({ origem, movimentos }: { origem: OrigemRealiz
         </strong>
         <small className="mt-1 text-[11px] leading-4 text-[#687a92]">Forecast atual menos fotografia oficial</small>
       </section>
-      <section className="revenue-panel flex min-h-[132px] min-w-0 items-center gap-3 px-4 py-3">
+      <section className="revenue-panel flex min-h-[132px] min-w-0 items-center ga px-4 py-3">
         <div
           role="img"
           aria-label={'Distribuição do realizado: New Name ' + formatarPercentualInteiro(newNameRatio) + ', Cross ' + formatarPercentualInteiro(totalOrigem > 0 ? origem.cross / totalOrigem : 0)}
@@ -75,7 +75,7 @@ function OriginCard({
   color: string
 }) {
   return (
-    <section className="revenue-panel flex min-h-[132px] min-w-0 items-center gap-3 px-4 py-3">
+    <section className="revenue-panel flex min-h-[132px] min-w-0 items-center ga px-4 py-3">
       <div
         role="img"
         aria-label={formatarPercentualInteiro(ratio) + ' do realizado'}
@@ -88,7 +88,7 @@ function OriginCard({
       <div className="min-w-0">
         <h2 className="truncate text-[12px] font-bold text-[#10294c]">{title}</h2>
         <p className="truncate text-[11px] text-[#687a92]">{detail}</p>
-        <strong className="num mt-1 block truncate text-[17px] font-bold" style={{ color }}>{formatarMilhoes(value)}</strong>
+        <strong className="num mt-1 block truncate text-[15px] font-bold" style={{ color }}>{formatarMilhoes(value)}</strong>
         <small className="block truncate text-[11px] text-[#687a92]">de {formatarMilhoes(total)} no realizado</small>
       </div>
     </section>

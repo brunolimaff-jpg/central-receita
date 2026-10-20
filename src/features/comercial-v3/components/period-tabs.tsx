@@ -16,7 +16,7 @@ export function PeriodTabs({
     <div
       role="group"
       aria-label="Período"
-      className="revenue-control flex overflow-hidden rounded-[14px]"
+      className="revenue-control flex overflow-hidden rounded-[10px]"
     >
       {COMMERCIAL_PERIODS.map((item) => {
         const ativo = item === period

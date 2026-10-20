@@ -17,7 +17,7 @@ const COMMITMENT_STATUS: Record<OpportunityCommitment['status'], string> = {
 export function OpportunityLifePanel({ life }: { life: OpportunityLifeModel }) {
   return (
     <div className="grid gap-3">
-      <nav aria-label="Nesta oportunidade" className="flex flex-wrap gap-1 rounded-[14px] border border-[#dfe8ef] bg-white p-1.5 text-[14px] font-semibold text-[#33466c]">
+      <nav aria-label="Nesta oportunidade" className="flex flex-wrap gap-1 rounded-[10px] border border-[#dfe8ef] bg-white p-1.5 text-[13px] font-semibold text-[#33466c]">
         {[
           ['opportunity-actions', 'Vida comercial'],
           ['opportunity-commitments', 'Compromissos'],
@@ -39,9 +39,9 @@ export function OpportunityLifePanel({ life }: { life: OpportunityLifeModel }) {
       </p>
 
       <div className="grid items-start gap-3 xl:grid-cols-[1.2fr_0.8fr]">
-        <section id="opportunity-actions" aria-labelledby="opportunity-actions-title" className="scroll-mt-6 rounded-[20px] border border-[#dfe8ef] bg-white px-5 py-5 shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
+        <section id="opportunity-actions" aria-labelledby="opportunity-actions-title" className="scroll-mt-6 rounded-[10px] border border-[#dfe8ef] bg-white px-5 py-5 shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
           <h2 id="opportunity-actions-title" className="text-[20px] font-bold tracking-[-0.025em] text-[#33466c]">Ações registradas</h2>
-          <p className="mt-1 text-[14px] leading-5 text-[#50647d]">Registros da condução comercial desta oportunidade.</p>
+          <p className="mt-1 text-[13px] leading-5 text-[#50647d]">Registros da condução comercial desta oportunidade.</p>
 
           {life.actionsAvailability === 'available' && life.actions.length > 0 ? (
             <ol className="mt-4 divide-y divide-[#e5edf2]">
@@ -53,7 +53,7 @@ export function OpportunityLifePanel({ life }: { life: OpportunityLifeModel }) {
                     <span className="text-[13px] leading-5 text-[#50647d]">Data não informada</span>
                   )}
                   <div className="min-w-0">
-                    <p className="break-words text-[14px] leading-6 text-[#33466c]">{action.label ?? 'Descrição do registro não informada'}</p>
+                    <p className="break-words text-[13px] leading-6 text-[#33466c]">{action.label ?? 'Descrição do registro não informada'}</p>
                     <p className="mt-1 text-[12px] leading-5 text-[#50647d]">
                       {action.registeredBy ? `Registrado por ${action.registeredBy}` : 'Autor do registro não informado'}
                     </p>
@@ -63,15 +63,15 @@ export function OpportunityLifePanel({ life }: { life: OpportunityLifeModel }) {
             </ol>
           ) : (
             <div className="mt-4 border-l-2 border-[#bdc6e3] pl-3">
-              <p className="text-[14px] font-semibold text-[#33466c]">Ações desta oportunidade indisponíveis</p>
-              <p className="mt-1 text-[14px] leading-6 text-[#50647d]">A amostra atual não contém registros de ações. Isso não comprova ausência de atividade comercial.</p>
+              <p className="text-[13px] font-semibold text-[#33466c]">Ações desta oportunidade indisponíveis</p>
+              <p className="mt-1 text-[13px] leading-6 text-[#50647d]">A amostra atual não contém registros de ações. Isso não comprova ausência de atividade comercial.</p>
             </div>
           )}
         </section>
 
-        <section id="opportunity-commitments" aria-labelledby="opportunity-commitments-title" className="scroll-mt-6 rounded-[20px] border border-[#dfe8ef] bg-white px-5 py-5 shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
+        <section id="opportunity-commitments" aria-labelledby="opportunity-commitments-title" className="scroll-mt-6 rounded-[10px] border border-[#dfe8ef] bg-white px-5 py-5 shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
           <h2 id="opportunity-commitments-title" className="text-[20px] font-bold tracking-[-0.025em] text-[#33466c]">Compromissos</h2>
-          <p className="mt-1 text-[14px] leading-5 text-[#50647d]">Visitas, reuniões, ligações e compromissos de Cross.</p>
+          <p className="mt-1 text-[13px] leading-5 text-[#50647d]">Visitas, reuniões, ligações e compromissos de Cross.</p>
 
           {life.commitmentsAvailability === 'demo' && life.commitments.length > 0 ? (
             <>
@@ -86,7 +86,7 @@ export function OpportunityLifePanel({ life }: { life: OpportunityLifeModel }) {
                         <span className="text-[#50647d]">{COMMITMENT_STATUS[commitment.status]}</span>
                       </span>
                     </div>
-                    <p className="mt-1.5 break-words text-[14px] font-semibold leading-6 text-[#33466c]">{commitment.subject}</p>
+                    <p className="mt-1.5 break-words text-[13px] font-semibold leading-6 text-[#33466c]">{commitment.subject}</p>
                     <time dateTime={commitment.at} className="num mt-1 block text-[13px] leading-5 text-[#50647d]">{formatarInstante(commitment.at)}</time>
                     <p className="mt-1 text-[13px] leading-5 text-[#50647d]">Responsável: {commitment.responsible ?? 'não informado'}</p>
                   </li>
@@ -95,20 +95,20 @@ export function OpportunityLifePanel({ life }: { life: OpportunityLifeModel }) {
             </>
           ) : (
             <div className="mt-4 border-l-2 border-[#bdc6e3] pl-3">
-              <p className="text-[14px] font-semibold text-[#33466c]">Agenda desta oportunidade indisponível</p>
-              <p className="mt-1 text-[14px] leading-6 text-[#50647d]">A fonte de compromissos ainda não está conectada. A falta de amostra não significa que não existam compromissos.</p>
+              <p className="text-[13px] font-semibold text-[#33466c]">Agenda desta oportunidade indisponível</p>
+              <p className="mt-1 text-[13px] leading-6 text-[#50647d]">A fonte de compromissos ainda não está conectada. A falta de amostra não significa que não existam compromissos.</p>
             </div>
           )}
         </section>
       </div>
 
-      <details id="opportunity-relationship" className="scroll-mt-6 rounded-[20px] border border-[#dfe8ef] bg-white text-[#33466c] shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
-        <summary className="cursor-pointer rounded-[20px] px-5 py-4 text-[16px] font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b]">
+      <details id="opportunity-relationship" className="scroll-mt-6 rounded-[10px] border border-[#dfe8ef] bg-white text-[#33466c] shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
+        <summary className="cursor-pointer rounded-[10px] px-5 py-4 text-[15px] font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b]">
           Relacionamento da conta
           <span className="ml-2 inline-block text-[12px] font-normal text-[#50647d]">Contexto complementar</span>
         </summary>
         <div className="border-t border-[#e5edf2] px-5 pb-5 pt-4">
-          <p className="text-[14px] font-semibold">{life.accountLabel ?? 'Conta não identificada na fonte'}</p>
+          <p className="text-[13px] font-semibold">{life.accountLabel ?? 'Conta não identificada na fonte'}</p>
           <p className="mt-1 text-[13px] leading-5 text-[#50647d]">Consulte o relacionamento para apoiar a condução desta oportunidade.</p>
           <dl className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {[
@@ -119,7 +119,7 @@ export function OpportunityLifePanel({ life }: { life: OpportunityLifeModel }) {
             ].map(([label, value]) => (
               <div key={label}>
                 <dt className="text-[12px] font-semibold leading-5 text-[#33466c]">{label}</dt>
-                <dd className="mt-1 text-[14px] leading-5 text-[#50647d]">{value}</dd>
+                <dd className="mt-1 text-[13px] leading-5 text-[#50647d]">{value}</dd>
               </div>
             ))}
           </dl>

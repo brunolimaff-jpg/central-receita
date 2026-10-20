@@ -110,7 +110,7 @@ export function NewNameSection({
       </div>
 
       {indicators.toValidateCount > 0 && (
-        <p className="rounded-[12px] bg-dado-atencao-suave px-4 py-3 text-[12.5px] leading-5 text-dado-atencao">
+        <p className="rounded-[10px] bg-dado-atencao-suave px-4 py-3 text-[13px] leading-5 text-dado-atencao">
           Classificação “Novo” a validar com a Fabi: {plural(indicators.toValidateCount, 'pedido', 'pedidos')} ({formatarRealCompacto(indicators.toValidateValue)}) ficam fora dos indicadores.
         </p>
       )}
@@ -149,7 +149,7 @@ export function NewNameSection({
         />
       </Panel>
 
-      <p className="px-1 text-[11.5px] leading-5 text-ink-muted">
+      <p className="px-1 text-[12px] leading-5 text-ink-muted">
         Classificação “Novo” provisória, a validar com a Fabi. Realizado oficial só com pedido conferido.
       </p>
     </PanelSection>

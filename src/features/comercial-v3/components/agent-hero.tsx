@@ -24,7 +24,7 @@ export function AgentHero({ semanas, semanaAtual, kpis, asOf }: AgentHeroProps) 
   return (
     <section className="revenue-panel vidro min-w-0">
       <header className="mb-2 flex flex-wrap items-start justify-between gap-3">
-        <p className="text-[11.5px] text-ink-muted">
+        <p className="text-[12px] text-ink-muted">
           Cortes de sexta · snapshot em {snapshotLabel} · valores em R$ milhões.
         </p>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-medium text-ink-muted" aria-label="Legenda do gráfico">

@@ -28,7 +28,7 @@ export function BranchSummary({ model, agregadoReal }: { model: BranchModel; agr
   }))
 
   return (
-    <section className="rounded-[20px] border border-[#dfe8ef] bg-white px-5 py-4 shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
+    <section className="rounded-[10px] border border-[#dfe8ef] bg-white px-5 py-4 shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
       <div className="mb-3">
         <h1 className="text-[24px] font-bold tracking-[-0.035em] text-[#0d2340]">
           {FILIAIS_COPY.resumoTitulo}: {model.branch}
@@ -37,7 +37,7 @@ export function BranchSummary({ model, agregadoReal }: { model: BranchModel; agr
       </div>
 
       <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-[12px] border border-[#dfe8ef] bg-[#fbfdfe] px-3.5 py-3.5">
+        <article className="rounded-[10px] border border-[#dfe8ef] bg-[#fbfdfe] px-3.5 py-3.5">
           <p className="text-[12px] text-[#6b7d91]">Meta da filial</p>
           <b className="num mt-1.5 block text-[24px] font-extrabold text-[#0d2340]">
             {valores.meta === null ? 'Indisponível' : formatarMilhoes(valores.meta)}
@@ -47,7 +47,7 @@ export function BranchSummary({ model, agregadoReal }: { model: BranchModel; agr
           </span>
         </article>
 
-        <article className="rounded-[12px] border border-[#dfe8ef] bg-[#fbfdfe] px-3.5 py-3.5">
+        <article className="rounded-[10px] border border-[#dfe8ef] bg-[#fbfdfe] px-3.5 py-3.5">
           <p className="text-[12px] text-[#6b7d91]">Realizado</p>
           <b className="num mt-1.5 block text-[24px] font-extrabold text-[#0d2340]">
             {valores.realizado === null ? 'Indisponível' : formatarMilhoes(valores.realizado)}
@@ -57,7 +57,7 @@ export function BranchSummary({ model, agregadoReal }: { model: BranchModel; agr
           </span>
         </article>
 
-        <article className="rounded-[12px] border border-[#dfe8ef] bg-[#fbfdfe] px-3.5 py-3.5">
+        <article className="rounded-[10px] border border-[#dfe8ef] bg-[#fbfdfe] px-3.5 py-3.5">
           <p className="text-[12px] text-[#6b7d91]">Forecast atual</p>
           <b className="num mt-1.5 block text-[24px] font-extrabold text-[#0d2340]">
             {valores.forecastAtual === null ? 'Indisponível' : formatarMilhoes(valores.forecastAtual)}
@@ -69,7 +69,7 @@ export function BranchSummary({ model, agregadoReal }: { model: BranchModel; agr
           </span>
         </article>
 
-        <article className="rounded-[12px] border border-[#dfe8ef] bg-[#fbfdfe] px-3.5 py-3.5">
+        <article className="rounded-[10px] border border-[#dfe8ef] bg-[#fbfdfe] px-3.5 py-3.5">
           {valores.source === 'real' ? (
             <>
               <p className="text-[12px] text-[#6b7d91]">Origem dos totais</p>

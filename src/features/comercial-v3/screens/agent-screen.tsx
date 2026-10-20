@@ -38,17 +38,17 @@ export function AgentScreen({ briefing, from, nav }: AgentScreenProps) {
         <div className="grid gap-3">
           <AgentBriefing briefing={briefing} />
 
-          <section className="rounded-[14px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
+          <section className="rounded-[10px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
-                <h2 className="text-[16px] font-bold tracking-[-0.02em] text-[#0d2340]">
+                <h2 className="text-[15px] font-bold tracking-[-0.02em] text-[#0d2340]">
                   {AGENTE_COPY.sinaisTitulo}
                 </h2>
                 <p className="mt-0.5 text-[12px] text-[#63748a]">{AGENTE_COPY.sinaisSubtitulo}</p>
               </div>
               <Link
                 href={nav.href('forecast', { from: 'agent' })}
-                className="rounded-[9px] border border-[#dfe8ef] bg-white px-2.5 py-1.5 text-[11px] font-semibold text-[#2b425e] transition-premium hover:bg-[#f5f9fb] active:translate-y-px"
+                className="rounded-[8px] border border-[#dfe8ef] bg-white px-2.5 py-1.5 text-[11px] font-semibold text-[#2b425e] transition-premium hover:bg-[#f5f9fb] active:translate-y-px"
               >
                 Abrir forecast
               </Link>
@@ -89,8 +89,8 @@ export function AgentScreen({ briefing, from, nav }: AgentScreenProps) {
         <aside className="grid gap-3">
           <AgentConversation briefing={briefing} />
 
-          <section className="rounded-[14px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
-            <h2 className="text-[16px] font-bold tracking-[-0.02em] text-[#0d2340]">
+          <section className="rounded-[10px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
+            <h2 className="text-[15px] font-bold tracking-[-0.02em] text-[#0d2340]">
               {AGENTE_COPY.acompanhando}
             </h2>
             <p className="mt-0.5 text-[12px] text-[#63748a]">
@@ -102,7 +102,7 @@ export function AgentScreen({ briefing, from, nav }: AgentScreenProps) {
                 <li key={sinal.branch}>
                   <Link
                     href={nav.branchHref(sinal.branch, 'agent')}
-                    className="flex items-center justify-between gap-3 rounded-[9px] px-2 py-2.5 transition-premium hover:bg-[#f3f8f7] hover:translate-x-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b] active:bg-[#eaf5f2]"
+                    className="flex items-center justify-between gap-3 rounded-[8px] px-2 py-2.5 transition-premium hover:bg-[#f3f8f7] hover:translate-x-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b] active:bg-[#eaf5f2]"
                   >
                     <span className="min-w-0">
                       <strong className="block text-[13px] font-extrabold text-[#334b64]">
@@ -120,13 +120,13 @@ export function AgentScreen({ briefing, from, nav }: AgentScreenProps) {
                 </li>
               ))}
               {briefing.atencao.length === 0 && (
-                <li className="rounded-[9px] border border-[#edf1f3] bg-[#fbfdfe] px-2.5 py-2.5 text-[12px] text-[#63748a]">
+                <li className="rounded-[8px] border border-[#edf1f3] bg-[#fbfdfe] px-2.5 py-2.5 text-[12px] text-[#63748a]">
                   Nenhuma filial com meta definida no recorte atual.
                 </li>
               )}
             </ul>
 
-            <p className="mt-2.5 border-t border-[#edf2f6] pt-2 text-[10px] text-[#8190a2]">
+            <p className="mt-2.5 border-t border-[#edf2f6] pt-2 text-[11px] text-[#8190a2]">
               A leitura é por filial; HEAD não substitui filial em nenhum nível.
             </p>
           </section>

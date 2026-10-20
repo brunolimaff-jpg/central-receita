@@ -21,9 +21,9 @@ type CommercialShellProps = {
 }
 
 /**
- * Shell do painel: fundo da sede sob véu, sidebar de vidro à esquerda e o
- * conteúdo à direita. O cabeçalho aparece nas telas internas; a Visão Executiva
- * traz a própria saudação no corpo da página.
+ * Shell do painel: aurora esmeralda com a foto da sede só na faixa do topo,
+ * sidebar de vidro à esquerda e o conteúdo à direita. O cabeçalho aparece nas
+ * telas internas; a Visão Executiva traz a própria saudação no corpo da página.
  */
 export function CommercialShell({
   view,
@@ -44,11 +44,12 @@ export function CommercialShell({
   return (
     <div className="revenue-app">
       <div aria-hidden className="revenue-bg" />
+      <div aria-hidden className="revenue-bg-faixa" />
       <CommercialSidebar view={executiveMode ? 'home' : view} from={from} nav={nav} importPreview={importPreview} dataCarga={dataCarga} paginaCorrida={executiveMode} />
 
       <div className="relative z-[2] min-w-0">
         {view === 'config' ? (
-          <header className="revenue-control mb-4 rounded-[14px] px-4 py-3 text-[13px] text-ink-muted">
+          <header className="revenue-control mb-4 rounded-[10px] px-4 py-3 text-[13px] text-ink-muted">
             Importação manual · {sharedImportEnabled ? 'dados compartilhados de' : 'piloto local de'} New Name e Forecast
           </header>
         ) : executiveMode ? null : (

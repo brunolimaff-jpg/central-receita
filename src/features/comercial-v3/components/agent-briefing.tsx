@@ -43,7 +43,7 @@ export function AgentBriefing({ briefing }: { briefing: AgentBriefingModel }) {
   ]
 
   return (
-    <section className="rounded-[20px] border border-[#dbeae7] bg-[linear-gradient(135deg,#ffffff_0%,#f4fbf9_100%)] px-6 py-5 shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
+    <section className="rounded-[10px] border border-[#dbeae7] bg-[linear-gradient(135deg,#ffffff_0%,#f4fbf9_100%)] px-6 py-5 shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
       <p className="mb-2.5 flex items-center gap-2 text-[13px] font-bold text-[#087d6a]">
         <span
           aria-hidden
@@ -59,7 +59,7 @@ export function AgentBriefing({ briefing }: { briefing: AgentBriefingModel }) {
         meta.
       </h1>
 
-      <p className="mt-2.5 max-w-[800px] text-[14px] leading-relaxed text-[#53677f]">
+      <p className="mt-2.5 max-w-[800px] text-[13px] leading-relaxed text-[#53677f]">
         {negativos.length > 0
           ? `Os maiores movimentos do período estão concentrados em ${negativos.join(', ')}. `
           : 'O período não tem movimento negativo contra a fotografia oficial. '}
@@ -70,7 +70,7 @@ export function AgentBriefing({ briefing }: { briefing: AgentBriefingModel }) {
 
       <div className="mt-4 grid gap-2.5 sm:grid-cols-3">
         {sinais.map((sinal) => (
-          <article key={sinal.chave} className="rounded-[13px] border border-[#dfe8ef] bg-white px-4 py-3.5">
+          <article key={sinal.chave} className="rounded-[10px] border border-[#dfe8ef] bg-white px-4 py-3.5">
             <p className="text-[12px] text-[#63748a]">{sinal.rotulo}</p>
             <b
               className={`num mt-1.5 block text-[22px] font-extrabold ${
@@ -101,7 +101,7 @@ export function AgentBriefing({ briefing }: { briefing: AgentBriefingModel }) {
               {semana.current ? ' · atual' : ''}
             </strong>
             <span className="num mt-0.5 block text-[11px] text-[#63748a]">{semana.rangeLabel}</span>
-            <b className="num mt-1.5 block text-[14px] font-extrabold text-[#0d2340]">
+            <b className="num mt-1.5 block text-[13px] font-extrabold text-[#0d2340]">
               {forecast === null ? 'Pendente' : formatarMilhoes(forecast)}
             </b>
           </div>

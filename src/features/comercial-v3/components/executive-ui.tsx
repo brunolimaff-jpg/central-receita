@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { ArrowDownRight, ArrowUpRight, CheckCircle2, Clock3, Pencil, XCircle, type LucideIcon } from 'lucide-react'
+import { BarraAnimada } from './motion-primitives'
 import { formatarRealComSinal } from '../format'
 import type { MovementLabel } from '../movement-rows'
 
@@ -57,7 +58,7 @@ export function Panel({ titulo, subtitulo, acao, children, className = '' }: {
         <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             {titulo && <h2 className="text-[15px] font-bold tracking-[-0.02em] text-ink-strong">{titulo}</h2>}
-            {subtitulo && <p className="mt-0.5 text-[11.5px] text-ink-muted">{subtitulo}</p>}
+            {subtitulo && <p className="mt-0.5 text-[12px] text-ink-muted">{subtitulo}</p>}
           </div>
           {acao}
         </div>
@@ -138,7 +139,7 @@ export function MovementCard({ movimento, titulo, valor, contagem, nota, disponi
         <span className="text-[13px] font-semibold text-ink-strong">{titulo ?? movimento}</span>
       </span>
       <span className="mt-3 block">
-        <strong className={`num block text-[23px] font-bold leading-none tracking-[-0.035em] ${corValor}`}>
+        <strong className={`num block text-[24px] font-bold leading-none tracking-[-0.035em] ${corValor}`}>
           {disponivel ? formatarRealComSinal(valor) : '—'}
         </strong>
         <span className="mt-1.5 block text-[12px] text-ink-muted">{disponivel ? contagem : 'Sem carga anterior'}</span>
@@ -169,37 +170,46 @@ const COR_ANEL: Record<MovementLabel, string> = {
   'Alterou valor': 'var(--dado-info)',
 }
 
-/** Anel de impacto: partes pelo peso absoluto; centro com o saldo líquido com sinal. */
+/**
+ * Impacto dos movimentos em barras, não em rosca.
+ *
+ * A rosca anterior tinha dois defeitos: as parcelas de valor zero sumiam do
+ * anel (dando a impressão de que só existiam duas), e o saldo no centro não
+ * correspondia à soma visual das fatias — o número contradizia o desenho.
+ * Aqui cada movimento ocupa uma barra proporcional à própria magnitude, e o
+ * saldo é uma linha à parte, com sinal. Lê-se de cima para baixo.
+ */
 export function ImpactRing({ titulo, legenda, grupos, saldo }: { titulo: string; legenda: string; grupos: RingGroup[]; saldo: number | null }) {
-  const total = grupos.reduce((soma, grupo) => soma + grupo.peso, 0)
-  let angulo = 0
-  const paradas = grupos.map((grupo) => {
-    const inicio = angulo
-    angulo += total > 0 ? (grupo.peso / total) * 100 : 0
-    return `${COR_ANEL[grupo.movimento]} ${inicio}% ${angulo}%`
-  })
-  const fundo = total > 0 ? `conic-gradient(${paradas.join(', ')})` : 'var(--surface-sunken)'
+  const maior = grupos.reduce((maximo, grupo) => Math.max(maximo, grupo.peso), 0)
+  const comValor = grupos.some(grupo => grupo.valor !== null)
   return (
     <Panel titulo={titulo} subtitulo={legenda} className="self-start">
-      <div className="flex items-center gap-5">
-        <span aria-hidden className="grid size-[120px] shrink-0 place-items-center rounded-full" style={{ background: fundo }}>
-          <span className="grid size-[86px] place-items-center rounded-full bg-white/95 text-center">
-            <span className="num block text-[15px] font-bold text-ink-strong">{formatarRealComSinal(saldo)}</span>
-            <span className="block text-[9.5px] text-ink-muted">saldo líquido</span>
-          </span>
-        </span>
-        <dl className="min-w-0 flex-1 space-y-2.5">
-          {grupos.map((grupo) => (
-            <div key={`${grupo.movimento}-${grupo.rotulo}`} className="flex items-center justify-between gap-3 text-[12px]">
-              <dt className="flex min-w-0 items-center gap-2 text-ink-muted">
-                <span aria-hidden className="size-2.5 shrink-0 rounded-full" style={{ background: COR_ANEL[grupo.movimento] }} />
-                <span className="truncate">{grupo.rotulo}</span>
-              </dt>
-              <dd className="num shrink-0 font-semibold text-ink-strong">{formatarRealComSinal(grupo.valor)}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
+      {comValor ? (
+        <>
+          <ul className="grid gap-2.5">
+            {grupos.map((grupo) => {
+              const proporcao = maior > 0 ? Math.max(0, Math.min(1, grupo.peso / maior)) : 0
+              return (
+                <li key={`${grupo.movimento}-${grupo.rotulo}`} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 text-[12px]">
+                  <span className="truncate text-ink-muted">{grupo.rotulo}</span>
+                  <span className="num font-semibold text-ink-strong">{grupo.valor === null ? '—' : formatarRealComSinal(grupo.valor)}</span>
+                  <span className="col-span-2">
+                    <BarraAnimada proporcao={proporcao} cor={COR_ANEL[grupo.movimento]} />
+                  </span>
+                </li>
+              )
+            })}
+          </ul>
+          <div className="mt-3 flex items-baseline justify-between gap-3 border-t border-hairline pt-3">
+            <span className="text-[12px] font-medium text-ink-muted">Saldo no mês</span>
+            <strong className={`num text-[18px] font-bold tracking-[-0.02em] ${saldo === null ? 'text-ink-strong' : saldo > 0 ? 'text-dado-positivo' : saldo < 0 ? 'text-dado-negativo' : 'text-ink-strong'}`}>
+              {formatarRealComSinal(saldo)}
+            </strong>
+          </div>
+        </>
+      ) : (
+        <p className="text-[12px] text-ink-muted">A comparação começa na próxima importação.</p>
+      )}
     </Panel>
   )
 }
@@ -214,6 +224,17 @@ export function BarraProgresso({ valor, rotulo }: { valor: number; rotulo: strin
   )
 }
 
+/** Variante animada da barra de progresso; usada onde a largura é o dado principal. */
+export function BarraProgressoAnimada({ valor, rotulo }: { valor: number; rotulo: string }) {
+  const largura = Math.max(0, Math.min(100, valor))
+  return (
+    <div role="progressbar" aria-label={rotulo} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(largura)}>
+      <BarraAnimada proporcao={largura / 100} cor="linear-gradient(90deg, var(--verde-institucional), var(--verde-claro))" altura={8} />
+    </div>
+  )
+}
+
+
 /** Pílula de estado do movimento. */
 export function Selo({ movimento }: { movimento: MovementLabel }) {
   return <span className={`revenue-pill tone-${MOVIMENTO[movimento].tom}`}>{movimento}</span>
@@ -225,8 +246,8 @@ export function Donut({ valor, rotulo, tom = 'marca' }: { valor: number; rotulo:
   return (
     <span aria-hidden className={`revenue-donut tone-${tom}`} style={{ ['--donut' as string]: `${graus}deg` }}>
       <span>
-        <strong className="num block text-[17px] font-bold leading-none text-ink-strong">{Math.round(valor)}%</strong>
-        <small className="mt-1 block text-[9.5px] text-ink-muted">{rotulo}</small>
+        <strong className="num block text-[15px] font-bold leading-none text-ink-strong">{Math.round(valor)}%</strong>
+        <small className="mt-1 block text-[11px] text-ink-muted">{rotulo}</small>
       </span>
     </span>
   )

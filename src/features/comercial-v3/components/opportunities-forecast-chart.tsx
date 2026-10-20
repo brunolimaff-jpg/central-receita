@@ -105,11 +105,11 @@ export function OpportunitiesForecastChart({ semanas, mode = 'weekly', onSelectW
   }
 
   return (
-    <section className="revenue-panel min-w-0 rounded-[14px] border border-white/90 bg-white/95 p-4">
+    <section className="revenue-panel min-w-0 p-4">
       <div className="flex items-start gap-2.5">
         <ChartNoAxesCombined aria-hidden className="size-5 shrink-0 text-[#009b83]" />
         <div className="min-w-0">
-          <h2 className="text-[16px] font-bold text-[#0d2340]">{dueDates ? 'Previsão por data de fechamento' : 'Evolução do forecast'}</h2>
+          <h2 className="text-[15px] font-bold text-[#0d2340]">{dueDates ? 'Previsão por data de fechamento' : 'Evolução do forecast'}</h2>
           <p className="mt-1 text-[13px] text-[#6c7e91]">
             {dueDates ? 'Oportunidades acumuladas por data prevista · selecione uma data para conferir os registros.' : 'Posição semanal demonstrativa · histórico por oportunidade indisponível.'}
           </p>

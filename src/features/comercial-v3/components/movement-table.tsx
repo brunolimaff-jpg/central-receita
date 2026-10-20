@@ -59,7 +59,7 @@ export function MovementTable({ linhas, vazio, legenda, limite = 10 }: {
                         type="button"
                         aria-expanded={expandida}
                         aria-controls={expandida ? detalheId : undefined}
-                        className="block w-full truncate rounded-[4px] text-left font-semibold text-ink-strong hover:underline underline-offset-2"
+                        className="block w-full truncate rounded-[6px] text-left font-semibold text-ink-strong hover:underline underline-offset-2"
                       >
                         {linha.account}
                       </button>

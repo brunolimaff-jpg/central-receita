@@ -90,9 +90,9 @@ export function MonthEvolutionChart({ semanas, kpis, mes }: MonthEvolutionChartP
   ]
 
   return (
-    <section className="h-full rounded-[14px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
+    <section className="h-full rounded-[10px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
       <div className="mb-2 flex flex-wrap items-start justify-between gap-3">
-        <h2 className="text-[16px] font-bold tracking-[-0.02em] text-[#0d2340]">{BLOCOS_HOME.evolucao}</h2>
+        <h2 className="text-[15px] font-bold tracking-[-0.02em] text-[#0d2340]">{BLOCOS_HOME.evolucao}</h2>
         <div className="flex flex-wrap items-center gap-3 text-[11px] text-[#63748a]">
           {legenda.map((item) => (
             <span key={item.rotulo} className="flex items-center gap-1.5">

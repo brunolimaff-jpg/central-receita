@@ -38,7 +38,7 @@ export function SeletorPeriodo({ rotulo, valor, opcoes, onChange }: {
   onChange: (valor: string) => void
 }) {
   return (
-    <div role="group" aria-label={rotulo} className="vidro inline-flex rounded-[12px] p-1">
+    <div role="group" aria-label={rotulo} className="vidro inline-flex rounded-[10px] p-1">
       {opcoes.map(opcao => {
         const ativo = valor === opcao.valor
         return (
@@ -47,7 +47,7 @@ export function SeletorPeriodo({ rotulo, valor, opcoes, onChange }: {
             type="button"
             aria-pressed={ativo}
             onClick={() => onChange(opcao.valor)}
-            className={`h-8 rounded-[9px] px-3.5 text-[12.5px] font-semibold transition-premium ${ativo ? 'bg-brand-escuro text-white' : 'text-ink-muted hover:bg-surface-sunken'}`}
+            className={`h-8 rounded-[8px] px-3.5 text-[13px] font-semibold transition-premium ${ativo ? 'bg-brand-escuro text-white' : 'text-ink-muted hover:bg-surface-sunken'}`}
           >
             {opcao.texto}
           </button>
@@ -106,11 +106,11 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate }: 
           <Panel>
             <div className="flex items-center gap-3">
               <BarraProgresso valor={percentual ?? 0} rotulo="Realizado sobre previsto" />
-              <span className="num shrink-0 text-[12.5px] font-semibold text-ink-strong">
+              <span className="num shrink-0 text-[13px] font-semibold text-ink-strong">
                 {percentual === null ? '—' : `${formatarPercentualInteiro(percentual / 100)} realizado`}
               </span>
             </div>
-            <p className="mt-2.5 text-[11.5px] text-ink-muted">
+            <p className="mt-2.5 text-[12px] text-ink-muted">
               {period === 'semana' ? 'Cartões e lista na semana; previsto e em aberto no mês inteiro. ' : 'Período: mês da data de referência. '}
               Meta indisponível na carga.
             </p>
@@ -159,7 +159,7 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate }: 
         />
       </Panel>
 
-      <p className="px-1 text-[11.5px] leading-5 text-ink-muted">
+      <p className="px-1 text-[12px] leading-5 text-ink-muted">
         {monthResult.probabilityAvailable
           ? 'Critério: Proposta ou Negociação, chance de 75% ou mais, previsão no mês.'
           : 'Probabilidade ausente na carga: o critério de 75% não foi aplicado.'}
