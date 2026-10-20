@@ -46,6 +46,23 @@ const TOLERANCIA_RECONCILIACAO = 0.01
 
 const label = (date: string) => `${date.slice(8, 10)}/${date.slice(5, 7)}`
 
+/** Duas cargas no mesmo dia ganham a hora no rótulo; sem isso seriam dois X iguais e indistinguíveis. */
+function rotulosDeCarga(times: string[]): string[] {
+  const porDia = new Map<string, number>()
+  for (const at of times) porDia.set(at.slice(0, 10), (porDia.get(at.slice(0, 10)) ?? 0) + 1)
+  return times.map(at => {
+    const day = at.slice(0, 10)
+    const hora = at.slice(11, 16)
+    return porDia.get(day)! > 1 && hora ? `${label(day)} ${hora}` : label(day)
+  })
+}
+
+/** No máximo seis marcas, escolhidas por índice; a primeira e a última sempre entram. */
+function marcasDeEixo(labels: string[]): string[] {
+  if (labels.length <= 6) return labels
+  return Array.from({ length: 6 }, (_, index) => labels[Math.round(index * (labels.length - 1) / 5)])
+}
+
 /** `null` se qualquer valor da lista for nulo — nulo contamina, nunca vira zero. */
 const somaConhecida = (values: Array<number | null>): number | null =>
   values.some(value => value === null) ? null : values.reduce<number>((sum, value) => sum + (value as number), 0)
@@ -84,8 +101,9 @@ export function buildTrajectory(args: {
   }
   const month = args.referenceDate.slice(0, 7)
   const forecast = calculateForecastMonth(args.opportunities, args.previous, month, args.referenceDate, 'mês')
-  const withSnapshot = args.history.filter(entry => entry.snapshot !== undefined)
-  const regime: TrajectoryModel['regime'] = args.previous === null ? 'A' : withSnapshot.length >= 2 ? 'C' : 'B'
+  const withSnapshot = args.history.filter(entry => entry.snapshot != null)
+  // Regime C exige três pontos válidos; com menos, a comparação entre duas cargas basta.
+  const regime: TrajectoryModel['regime'] = args.previous === null ? 'A' : withSnapshot.length >= 3 ? 'C' : 'B'
 
   /*
    * A régua vem de `calculateForecastMonth` (Proposta/Negociação, chance ≥75% e mês).
@@ -102,17 +120,21 @@ export function buildTrajectory(args: {
 
   if (regime === 'C') {
     const snapshots = [...withSnapshot].sort((a, b) => a.at.localeCompare(b.at))
-    const points = (field: 'forecast' | 'realized', pick: (snapshot: TrajectorySnapshot) => number) => snapshots.map(entry => {
-      const date = entry.at.slice(0, 10)
-      return { date, label: label(date), forecast: field === 'forecast' ? pick(entry.snapshot!) : null, realized: field === 'realized' ? pick(entry.snapshot!) : null }
-    })
+    const labels = rotulosDeCarga(snapshots.map(entry => entry.at))
+    const points = (field: 'forecast' | 'realized', pick: (snapshot: TrajectorySnapshot) => number) =>
+      snapshots.map((entry, index) => ({
+        date: entry.at.slice(0, 10),
+        label: labels[index],
+        forecast: field === 'forecast' ? pick(entry.snapshot!) : null,
+        realized: field === 'realized' ? pick(entry.snapshot!) : null,
+      }))
     return {
       regime, ...totals,
       series: [
         { kind: 'previsto', rotulo: 'Previsto', tracejado: false, points: points('forecast', snapshot => snapshot.forecastTotal) },
         { kind: 'realizado', rotulo: 'Realizado', tracejado: false, points: points('realized', snapshot => snapshot.realized) },
       ],
-      ticks: snapshots.map(entry => label(entry.at.slice(0, 10))),
+      ticks: marcasDeEixo(labels),
     }
   }
 

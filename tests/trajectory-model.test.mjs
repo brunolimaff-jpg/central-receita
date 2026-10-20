@@ -99,6 +99,82 @@ test('três cargas com snapshot: regime C e um ponto por carga', () => {
   assert.deepEqual(previsto.map(ponto => ponto.forecast), [100, 110, 120])
 })
 
+const snapshot = (forecastTotal, realized = 0) => ({ forecastTotal, entered: 0, exited: 0, changed: 0, realized })
+
+test('cinco cargas com duas sem snapshot: três pontos válidos, regime C', () => {
+  const previous = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 100 })]
+  const history = [
+    { at: '2026-10-09T10:00:00Z', snapshot: snapshot(300, 30) },
+    { at: '2026-10-07T10:00:00Z' },
+    { at: '2026-10-05T10:00:00Z', snapshot: snapshot(200, 20) },
+    { at: '2026-10-03T10:00:00Z' },
+    { at: '2026-10-01T10:00:00Z', snapshot: snapshot(100, 10) },
+  ]
+  const model = build([rec()], { previous, history })
+  assert.equal(model.regime, 'C')
+  const previsto = pontos(model, 'previsto')
+  assert.equal(previsto.length, 3)
+  assert.deepEqual(previsto.map(ponto => ponto.label), ['01/10', '05/10', '09/10'])
+  assert.deepEqual(previsto.map(ponto => ponto.forecast), [100, 200, 300])
+  assert.deepEqual(pontos(model, 'realizado').map(ponto => ponto.realized), [10, 20, 30])
+  assert.deepEqual(model.ticks, ['01/10', '05/10', '09/10'])
+})
+
+test('três cargas com duas sem snapshot: cai para o regime B', () => {
+  const previous = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 100 })]
+  const history = [
+    { at: '2026-10-09T10:00:00Z', snapshot: snapshot(300) },
+    { at: '2026-10-07T10:00:00Z' },
+    { at: '2026-10-05T10:00:00Z' },
+  ]
+  const model = build([rec()], { previous, history })
+  assert.equal(model.regime, 'B')
+})
+
+test('quatro cargas com duas sem snapshot: dois pontos válidos ainda não bastam para o regime C', () => {
+  const previous = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 100 })]
+  const history = [
+    { at: '2026-10-09T10:00:00Z', snapshot: snapshot(300) },
+    { at: '2026-10-07T10:00:00Z' },
+    { at: '2026-10-05T10:00:00Z', snapshot: snapshot(200) },
+    { at: '2026-10-03T10:00:00Z' },
+  ]
+  const model = build([rec()], { previous, history })
+  assert.equal(model.regime, 'B')
+})
+
+test('duas cargas no mesmo dia: dois pontos distintos no mesmo X, com a hora no rótulo', () => {
+  const previous = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 100 })]
+  const history = [
+    { at: '2026-10-05T16:40:00Z', snapshot: snapshot(120, 12) },
+    { at: '2026-10-01T09:00:00Z', snapshot: snapshot(80, 8) },
+    { at: '2026-10-05T09:10:00Z', snapshot: snapshot(100, 10) },
+  ]
+  const model = build([rec()], { previous, history })
+  assert.equal(model.regime, 'C')
+  const previsto = pontos(model, 'previsto')
+  assert.equal(previsto.length, 3)
+  assert.deepEqual(previsto.map(ponto => ponto.date), ['2026-10-01', '2026-10-05', '2026-10-05'])
+  assert.deepEqual(previsto.map(ponto => ponto.label), ['01/10', '05/10 09:10', '05/10 16:40'])
+  assert.deepEqual(previsto.map(ponto => ponto.forecast), [80, 100, 120])
+  assert.deepEqual(model.ticks, ['01/10', '05/10 09:10', '05/10 16:40'])
+})
+
+test('dez cargas: no máximo seis marcas no eixo, primeira e última sempre presentes', () => {
+  const previous = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 100 })]
+  const history = Array.from({ length: 10 }, (_, index) => ({
+    at: `2026-10-${String(index + 1).padStart(2, '0')}T10:00:00Z`,
+    snapshot: snapshot(100 + index),
+  }))
+  const model = build([rec()], { previous, history })
+  assert.equal(model.regime, 'C')
+  assert.equal(pontos(model, 'previsto').length, 10)
+  assert.equal(model.ticks.length, 6)
+  assert.equal(model.ticks[0], '01/10')
+  assert.equal(model.ticks.at(-1), '10/10')
+  assert.deepEqual(model.ticks, ['01/10', '03/10', '05/10', '06/10', '08/10', '10/10'])
+})
+
 test('realizado usa closedValue pela closingDate das oportunidades ganhas', () => {
   const model = build([
     rec({ opportunityId: '1', stage: 'Fechada e Ganha', forecastDate: null, predictedValue: null, closedValue: 4000, closingDate: '2026-10-03' }),
