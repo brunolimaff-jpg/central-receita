@@ -215,6 +215,30 @@ export function montarPonte(args: Parameters<typeof ponteReconcilia>[0]): Trajec
 }
 
 /**
+ * Subtítulo e selo da seção por regime. `anteriorEm` é o `importedAt`/`savedAt`
+ * da carga anterior; sem ele, o regime B não inventa data.
+ */
+export function cabecalhoTrajetoria(model: TrajectoryModel, anteriorEm: string | null): {
+  contexto: string
+  selo: { texto: string; tom: 'marca' | 'info' } | null
+} {
+  if (model.regime === 'vazio') return { contexto: 'Importe a planilha de oportunidades para acompanhar o mês.', selo: null }
+  if (model.regime === 'A') return { contexto: 'Acumulado do mês pela data de fechamento e de conferência.', selo: { texto: '1 carga', tom: 'marca' } }
+  if (model.regime === 'B') {
+    return {
+      contexto: anteriorEm ? `Comparado à carga de ${label(anteriorEm.slice(0, 10))}.` : 'Comparado à carga anterior.',
+      selo: { texto: '2 cargas', tom: 'marca' },
+    }
+  }
+  // Em C, cada ponto do previsto é uma carga.
+  const labels = model.series.find(serie => serie.kind === 'previsto')?.points.map(point => point.label) ?? []
+  return {
+    contexto: `Evolução em ${labels.length} cargas, de ${labels[0]} a ${labels.at(-1)}.`,
+    selo: { texto: `${labels.length} cargas`, tom: 'info' },
+  }
+}
+
+/**
  * A ponte entre duas cargas só publica quando a soma dos componentes fecha com a
  * diferença dos totais, em reais, com tolerância de R$ 0,01. Nulo não vira zero.
  */
