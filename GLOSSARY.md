@@ -19,7 +19,7 @@ Código: substatus `em conferência` em `src/features/comercial-v3/new-name-mode
 ### Realizado de vendas
 Marco final único: pedidos conferidos ou integrados com ERP. Um pedido conta uma vez, qualquer que seja o número de itens. Denominador do atingimento.
 Não é: ganhos no CRM; faturamento ou reconhecimento contábil (ficam fora).
-Código: ainda não implementado como marco único. Hoje o New Name conta só conferido como realizado oficial (`src/features/comercial-v3/new-name-model.ts:15` e `:409`) — mudança bloqueada pela confirmação da Fabi (issue #4).
+Código: ainda não implementado como marco único. No New Name de hoje (`src/features/comercial-v3/new-name-model.ts:409`), conta como realizado oficial todo pedido com substatus `conferido` — e, no agrupamento de pedidos (`new-name-model.ts:303-306`), `DATA CONFERENCIA` preenchida vira substatus `conferido`, inclusive pedidos "Integrado com ERP", salvo devolvido e cancelado. Ou seja: integrado com data de conferência já conta; só integrado sem data de conferência fica fora. O marco único explícito depende da confirmação da Fabi (issue #4).
 
 ## Situações do pedido
 
@@ -126,7 +126,7 @@ Código: no projeto novo: ainda não implementado (leitura de natureza pendente,
 ### Pipeline
 Quantidade e valor por etapa da carteira aberta, com MRR bruto como medida principal e valor ponderado em coluna separada. Horizonte: mês corrente mais três meses.
 Não é: forecast (que é só o mês) nem realizado.
-Código: `src/features/comercial-v3/pipeline-model.ts` e `src/features/comercial-v3/screens/pipeline-section.tsx`.
+Código: `src/features/comercial-v3/pipeline-model.ts` e `src/features/comercial-v3/components/pipeline-section.tsx`.
 
 ### Travada
 Oportunidade aberta sem previsão, com previsão vencida ou acima do ritmo esperado (medianas de referência: Base 18 dias, New Name 31, Cross 58).
@@ -183,7 +183,7 @@ Acrescido nesta iteração: chamar o ganho comercial de "Realizado" — desde 20
 
 Divergências entre o Dash (e ADRs antigos) e as decisões de 20/10/2026, pendentes de resolução no código:
 
-1. **Conferido × integrado no realizado.** ADR-0001 e o Dash tratam só a integração como autorizadora do realizado; conferido era pendente. A decisão de 20/10/2026 (issue #1) faz conferido e integrado serem o mesmo marco único. O código hoje conta só conferido no New Name (`new-name-model.ts:409`) — mudança bloqueada pela confirmação da Fabi (issue #4).
+1. **Conferido × integrado no realizado.** ADR-0001 e o Dash tratam só a integração como autorizadora do realizado; conferido era pendente. A decisão de 20/10/2026 (issue #1) faz conferido e integrado serem o mesmo marco único. No código atual, o realizado oficial do New Name já inclui integrado com `DATA CONFERENCIA` preenchida (`new-name-model.ts:303-306`: data preenchida vira substatus `conferido`), mas integrado sem data fica fora do realizado de qualquer mês (`new-name-model.ts:409`) — a resolução depende da confirmação da Fabi (issue #4).
 2. **Data do realizado.** A fonte não tem data de integração; `DATA CONFERENCIA` segue definindo o mês. Se pedido integrado sem data de conferência aparecer, ele exibe "integrado" mas não entra no realizado de nenhum mês (issue #4).
 3. **Nome do dashboard PEX.** O Dash chamava o total de "realizado PEX" (`legado/dash-com-ia/src/lib/domain/forecast-pex.ts`, campo `regra`). Vale a decisão posterior: o que ali é "Fechadas e Ganhas no mês" exibe "Ganhos no CRM".
 4. **Filial: unidade de negócio versus conta.** O Dash derivava a filial da conta; o projeto novo usa `UNIDADE NEGOCIO OPORTUNIDADE`. Confirmar com a Fabi (issue #8).
