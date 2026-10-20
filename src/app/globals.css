@@ -978,6 +978,13 @@
  * aqui sobra apenas o ajuste de respiro entre coluna e conteúdo.
  */
 @media (max-width: 1180px) {
+  /*
+   * Nada de largura de coluna aqui. `collapseInicial(largura)` já decide o
+   * estado da primeira visita, e o atributo `data-nav` é quem manda na largura.
+   * Manter um `grid-template-columns: 84px` neste breakpoint era o defeito: em
+   * tela de 900px a coluna virava 84px **e** o estado continuava `expandida`,
+   * então os rótulos apareciam espremidos por cima do conteúdo.
+   */
   .revenue-app {
     gap: 12px;
   }
@@ -987,9 +994,8 @@
   }
 
   /*
-   * A coluna estreita agora é dirigida pelo atributo `data-nav`, não pela
-   * largura — quem expandir em 1100px precisa ver o rótulo. Aqui só sobra o
-   * que é exclusivo da largura: o wordmark não cabe, o símbolo sim.
+   * A marca acompanha a largura, não só o estado: o wordmark tem 112px
+   * nominais e não cabe em coluna estreita, mesmo "expandida".
    */
   .revenue-app .revenue-marca-logo {
     display: none;
