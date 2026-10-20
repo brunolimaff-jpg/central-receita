@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { buildTrajectory, ponteReconcilia } from '../src/features/comercial-v3/trajectory-model.ts'
+import { buildTrajectory, montarPonte, ponteReconcilia } from '../src/features/comercial-v3/trajectory-model.ts'
 
 const REFERENCE_DATE = '2026-10-20'
 
@@ -197,4 +197,51 @@ test('valor previsto nulo contamina o acumulado a partir daquele dia, nunca vira
   assert.equal(model.previsto, null)
   assert.equal(model.datado, null)
   assert.deepEqual(pontos(model, 'previsto').map(ponto => ponto.forecast), [100, null, null])
+})
+
+/* ---------- Ticket 05: ponte entre cargas ---------- */
+
+test('ponte com deltas consistentes: publicada e a soma fecha', () => {
+  const previous = [
+    rec({ opportunityId: '1', predictedValue: 1000 }),
+    rec({ opportunityId: '2', predictedValue: 400 }),
+  ]
+  const current = [
+    rec({ opportunityId: '1', predictedValue: 1100 }),
+    rec({ opportunityId: '3', predictedValue: 800 }),
+  ]
+  const { ponte } = build(current, { previous })
+  assert.equal(ponte.publicada, true)
+  assert.equal(ponte.totalAnterior, 1400)
+  assert.equal(ponte.totalAtual, 1900)
+  assert.deepEqual(ponte.lances.map(lance => [lance.movimento, lance.valor]), [['Entrou', 800], ['Saiu', -400], ['Alterou valor', 100]])
+  assert.equal(ponte.lances.reduce((soma, lance) => soma + lance.valor, 0), ponte.totalAtual - ponte.totalAnterior)
+})
+
+test('ponte com delta forjado: não publica e não expõe lances', () => {
+  const ponte = montarPonte({ totalAnterior: 1000, totalAtual: 1500, entrou: 800, saiu: -400, alterou: 999 })
+  assert.equal(ponte.publicada, false)
+  assert.deepEqual(ponte.lances, [])
+  assert.equal(ponte.totalAnterior, 1000)
+  assert.equal(ponte.totalAtual, 1500)
+})
+
+test('ponte com uma carga: não existe', () => {
+  assert.equal(build([rec()]).ponte, null)
+})
+
+test('ponte com movimento zero: lance omitido, totais presentes', () => {
+  const previous = [rec({ opportunityId: '1', predictedValue: 1000 })]
+  const current = [rec({ opportunityId: '1', predictedValue: 1000 }), rec({ opportunityId: '2', predictedValue: 300 })]
+  const { ponte } = build(current, { previous })
+  assert.equal(ponte.publicada, true)
+  assert.deepEqual(ponte.lances.map(lance => lance.movimento), ['Entrou'])
+  assert.equal(ponte.totalAtual, 1300)
+})
+
+test('ponte com valor nulo: não publica', () => {
+  const previous = [rec({ opportunityId: '1', predictedValue: null })]
+  const { ponte } = build([rec({ opportunityId: '1', predictedValue: 100 })], { previous })
+  assert.equal(ponte.publicada, false)
+  assert.deepEqual(ponte.lances, [])
 })

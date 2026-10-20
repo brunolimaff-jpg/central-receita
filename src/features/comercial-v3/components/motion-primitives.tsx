@@ -28,6 +28,8 @@ import { useEffect, useRef, type ReactNode } from 'react'
 /* ---------- tokens de movimento ---------- */
 
 export const SPRING = { type: 'spring' as const, stiffness: 260, damping: 28, mass: 0.9 }
+/** Mola sem overshoot perceptível, para lances que entram em cascata. */
+export const SPRING_SUAVE = { type: 'spring' as const, stiffness: 180, damping: 30, mass: 0.9 }
 
 /* ---------- wrapper global ---------- */
 

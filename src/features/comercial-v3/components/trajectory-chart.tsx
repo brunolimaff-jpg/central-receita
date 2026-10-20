@@ -11,8 +11,66 @@ import {
   suavizar,
   thinAxisPositions,
 } from '../chart-math'
-import { formatarRealCompacto } from '../format'
-import type { TrajectoryModel, TrajectoryPoint, TrajectorySeries } from '../trajectory-model'
+import { formatarRealComSinal, formatarRealCompacto } from '../format'
+import type { BridgeStep, TrajectoryBridge, TrajectoryModel, TrajectoryPoint, TrajectorySeries } from '../trajectory-model'
+import { SPRING_SUAVE } from './motion-primitives'
+
+const COR_LANCE: Record<BridgeStep['movimento'], string> = {
+  Entrou: 'var(--dado-positivo)',
+  Saiu: 'var(--dado-negativo)',
+  'Alterou valor': 'var(--dado-info)',
+}
+const SINAL: Record<BridgeStep['movimento'], string> = { Entrou: '+', Saiu: '−', 'Alterou valor': '±' }
+
+/**
+ * Ponte entre cargas em degraus. Só existe com carga anterior; os lances só
+ * aparecem quando a conta fecha (`ponte.publicada`). Valores em reais.
+ */
+function TrajectoryBridgeBlock({ ponte }: { ponte: TrajectoryBridge }) {
+  const reduzido = useReducedMotion()
+  const maior = Math.max(1, ...ponte.lances.map(lance => Math.abs(lance.valor)))
+  const entrada = reduzido ? false : 'hidden'
+  return (
+    <section aria-label="Ponte entre cargas" className="mt-4 rounded-[10px] border border-hairline bg-white/60 px-3 py-3 text-[12px]">
+      <p className="flex items-baseline justify-between gap-3 text-ink-muted">
+        Previsto anterior <strong className="num text-[14px] font-bold text-ink-strong">{formatarRealCompacto(ponte.totalAnterior)}</strong>
+      </p>
+      {ponte.publicada ? (
+        <motion.ul
+          className="mt-2 grid gap-1.5 border-l border-hairline pl-3"
+          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08 } } }}
+          initial={entrada}
+          animate="show"
+        >
+          {ponte.lances.map(lance => (
+            <motion.li
+              key={lance.movimento}
+              variants={{ hidden: { opacity: 0, x: -8 }, show: { opacity: 1, x: 0, transition: SPRING_SUAVE } }}
+              className="grid grid-cols-[7.5rem_minmax(0,1fr)_auto] items-center gap-3"
+            >
+              <span className="text-ink-muted"><span aria-hidden>{SINAL[lance.movimento]} </span>{lance.movimento}</span>
+              <span aria-hidden className="block h-2 rounded-full" style={{ width: `${Math.abs(lance.valor) / maior * 100}%`, background: COR_LANCE[lance.movimento] }} />
+              <strong className="num font-semibold" style={{ color: COR_LANCE[lance.movimento] }}>{formatarRealComSinal(lance.valor)}</strong>
+            </motion.li>
+          ))}
+        </motion.ul>
+      ) : (
+        <p role="note" className="mt-2 rounded-[8px] bg-dado-atencao-suave px-3 py-2 text-ink-strong">
+          Os movimentos não fecham com a diferença entre as cargas. O total de cada carga continua correto; a decomposição fica oculta até a próxima importação.
+        </p>
+      )}
+      <motion.p
+        className="mt-2 flex items-baseline justify-between gap-3 border-t border-hairline pt-2 text-ink-muted"
+        initial={reduzido ? false : { opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ ...SPRING_SUAVE, delay: reduzido ? 0 : ponte.lances.length * 0.08 }}
+      >
+        <span><span aria-hidden>= </span>Previsto atual</span>
+        <strong className="num text-[15px] font-bold text-ink-strong">{formatarRealCompacto(ponte.totalAtual)}</strong>
+      </motion.p>
+    </section>
+  )
+}
 
 /**
  * Curva da Trajetória da Receita.
@@ -424,6 +482,8 @@ export function TrajectoryChart({ model }: { model: TrajectoryModel }) {
         <span className="text-ink-muted">Realizado <strong className="num text-[15px] font-bold text-ink-strong">{formatarRealCompacto(model.realizado)}</strong></span>
         {model.semData > 0 && <span className="text-ink-muted">{semDataSufixo} · <strong className="num font-semibold text-ink-strong">{formatarRealCompacto(model.datado)}</strong> com data</span>}
       </footer>
+
+      {(model.regime === 'B' || model.regime === 'C') && model.ponte && <TrajectoryBridgeBlock ponte={model.ponte} />}
     </div>
   )
 }

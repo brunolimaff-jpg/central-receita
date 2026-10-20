@@ -39,6 +39,21 @@ export type TrajectoryModel = {
   /** Reais com data declarada. */
   datado: number | null
   semData: number
+  /** Decomposição entre a carga anterior e a atual; `null` sem carga anterior. */
+  ponte: TrajectoryBridge | null
+}
+
+export type BridgeStep = { movimento: 'Entrou' | 'Saiu' | 'Alterou valor'; valor: number }
+
+export type TrajectoryBridge = {
+  /** Reais. */
+  totalAnterior: number | null
+  /** Reais. */
+  totalAtual: number | null
+  /** Só `true` quando os lances fecham com a diferença dos totais. */
+  publicada: boolean
+  /** Vazio quando não publicada; lances de valor zero são omitidos. */
+  lances: BridgeStep[]
 }
 
 /** Em reais: R$ 0,01. A carga não converte unidade, e arredondamento de planilha cabe aqui. */
@@ -97,7 +112,7 @@ export function buildTrajectory(args: {
   history: Array<{ at: string; snapshot?: TrajectorySnapshot }>
 }): TrajectoryModel {
   if (args.opportunities.length === 0) {
-    return { regime: 'vazio', series: [], ticks: [], previsto: null, realizado: null, datado: null, semData: 0 }
+    return { regime: 'vazio', series: [], ticks: [], previsto: null, realizado: null, datado: null, semData: 0, ponte: null }
   }
   const month = args.referenceDate.slice(0, 7)
   const forecast = calculateForecastMonth(args.opportunities, args.previous, month, args.referenceDate, 'mês')
@@ -116,7 +131,7 @@ export function buildTrajectory(args: {
   const datado = forecast.predicted.value
   const previsto = somaConhecida([datado, somaConhecida(semDataRecords.map(record => record.predictedValue))])
   const realizado = forecast.realized.value
-  const totals = { previsto, realizado, datado, semData: semDataRecords.length }
+  const totals = { previsto, realizado, datado, semData: semDataRecords.length, ponte: ponteDaCarga(forecast, args.previous, month, args.referenceDate) }
 
   if (regime === 'C') {
     const snapshots = [...withSnapshot].sort((a, b) => a.at.localeCompare(b.at))
@@ -163,6 +178,40 @@ export function buildTrajectory(args: {
     ] })
   }
   return { regime, ...totals, series, ticks: dates.map(label) }
+}
+
+/**
+ * Componentes da ponte pela mesma régua do forecast: total de cada carga é o
+ * previsto do mês dela; Entrou e Saiu vêm do próprio `calculateForecastMonth`;
+ * Alterou é a variação de valor de quem está nas duas.
+ */
+function ponteDaCarga(forecast: ReturnType<typeof calculateForecastMonth>, previous: ImportedRecord[] | null, month: string, referenceDate: string): TrajectoryBridge | null {
+  if (previous === null) return null
+  const anterior = calculateForecastMonth(previous, null, month, referenceDate, 'mês').predicted
+  const antes = new Map(anterior.records.map(record => [record.opportunityId, record.predictedValue]))
+  const variacoes = forecast.predicted.records.filter(record => antes.has(record.opportunityId)).map(record => {
+    const valorAntes = antes.get(record.opportunityId)!
+    return record.predictedValue === null || valorAntes === null ? null : record.predictedValue - valorAntes
+  })
+  const saiu = forecast.exited?.value ?? null
+  return montarPonte({
+    totalAnterior: anterior.value,
+    totalAtual: forecast.predicted.value,
+    entrou: forecast.entered?.value ?? null,
+    saiu: saiu === null ? null : -saiu,
+    alterou: somaConhecida(variacoes),
+  })
+}
+
+/** Publica os lances só se `ponteReconcilia` aceitar; senão, ficam só os totais. */
+export function montarPonte(args: Parameters<typeof ponteReconcilia>[0]): TrajectoryBridge {
+  const publicada = ponteReconcilia(args)
+  const lances: BridgeStep[] = !publicada ? [] : ([
+    { movimento: 'Entrou', valor: args.entrou! },
+    { movimento: 'Saiu', valor: args.saiu! },
+    { movimento: 'Alterou valor', valor: args.alterou! },
+  ] as BridgeStep[]).filter(lance => lance.valor !== 0)
+  return { totalAnterior: args.totalAnterior, totalAtual: args.totalAtual, publicada, lances }
 }
 
 /**
