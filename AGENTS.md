@@ -12,7 +12,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ### Issue tracker
 
-Issues e specs como arquivos markdown em `.scratch/<feature>/`, um arquivo por ticket.
+Issues e specs no GitHub Issues (`brunolimaff-jpg/central-receita`, via `gh`). Specs antigas ficam em `.scratch/` como histórico. Veja `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
@@ -21,5 +21,5 @@ Veja `docs/agents/triage-labels.md`.
 
 ### Domain docs
 
-Contexto único: glossário em `GLOSSARY.md` na raiz e ADRs em `docs/adr/`.
+Contexto único: ADRs em `docs/adr/` (`GLOSSARY.md` na raiz ainda não existe). Veja `docs/agents/domain.md`.
 

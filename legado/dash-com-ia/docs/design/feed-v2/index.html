@@ -1,0 +1,1115 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f9fe">
+  <meta name="description" content="Feed executivo da Central de Receita Senior. Snapshot sintético, somente leitura.">
+  <title>Senior · Central de Receita</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #f6f9fe;
+      --card: #ffffff;
+      --line: #d4d4d4;
+      --ink: #202927;
+      --muted: #4b5753;
+      --green: #00968c;
+      --green-hover: #086b6b;
+      --green-soft: #ebf7f6;
+      --green-line: #b7dedb;
+      --red: #b42318;
+      --red-soft: #fcebea;
+      --amber: #8a5a00;
+      --amber-soft: #fff3d6;
+      --blue: #3b7dd8;
+      --neutral: #697470;
+      --neutral-soft: #f1f3f3;
+      --shadow: 0 2px 10px rgba(32, 41, 39, .035);
+      --shadow-raised: 0 12px 38px rgba(32, 41, 39, .16);
+      --radius: 12px;
+      --topbar: 78px;
+      font-family: "Public Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-variant-numeric: tabular-nums;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      color: var(--ink);
+      background: var(--page);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { min-width: 320px; scroll-behavior: smooth; scroll-padding-top: calc(var(--topbar) + 18px); }
+    body { min-width: 320px; min-height: 100vh; margin: 0; background: var(--page); color: var(--ink); font-size: 14px; }
+    button, a { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, a:focus-visible, [tabindex="0"]:focus-visible {
+      outline: 3px solid var(--blue); outline-offset: 3px; border-radius: 8px;
+    }
+    button:disabled { opacity: .58; cursor: not-allowed; }
+    [hidden] { display: none !important; }
+    .num { font-variant-numeric: tabular-nums; letter-spacing: -.035em; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+    /* Sidebar escura Senior, expandível. */
+    :root { --side-w: 224px; }
+    body { padding-left: var(--side-w); transition: padding-left .22s ease; }
+    body.side-collapsed { padding-left: 64px; }
+    .side { position: fixed; z-index: 30; inset: 0 auto 0 0; width: var(--side-w); display: flex; flex-direction: column; background: #08211B; color: #B8CCC6; transition: width .22s ease; overflow: hidden; }
+    body.side-collapsed .side { width: 64px; }
+    .side-brand { display: flex; align-items: center; gap: 10px; padding: 18px 16px 12px; color: #fff; font-size: 14px; font-weight: 650; letter-spacing: -.025em; white-space: nowrap; }
+    .side-mark { width: 22px; height: 22px; flex: 0 0 22px; border-radius: 6px; background: var(--green); }
+    .side-nav { display: flex; flex-direction: column; gap: 2px; padding: 6px 10px; }
+    .side-link { display: flex; align-items: center; gap: 11px; min-height: 38px; padding: 0 10px; border: 0; border-radius: 9px; background: transparent; color: #B8CCC6; font-size: 12.5px; font-weight: 550; text-align: left; white-space: nowrap; cursor: pointer; }
+    .side-link:hover { background: #0D2C25; color: #fff; }
+    .side-link[aria-current="page"] { background: #0D2C25; color: #fff; }
+    .side-link svg { width: 16px; height: 16px; flex: 0 0 16px; }
+    .side-foot { margin-top: auto; padding: 10px 10px 0; border-top: 1px solid #123A31; }
+    .side-user { display: flex; align-items: center; gap: 9px; padding: 6px 8px; white-space: nowrap; }
+    .side-user strong { display: block; color: #E8F2EE; font-size: 12px; font-weight: 600; line-height: 1.2; }
+    .side-user span { display: block; color: #6E8781; font-size: 10px; line-height: 1.3; }
+    .side-toggle { margin: 8px 10px 12px; min-height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: #6E8781; font-size: 11px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+    .side-toggle:hover { background: #0D2C25; color: #B8CCC6; }
+    .side-toggle svg { width: 15px; height: 15px; flex: 0 0 15px; transition: transform .22s ease; }
+    body.side-collapsed .side-toggle svg { transform: rotate(180deg); }
+    body.side-collapsed .side-label, body.side-collapsed .side-brand span, body.side-collapsed .side-user div { display: none; }
+    body.side-collapsed .side-link, body.side-collapsed .side-toggle, body.side-collapsed .side-user { justify-content: center; padding-left: 0; padding-right: 0; }
+
+    /* Cabeçalho curto: marca, recorte e lente de leitura. */
+    .topbar { position: fixed; z-index: 20; inset: 0 0 auto; left: var(--side-w); border-bottom: 1px solid var(--line); background: rgba(255,255,255,.98); transition: left .22s ease; }
+    body.side-collapsed .topbar { left: 64px; }
+    .topbar-inner {
+      width: min(1380px, 100%); min-height: var(--topbar); margin: 0 auto; padding: 10px 30px;
+      display: flex; align-items: center; gap: 18px;
+    }
+    .brand { min-width: max-content; display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-size: 14px; font-weight: 650; letter-spacing: -.025em; }
+    .brand-mark { width: 20px; height: 20px; flex: 0 0 20px; border-radius: 5px; background: var(--green); }
+    .brand-divider { padding: 0 3px; color: #89928f; font-weight: 400; }
+    .header-tools { min-width: 0; margin-left: auto; display: flex; justify-content: flex-end; align-items: center; gap: 12px; }
+    .filter-group { min-width: 0; display: flex; align-items: center; gap: 5px; }
+    .filter-wrap { position: relative; }
+    .filter-button {
+      min-height: 36px; padding: 0 11px; display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--muted);
+      font-size: 12px; font-weight: 550; white-space: nowrap; cursor: pointer;
+      transition: color .16s ease, background .16s ease, border-color .16s ease;
+    }
+    .filter-button:hover, .filter-button[aria-expanded="true"] { border-color: var(--line); background: #f8fafb; color: var(--ink); }
+    .chevron { width: 13px; height: 13px; color: #727d79; flex: 0 0 auto; }
+    .filter-menu {
+      position: absolute; top: calc(100% + 8px); left: 0; z-index: 30; min-width: 190px; padding: 6px;
+      border: 1px solid var(--line); border-radius: 10px; background: #fff; box-shadow: var(--shadow-raised);
+    }
+    .filter-option { width: 100%; min-height: 36px; padding: 0 10px; border: 0; border-radius: 7px; background: transparent; text-align: left; color: var(--ink); font-size: 12px; cursor: pointer; }
+    .filter-option:hover, .filter-option[aria-selected="true"] { background: var(--green-soft); color: #075d58; }
+    .lens { display: flex; align-items: center; gap: 3px; padding-left: 11px; border-left: 1px solid #e5e8e7; white-space: nowrap; }
+    .lens-label { margin-right: 3px; color: var(--muted); font-size: 11px; }
+    .lens-chip { min-height: 31px; padding: 0 9px; border: 1px solid transparent; border-radius: 999px; background: transparent; color: var(--muted); font-size: 11px; font-weight: 550; cursor: pointer; }
+    .lens-chip:hover { background: #f5f7f7; color: var(--ink); }
+    .lens-chip[aria-pressed="true"] { border-color: var(--green-line); background: var(--green-soft); color: #075d58; font-weight: 650; }
+    .snapshot-chip { min-height: 29px; padding: 0 10px; display: inline-flex; align-items: center; border: 1px solid #e0e4e3; border-radius: 999px; background: #fbfcfd; color: var(--muted); font-size: 10px; font-weight: 600; white-space: nowrap; }
+
+    /* Feed em fluxo natural. Sem viewport cards ou scroll-snap. */
+    main.feed { width: min(1240px, 100%); margin: 0 auto; padding: calc(var(--topbar) + 10px) 28px 96px 16px; display: flex; flex-direction: column; gap: 10px; }
+    .feed-card { min-width: 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); scroll-margin-top: calc(var(--topbar) + 8px); }
+    .section-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 8px; }
+    .heading-left { min-width: 0; }
+    .eyebrow { display: flex; align-items: center; gap: 8px; margin: 0 0 3px; color: var(--green-hover); font-size: 9px; line-height: 1.2; font-weight: 700; letter-spacing: .115em; text-transform: uppercase; }
+    .section-title { margin: 0; color: var(--ink); font-size: 14px; line-height: 1.2; font-weight: 650; letter-spacing: -.035em; }
+    .section-description { display: none; }
+    .header-context { color: var(--muted); font-size: 10px; white-space: nowrap; }
+    .headline-total { display: flex; align-items: baseline; justify-content: flex-end; flex-wrap: wrap; gap: 4px 8px; text-align: right; }
+    .headline-total strong { color: var(--ink); font-size: clamp(17px, 1.8vw, 21px); line-height: 1; font-weight: 650; letter-spacing: -.06em; white-space: nowrap; }
+    .headline-total span { color: var(--muted); font-size: 10px; }
+    .subtle-link { padding: 5px 0; border: 0; background: transparent; color: var(--green-hover); font-size: 11px; font-weight: 600; cursor: pointer; }
+    .subtle-link:hover { color: var(--green); text-decoration: underline; text-underline-offset: 3px; }
+
+    /* Itens que pedem atenção. */
+    .attention-list { display: flex; flex-direction: column; }
+    .attention-row {
+      min-width: 0; padding: 6px 1px; display: grid;
+      grid-template-columns: 9px minmax(0, 1fr) minmax(110px, auto) auto;
+      align-items: center; gap: 10px; border-top: 1px solid #eceeed;
+    }
+    .attention-row:first-child { border-top: 0; }
+    .severity-dot { width: 8px; height: 8px; border-radius: 50%; background: #89928f; }
+    .severity-dot.critical { background: var(--red); }
+    .severity-dot.warning { background: var(--amber); }
+    .severity-dot.info { background: var(--blue); }
+    .attention-main { min-width: 0; }
+    .attention-titleline { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 9px; }
+    .attention-titleline strong { color: var(--ink); font-size: 12px; line-height: 1.3; font-weight: 650; }
+    .attention-titleline span { color: var(--muted); font-size: 11px; line-height: 1.3; }
+    .attention-meta { margin-top: 2px; display: flex; align-items: center; flex-wrap: wrap; gap: 3px 8px; color: var(--muted); font-size: 9.5px; line-height: 1.35; }
+    .owner-mini { display: inline-flex; align-items: center; gap: 5px; }
+    .avatar { width: 20px; height: 20px; flex: 0 0 20px; display: inline-grid; place-items: center; border: 1px solid #d6e4e2; border-radius: 50%; background: #eef6f5; color: #075d58; font-size: 8px; font-weight: 700; }
+    .evidence { min-height: 21px; padding: 2px 7px; display: inline-flex; align-items: center; border-radius: 999px; font-size: 9px; line-height: 1.2; font-weight: 650; white-space: nowrap; }
+    .evidence.proven { background: var(--green-soft); color: #075d58; }
+    .evidence.partial { background: var(--amber-soft); color: #754900; }
+    .evidence.insufficient { background: var(--neutral-soft); color: #535e5b; }
+    .attention-value { color: var(--ink); font-size: clamp(14px, 1.4vw, 17px); line-height: 1.1; font-weight: 650; letter-spacing: -.045em; text-align: right; white-space: nowrap; }
+    .row-action { min-height: 32px; padding: 0 11px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #c8deda; border-radius: 8px; background: #fff; color: #075d58; font-size: 10px; font-weight: 650; white-space: nowrap; cursor: pointer; transition: background .16s ease, border-color .16s ease, color .16s ease; }
+    .row-action:hover { border-color: var(--green-hover); background: var(--green-hover); color: #fff; }
+    .row-action svg { width: 13px; height: 13px; }
+    .director-note { margin-top: 4px; padding: 7px 10px; display: flex; align-items: center; gap: 9px; border: 1px solid #e5e8e7; border-radius: 9px; background: #fbfcfd; }
+    .director-note .avatar { width: 25px; height: 25px; flex-basis: 25px; font-size: 9px; }
+    .director-note p { margin: 0; color: var(--ink); font-size: 11px; line-height: 1.5; }
+    .director-note p span { color: var(--muted); }
+
+    /* Forecast mensal. */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .kpi { min-width: 0; min-height: 0; padding: 9px 11px 8px; border: 1px solid #e0e4e3; border-radius: 10px; background: #fff; }
+    .kpi-label { color: var(--muted); font-size: 9.5px; line-height: 1.3; font-weight: 600; }
+    .kpi-value { margin-top: 6px; color: var(--ink); font-size: clamp(16px, 1.8vw, 21px); line-height: 1; font-weight: 650; letter-spacing: -.06em; white-space: nowrap; }
+    .kpi-value small { font-size: .58em; font-weight: 600; letter-spacing: -.02em; }
+    .kpi-note { margin-top: 4px; display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: 9px; line-height: 1.3; }
+    .delta-up, .delta-down, .delta-flat { font-weight: 700; white-space: nowrap; }
+    .delta-up { color: #087a55; }
+    .delta-down { color: var(--red); }
+    .delta-flat { color: var(--neutral); }
+    .shortfall { margin-top: 8px; padding: 8px 11px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid #edc9c5; border-radius: 9px; background: #fffafa; }
+    .shortfall-copy { min-width: 0; }
+    .shortfall-copy strong { display: block; color: var(--red); font-size: 11px; line-height: 1.3; }
+    .shortfall-copy span { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; line-height: 1.35; }
+    .meta-slot { min-height: 0; margin-top: 8px; padding: 7px 10px; display: flex; align-items: center; gap: 10px; border: 1px dashed #cfd5d3; border-radius: 9px; background: #f6f7f7; color: #596360; }
+    .meta-slot svg { width: 16px; height: 16px; flex: 0 0 auto; color: #697470; }
+    .meta-slot strong { display: block; color: #404b47; font-size: 10px; font-weight: 650; }
+    .meta-slot span { display: block; margin-top: 2px; font-size: 9px; }
+
+    /* Semana: microbarras têm altura própria; zero permanece zero. */
+    .weekly-summary { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 6px 12px; margin: 2px 0 8px; }
+    .weekly-total { color: var(--ink); font-size: clamp(26px, 3.4vw, 38px); line-height: .95; font-weight: 650; letter-spacing: -.075em; white-space: nowrap; }
+    .weekly-count { padding-bottom: 5px; color: var(--muted); font-size: 12px; }
+    .change-badge { min-height: 25px; margin-bottom: 3px; padding: 0 9px; display: inline-flex; align-items: center; border: 1px solid #cce5e2; border-radius: 999px; background: var(--green-soft); color: #075d58; font-size: 10px; font-weight: 650; white-space: nowrap; }
+    .week-chart { min-height: 92px; padding: 8px 6px 6px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: clamp(6px, 2vw, 18px); border-top: 1px solid #eceeed; border-bottom: 1px solid #eceeed; }
+    .day-column { min-width: 0; display: grid; grid-template-rows: auto 1fr auto; justify-items: center; gap: 7px; }
+    .day-label { color: var(--muted); font-size: 9px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; }
+    .day-value { color: var(--ink); font-size: 10px; font-weight: 600; white-space: nowrap; }
+    .bar-track { width: min(29px, 78%); min-height: 46px; align-self: end; display: flex; align-items: flex-end; overflow: hidden; border-radius: 5px 5px 2px 2px; background: #f1f4f4; }
+    .bar-fill { width: 100%; height: var(--height); min-height: 0; border-radius: 5px 5px 2px 2px; background: var(--green); }
+    .day-column.is-zero .bar-fill { height: 0; }
+    .week-note { margin: 8px 0 0; color: var(--muted); font-size: 9px; }
+    .pill-list { margin-top: 8px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+    .opportunity-pill { min-width: 0; min-height: 38px; padding: 6px 8px; display: flex; align-items: center; justify-content: space-between; gap: 9px; border: 1px solid var(--line); border-radius: 9px; background: #fff; text-align: left; cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+    .opportunity-pill:hover { border-color: var(--green-line); background: var(--green-soft); }
+    .opportunity-name { min-width: 0; color: var(--muted); font-size: 9px; line-height: 1.35; }
+    .opportunity-name strong { display: block; overflow: hidden; color: var(--ink); font-size: 10px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+    .opportunity-value { flex: 0 0 auto; color: var(--ink); font-size: 10px; font-weight: 650; white-space: nowrap; }
+
+    /* Etapas clicáveis, barras proporcionais à carteira. */
+    .stage-list { display: flex; flex-direction: column; gap: 4px; }
+    .stage-row { width: 100%; min-height: 34px; padding: 5px 7px; display: grid; grid-template-columns: minmax(92px, 128px) minmax(0, 1fr) auto; align-items: center; gap: 12px; border: 0; border-radius: 8px; background: transparent; text-align: left; cursor: pointer; transition: background .15s ease; }
+    .stage-row:hover { background: #f6faf9; }
+    .stage-name { color: var(--ink); font-size: 11px; font-weight: 600; }
+    .stage-name small { display: block; margin-top: 3px; color: var(--muted); font-size: 9px; font-weight: 400; }
+    .stage-track { height: 9px; overflow: hidden; border-radius: 999px; background: #edf1f0; }
+    .stage-fill { height: 100%; width: var(--stage); border-radius: inherit; background: var(--green); }
+    .stage-row.demais .stage-fill { background: #aeb9b6; }
+    .stage-value { color: var(--ink); font-size: 12px; font-weight: 650; text-align: right; white-space: nowrap; }
+    .stage-footer { margin-top: 7px; padding-top: 7px; display: flex; flex-wrap: wrap; gap: 6px 16px; border-top: 1px solid #eceeed; color: var(--muted); font-size: 10px; }
+    .stage-footer strong { color: var(--ink); font-weight: 650; }
+    .metric-info { margin-left: auto; color: #6a7471; font-size: 9px; }
+
+    /* Naturezas do mês. */
+    .month-summary { margin-bottom: 8px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 5px 13px; }
+    .month-total { color: var(--ink); font-size: clamp(22px, 2.8vw, 30px); line-height: 1; font-weight: 650; letter-spacing: -.065em; white-space: nowrap; }
+    .month-count { color: var(--muted); font-size: 11px; }
+    .month-pills { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .mini-account { min-width: 0; padding: 10px; border: 1px solid #e3e7e6; border-radius: 9px; background: #fff; }
+    .mini-account button { width: 100%; padding: 0; border: 0; background: transparent; text-align: left; cursor: pointer; }
+    .mini-account button:hover .account-name { color: var(--green-hover); }
+    .account-name { display: block; overflow: hidden; color: var(--ink); font-size: 10px; line-height: 1.4; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+    .account-meta { margin-top: 4px; display: flex; align-items: center; justify-content: space-between; gap: 5px; color: var(--muted); font-size: 9px; }
+    .account-meta strong { color: var(--ink); font-size: 10px; font-weight: 650; white-space: nowrap; }
+    .nature-note { margin-top: 13px; display: flex; flex-wrap: wrap; gap: 7px; }
+    .stat-chip { min-height: 25px; padding: 0 8px; display: inline-flex; align-items: center; border: 1px solid #e0e4e3; border-radius: 999px; background: #fbfcfd; color: var(--muted); font-size: 9px; white-space: nowrap; }
+    .cross-lower { margin-top: 18px; padding: 15px; border: 1px solid #e5e8e7; border-radius: 10px; background: #fbfcfd; }
+    .cross-lower-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .cross-lower h3 { margin: 0; color: var(--ink); font-size: 12px; font-weight: 650; }
+    .cross-lower p { margin: 5px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .loss-total { flex: 0 0 auto; color: var(--red); font-size: 17px; font-weight: 650; letter-spacing: -.04em; white-space: nowrap; }
+    .cross-drill { min-height: 30px; margin-top: 11px; padding: 0 10px; border: 1px solid #d6ddda; border-radius: 7px; background: #fff; color: var(--green-hover); font-size: 10px; font-weight: 600; cursor: pointer; }
+    .cross-drill:hover { border-color: var(--green); background: var(--green-soft); }
+
+    /* Ranking da rede: 29 linhas, 8 em primeiro plano. */
+    .ranking-legend { padding: 0 8px 8px 20px; display: grid; grid-template-columns: minmax(0, 1fr) 176px; gap: 10px; border-bottom: 1px solid #e9eceb; color: var(--muted); font-size: 8px; line-height: 1.3; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; }
+    .ranking-legend span:last-child { text-align: right; }
+    .ranking-list { display: flex; flex-direction: column; }
+    .ranking-row { width: 100%; min-height: 39px; padding: 3px 8px 3px 0; display: grid; grid-template-columns: 8px minmax(0, 1fr) 176px; align-items: center; gap: 10px; border: 0; border-radius: 7px; background: transparent; text-align: left; cursor: pointer; transition: background .14s ease; }
+    .ranking-row:hover, .ranking-row[aria-pressed="true"] { background: #f4f8f7; }
+    .ranking-signal { width: 7px; height: 7px; display: inline-block; border-radius: 50%; background: #b5bfbc; }
+    .ranking-signal.critical { background: var(--red); }
+    .ranking-signal.warning { background: var(--amber); }
+    .ranking-unit { min-width: 0; display: grid; grid-template-columns: minmax(95px, 140px) minmax(60px, 1fr); align-items: center; gap: 12px; }
+    .ranking-name { overflow: hidden; color: var(--ink); font-size: 10px; line-height: 1.25; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+    .pipeline-track { position: relative; height: 7px; overflow: hidden; border-radius: 999px; background: #edf1f0; }
+    .pipeline-fill { position: absolute; inset: 0 auto 0 0; width: var(--bar); border-radius: inherit; background: var(--green); }
+    .pipeline-marker { position: absolute; z-index: 1; top: 0; bottom: 0; left: var(--marker-left, 0); width: var(--marker-width, 0); min-width: 0; border-radius: inherit; background: var(--marker-color, #086b6b); }
+    .ranking-metrics { min-width: 0; display: grid; grid-template-columns: 1fr 43px 53px; align-items: center; gap: 7px; white-space: nowrap; }
+    .ranking-amount { overflow: hidden; color: var(--ink); font-size: 10px; font-weight: 600; text-align: right; text-overflow: ellipsis; }
+    .ranking-change { color: var(--neutral); font-size: 9px; font-weight: 650; text-align: right; }
+    .ranking-change.up { color: #087a55; }
+    .ranking-change.down { color: var(--red); }
+    .signal-dots { display: flex; justify-content: flex-end; gap: 3px; }
+    .signal-dots i { width: 5px; height: 5px; display: inline-block; border-radius: 50%; background: #c1c9c7; }
+    .signal-dots i.red { background: var(--red); }
+    .signal-dots i.amber { background: var(--amber); }
+    .signal-dots i.green { background: var(--green); }
+    .more-units { min-height: 35px; margin-top: 5px; padding: 8px 0 0 18px; border-top: 1px solid #e9eceb; color: var(--muted); font-size: 10px; }
+    .more-units button { padding: 0; border: 0; background: transparent; color: var(--green-hover); font-size: 10px; font-weight: 650; cursor: pointer; }
+    .more-units button:hover { text-decoration: underline; text-underline-offset: 3px; }
+    .rank-note { margin: 7px 0 0; color: var(--muted); font-size: 9px; line-height: 1.45; }
+
+    /* Fecho executivo. */
+    .quality-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+    .quality-item { min-height: 88px; padding: 13px 13px 11px; border: 1px solid #e0e4e3; border-radius: 9px; background: #fff; }
+    .quality-label { color: var(--muted); font-size: 10px; font-weight: 550; }
+    .quality-value { margin-top: 9px; display: flex; align-items: baseline; gap: 3px; color: var(--ink); font-size: 25px; line-height: 1; font-weight: 650; letter-spacing: -.06em; }
+    .quality-value small { color: var(--muted); font-size: 11px; font-weight: 500; }
+    .quality-track { height: 4px; margin-top: 11px; overflow: hidden; border-radius: 999px; background: #edf1f0; }
+    .quality-fill { height: 100%; width: var(--quality); border-radius: inherit; background: var(--green); }
+    .quality-alert { margin-top: 11px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; border: 1px solid #efd9ac; border-radius: 8px; background: #fffaf0; color: #714900; font-size: 10px; font-weight: 600; }
+    .quality-alert svg { width: 15px; height: 15px; flex: 0 0 auto; }
+    .meeting-synthesis { margin-top: 17px; padding-top: 15px; border-top: 1px solid #e9eceb; }
+    .meeting-synthesis h3 { margin: 0; color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .105em; text-transform: uppercase; }
+    .meeting-synthesis blockquote { margin: 9px 0 0; display: grid; gap: 7px; }
+    .meeting-synthesis p { margin: 0; color: #35413d; font-size: 12px; line-height: 1.55; font-style: italic; }
+    .meeting-synthesis .synthesis-source { margin-top: 7px; color: #737d79; font-size: 9px; font-style: normal; }
+
+    /* Único trilho fixo na lateral: orientação, não menu. */
+    .feed-progress { position: fixed; z-index: 8; top: 50%; right: max(18px, calc((100vw - 1380px) / 2)); transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; gap: 11px; }
+    .progress-dot { width: 8px; height: 8px; display: block; border: 1px solid #a6b1ae; border-radius: 50%; background: #fff; transition: transform .15s ease, border-color .15s ease, background .15s ease; }
+    .progress-dot:hover { transform: scale(1.2); border-color: var(--green); }
+    .progress-dot[aria-current="step"] { border-color: var(--green); background: var(--green); }
+    .feed-footer { position: fixed; z-index: 7; right: 0; bottom: 0; left: 0; min-height: 34px; padding: 7px 90px 7px 18px; display: flex; justify-content: center; align-items: center; border-top: 1px solid rgba(212,212,212,.75); background: rgba(246,249,254,.98); color: var(--muted); font-size: 9px; line-height: 1.25; letter-spacing: .015em; text-align: center; }
+    .assistant-toggle { position: fixed; z-index: 12; right: max(28px, calc((100vw - 1340px) / 2)); bottom: 50px; width: 50px; height: 50px; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--green); color: #fff; box-shadow: 0 4px 12px rgba(0,80,75,.18); cursor: pointer; transition: background .16s ease, transform .16s ease; }
+    .assistant-toggle:hover { transform: translateY(-2px); background: var(--green-hover); }
+    .assistant-toggle svg { width: 21px; height: 21px; }
+    .assistant-panel { position: fixed; z-index: 11; right: max(28px, calc((100vw - 1340px) / 2)); bottom: 110px; width: min(320px, calc(100vw - 36px)); padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: var(--shadow-raised); }
+    .assistant-heading { margin: 0; color: var(--ink); font-size: 13px; font-weight: 650; }
+    .assistant-note { margin: 6px 0 14px; color: var(--muted); font-size: 10px; line-height: 1.45; }
+    .assistant-close { position: absolute; top: 8px; right: 9px; width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--muted); cursor: pointer; }
+    .assistant-close:hover { background: #f2f5f4; }
+    .assistant-links { display: flex; flex-wrap: wrap; gap: 7px; }
+    .assistant-link { min-height: 30px; padding: 0 9px; border: 1px solid var(--green-line); border-radius: 999px; background: var(--green-soft); color: #075d58; font-size: 9px; font-weight: 600; cursor: pointer; }
+    .assistant-link:hover { background: #dff1ef; }
+    .toast { position: fixed; z-index: 40; right: 50%; bottom: 48px; max-width: min(420px, calc(100vw - 32px)); padding: 10px 14px; transform: translateX(50%); border: 1px solid #cce5e2; border-radius: 8px; background: #fff; color: var(--ink); box-shadow: var(--shadow); font-size: 10px; line-height: 1.4; }
+
+    /* Drawer de drill-down: overlay modal, retorno ao scroll e ao foco de origem. */
+    .drawer-backdrop { position: fixed; z-index: 50; inset: 0; background: rgba(32,41,39,.28); }
+    .detail-drawer { position: fixed; z-index: 51; inset: 0 0 0 auto; width: min(465px, 100%); padding: 25px 26px 24px; overflow-y: auto; border-left: 1px solid rgba(212,212,212,.9); background: #fff; box-shadow: -12px 0 34px rgba(32,41,39,.12); transform: translateX(100%); transition: transform .22s ease; }
+    .detail-drawer.is-open { transform: translateX(0); }
+    .drawer-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .drawer-kicker { margin: 0; color: var(--green-hover); font-size: 10px; line-height: 1.3; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .drawer-close { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid #e2e6e5; border-radius: 8px; background: #fff; color: var(--muted); cursor: pointer; }
+    .drawer-close:hover { background: #f4f7f6; color: var(--ink); }
+    .drawer-title { margin: 24px 0 4px; color: var(--ink); font-size: 25px; line-height: 1.2; font-weight: 650; letter-spacing: -.05em; }
+    .drawer-account { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .drawer-badges { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 7px; }
+    .drawer-badge { min-height: 24px; padding: 0 8px; display: inline-flex; align-items: center; border: 1px solid #e0e4e3; border-radius: 999px; background: #fbfcfd; color: var(--muted); font-size: 9px; font-weight: 600; }
+    .drawer-badge.status { border-color: #cce5e2; background: var(--green-soft); color: #075d58; }
+    .drawer-value { margin-top: 27px; padding: 17px; border: 1px solid #e3e8e6; border-radius: 11px; background: #fbfcfd; }
+    .drawer-value-label { color: var(--muted); font-size: 10px; }
+    .drawer-value-number { margin-top: 7px; color: var(--ink); font-size: 34px; line-height: 1; font-weight: 650; letter-spacing: -.065em; }
+    .drawer-facts { margin: 17px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 15px 12px; }
+    .drawer-facts div { min-width: 0; }
+    .drawer-facts dt { color: var(--muted); font-size: 9px; }
+    .drawer-facts dd { margin: 4px 0 0; color: var(--ink); font-size: 11px; line-height: 1.4; font-weight: 600; }
+    .drawer-block { margin-top: 24px; padding-top: 17px; border-top: 1px solid #e9eceb; }
+    .drawer-block h3 { margin: 0; color: var(--ink); font-size: 12px; font-weight: 650; }
+    .drawer-block p { margin: 7px 0 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .history-highlight { margin-top: 10px !important; padding: 11px 12px; border-radius: 8px; background: var(--green-soft); color: #075d58 !important; font-size: 11px !important; font-weight: 650; }
+    .drawer-footnote { margin-top: 16px; color: #717b77; font-size: 9px; line-height: 1.5; }
+    .drawer-return { width: 100%; min-height: 36px; margin-top: 14px; border: 1px solid var(--green); border-radius: 9px; background: var(--green); color: #fff; font-size: 11px; font-weight: 650; cursor: pointer; transition: background .15s ease; }
+    .drawer-return:hover { border-color: var(--green-hover); background: var(--green-hover); }
+    body.drawer-open { overflow: hidden; }
+
+    @media (max-width: 1100px) {
+      .topbar-inner { padding-inline: 18px; gap: 12px; }
+      .header-tools { gap: 7px; }
+      .filter-button { padding-inline: 8px; font-size: 11px; }
+      .lens { padding-left: 7px; }
+      .lens-chip { padding-inline: 7px; font-size: 10px; }
+      .snapshot-chip { padding-inline: 8px; font-size: 9px; }
+    }
+    @media (max-width: 960px) {
+      .side { display: none; }
+      body, body.side-collapsed { padding-left: 0; }
+      .topbar, body.side-collapsed .topbar { left: 0; }
+    }
+    @media (max-width: 850px) {
+      :root { --topbar: 100px; }
+      .topbar-inner { min-height: var(--topbar); padding: 9px 14px 8px; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 6px 10px; }
+      .brand { grid-column: 1; grid-row: 1; font-size: 12px; }
+      .brand-mark { width: 18px; height: 18px; flex-basis: 18px; }
+      .snapshot-chip { grid-column: 2; grid-row: 1; justify-self: end; }
+      .header-tools { grid-column: 1 / -1; grid-row: 2; width: 100%; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; }
+      .header-tools::-webkit-scrollbar { display: none; }
+      .filter-group { flex: 0 0 auto; }
+      .lens { flex: 0 0 auto; }
+      .filter-button { min-height: 32px; font-size: 10px; }
+      .lens-label { font-size: 10px; }
+      .lens-chip { min-height: 28px; font-size: 9px; }
+      main.feed { width: min(720px, 100%); padding: calc(var(--topbar) + 16px) 43px 104px 14px; gap: 13px; }
+      .feed-card { padding: 20px; }
+      .section-heading { margin-bottom: 14px; }
+      .section-title { font-size: 16px; }
+      .attention-row { grid-template-columns: 8px minmax(0,1fr) auto; grid-template-rows: auto auto; gap: 4px 9px; padding: 11px 0; }
+      .attention-row .severity-dot { grid-column: 1; grid-row: 1 / 3; align-self: start; margin-top: 6px; }
+      .attention-main { grid-column: 2 / 4; grid-row: 1; }
+      .attention-value { grid-column: 2; grid-row: 2; text-align: left; font-size: 16px; }
+      .row-action { grid-column: 3; grid-row: 2; min-height: 29px; padding-inline: 8px; font-size: 9px; }
+      .attention-titleline strong { font-size: 12px; }
+      .attention-titleline span { font-size: 10px; }
+      .attention-meta { margin-top: 4px; font-size: 9px; }
+      .avatar { width: 18px; height: 18px; flex-basis: 18px; font-size: 7px; }
+      .evidence { min-height: 19px; font-size: 8px; }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .kpi { min-height: 105px; padding: 13px 12px; }
+      .kpi-value { margin-top: 9px; font-size: clamp(20px, 5vw, 25px); }
+      .kpi-note { margin-top: 8px; font-size: 9px; }
+      .pill-list, .month-pills { grid-template-columns: 1fr; }
+      .opportunity-pill { min-height: 45px; }
+      .opportunity-name, .opportunity-value { font-size: 10px; }
+      .ranking-legend { grid-template-columns: minmax(0,1fr) 142px; padding-left: 17px; }
+      .ranking-row { min-height: 40px; grid-template-columns: 7px minmax(0,1fr) 142px; gap: 7px; }
+      .ranking-unit { grid-template-columns: minmax(82px, 105px) minmax(36px,1fr); gap: 7px; }
+      .ranking-metrics { grid-template-columns: 1fr 37px 28px; gap: 4px; }
+      .ranking-amount, .ranking-name { font-size: 9px; }
+      .ranking-change { font-size: 8px; }
+      .feed-progress { right: 12px; gap: 9px; }
+      .progress-dot { width: 7px; height: 7px; }
+      .assistant-toggle { right: 14px; bottom: 47px; width: 46px; height: 46px; }
+      .assistant-panel { right: 12px; bottom: 101px; }
+      .feed-footer { min-height: 32px; padding: 6px 72px 6px 8px; font-size: 8px; }
+    }
+    @media (max-width: 430px) {
+      .filter-group { gap: 1px; }
+      .filter-button { padding-inline: 7px; gap: 4px; font-size: 9px; }
+      .chevron { width: 10px; height: 10px; }
+      .lens { padding-left: 5px; gap: 1px; }
+      .lens-label { margin-right: 1px; font-size: 9px; }
+      .lens-chip { min-height: 27px; padding-inline: 6px; font-size: 8px; }
+      .snapshot-chip { min-height: 25px; padding-inline: 7px; font-size: 8px; }
+      main.feed { padding: calc(var(--topbar) + 12px) 32px 98px 10px; gap: 11px; }
+      .feed-card { padding: 16px 13px; }
+      .section-heading { align-items: flex-start; gap: 8px; }
+      .eyebrow { margin-bottom: 6px; font-size: 9px; }
+      .section-title { font-size: 15px; }
+      .section-description { font-size: 10px; }
+      .header-context { font-size: 9px; }
+      .headline-total { max-width: 51%; gap: 4px; }
+      .headline-total strong { font-size: 19px; }
+      .headline-total span { font-size: 9px; }
+      .attention-row { gap: 4px 7px; }
+      .attention-titleline { gap: 2px 6px; }
+      .attention-titleline strong { font-size: 11px; }
+      .attention-titleline span { font-size: 9px; }
+      .attention-meta { gap: 4px 7px; font-size: 8px; }
+      .attention-value { font-size: 15px; }
+      .row-action { padding-inline: 7px; font-size: 8px; }
+      .evidence { padding-inline: 6px; font-size: 7px; }
+      .director-note { align-items: flex-start; padding: 10px; }
+      .director-note p { font-size: 9px; }
+      .kpi-grid { gap: 7px; }
+      .kpi { min-height: 99px; padding: 11px 9px; }
+      .kpi-label { font-size: 9px; }
+      .kpi-value { font-size: clamp(18px, 5.4vw, 22px); }
+      .kpi-note { font-size: 8px; }
+      .shortfall { align-items: flex-start; }
+      .shortfall-copy strong, .shortfall-copy span { font-size: 9px; }
+      .meta-slot { padding: 9px; }
+      .weekly-summary { gap: 7px 9px; }
+      .weekly-total { font-size: clamp(35px, 10vw, 46px); }
+      .weekly-count { padding-bottom: 0; font-size: 10px; }
+      .change-badge { min-height: 23px; font-size: 9px; }
+      .week-chart { min-height: 119px; padding-inline: 1px; gap: 3px; }
+      .day-label { font-size: 8px; }
+      .day-value { font-size: 8px; }
+      .bar-track { width: min(24px, 74%); min-height: 65px; }
+      .week-note { font-size: 8px; }
+      .stage-row { min-height: 48px; padding-inline: 4px; grid-template-columns: minmax(76px, 87px) minmax(0,1fr) auto; gap: 7px; }
+      .stage-name { font-size: 9px; }
+      .stage-name small { font-size: 8px; }
+      .stage-value { font-size: 10px; }
+      .stage-track { height: 7px; }
+      .stage-footer { gap: 6px 12px; font-size: 8px; }
+      .metric-info { flex-basis: 100%; margin-left: 0; }
+      .month-summary { gap: 5px 9px; }
+      .month-total { font-size: 32px; }
+      .month-count { font-size: 9px; }
+      .mini-account { padding: 8px; }
+      .account-name { font-size: 9px; }
+      .account-meta { font-size: 8px; }
+      .account-meta strong { font-size: 9px; }
+      .nature-note { gap: 5px; }
+      .stat-chip { min-height: 23px; padding-inline: 7px; font-size: 8px; }
+      .cross-lower { padding: 12px; }
+      .cross-lower h3 { font-size: 11px; }
+      .cross-lower p { font-size: 9px; }
+      .loss-total { font-size: 14px; }
+      .ranking-legend { grid-template-columns: minmax(0,1fr) 116px; gap: 4px; padding-left: 14px; font-size: 7px; }
+      .ranking-row { min-height: 38px; grid-template-columns: 6px minmax(0,1fr) 116px; gap: 5px; padding-right: 3px; }
+      .ranking-unit { grid-template-columns: minmax(72px, 82px) minmax(26px,1fr); gap: 5px; }
+      .ranking-name, .ranking-amount { font-size: 8px; }
+      .ranking-metrics { grid-template-columns: 1fr 33px 22px; gap: 3px; }
+      .ranking-change { font-size: 7px; }
+      .signal-dots { gap: 2px; }
+      .signal-dots i { width: 4px; height: 4px; }
+      .quality-grid { gap: 6px; }
+      .quality-item { min-height: 76px; padding: 10px 8px; }
+      .quality-label { font-size: 8px; }
+      .quality-value { margin-top: 8px; font-size: 22px; }
+      .quality-value small { font-size: 9px; }
+      .quality-alert { padding: 8px 9px; font-size: 9px; }
+      .meeting-synthesis p { font-size: 10px; }
+      .feed-progress { right: 9px; gap: 8px; }
+      .progress-dot { width: 6px; height: 6px; }
+      .assistant-toggle { right: 11px; bottom: 43px; width: 43px; height: 43px; }
+      .assistant-panel { right: 9px; bottom: 93px; width: min(320px, calc(100vw - 18px)); }
+      .feed-footer { padding-right: 66px; font-size: 7px; }
+      .detail-drawer { padding: 19px 17px 22px; }
+      .drawer-title { margin-top: 20px; font-size: 22px; }
+      .drawer-value-number { font-size: 30px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="side" aria-label="Navegação principal">
+    <div class="side-brand"><span class="side-mark" aria-hidden="true"></span><span>Senior · Central</span></div>
+    <nav class="side-nav" aria-label="Seções">
+      <button class="side-link" type="button" aria-current="page" title="Briefing">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        <span class="side-label">Briefing</span>
+      </button>
+      <button class="side-link" type="button" title="Pipeline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 5h16M7 12h10M10 19h4"/></svg>
+        <span class="side-label">Pipeline</span>
+      </button>
+      <button class="side-link" type="button" title="New Names">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></svg>
+        <span class="side-label">New Names</span>
+      </button>
+      <button class="side-link" type="button" title="Win/Loss">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M7 4v16M17 4v16M4 8h6M14 8h6M4 8l3-4 3 4M14 8l3 4 3-4"/></svg>
+        <span class="side-label">Win/Loss</span>
+      </button>
+      <button class="side-link" type="button" title="Radar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/></svg>
+        <span class="side-label">Radar</span>
+      </button>
+      <button class="side-link" type="button" title="Fontes e regras">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 5c-2-1.5-5-1.5-8 0v14c3-1.5 6-1.5 8 0 2-1.5 5-1.5 8 0V5c-3-1.5-6-1.5-8 0Zm0 0v14"/></svg>
+        <span class="side-label">Fontes &amp; Regras</span>
+      </button>
+    </nav>
+    <div class="side-foot">
+      <div class="side-user">
+        <span class="avatar" aria-hidden="true">BF</span>
+        <div><strong>Bruno Ferreira</strong><span>Diretoria Comercial</span></div>
+      </div>
+      <button class="side-toggle" id="side-toggle" type="button" aria-expanded="true" aria-controls="side-nav-section" title="Minimizar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+        <span class="side-label">Minimizar</span>
+      </button>
+    </div>
+  </aside>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#exige" aria-label="Senior · Central de Receita — início do feed">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>Senior <span class="brand-divider" aria-hidden="true">·</span> Central de Receita</span>
+      </a>
+      <div class="header-tools">
+        <nav class="filter-group" aria-label="Filtros do snapshot">
+          <div class="filter-wrap">
+            <button class="filter-button" type="button" data-filter-trigger="unit" aria-haspopup="menu" aria-expanded="false" aria-label="Unidade: Todas, 29 unidades">
+              <span id="unit-label">Unidade: Todas (29)</span><svg class="chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <div class="filter-menu" role="menu" data-filter-menu="unit" hidden>
+              <button class="filter-option" type="button" role="menuitemradio" aria-checked="true" data-value="Todas (29)">Todas (29)</button>
+              <button class="filter-option" type="button" role="menuitemradio" aria-checked="false" data-value="Rio Verde">Rio Verde</button>
+              <button class="filter-option" type="button" role="menuitemradio" aria-checked="false" data-value="Passo Fundo">Passo Fundo</button>
+              <button class="filter-option" type="button" role="menuitemradio" aria-checked="false" data-value="Cuiabá · Filial">Cuiabá · Filial</button>
+              <button class="filter-option" type="button" role="menuitemradio" aria-checked="false" data-value="Ver 29 unidades">Ver 29 unidades</button>
+            </div>
+          </div>
+          <div class="filter-wrap">
+            <button class="filter-button" type="button" data-filter-trigger="concept" aria-haspopup="menu" aria-expanded="false" aria-label="Conceito: Todos">
+              <span id="concept-label">Conceito: Todos</span><svg class="chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <div class="filter-menu" role="menu" data-filter-menu="concept" hidden>
+              <button class="filter-option" type="button" role="menuitemradio" aria-checked="true" data-value="Todos">Todos</button>
+              <button class="filter-option" type="button" role="menuitemradio" aria-checked="false" data-value="Público">Público</button>
+              <button class="filter-option" type="button" role="menuitemradio" aria-checked="false" data-value="Privado">Privado</button>
+            </div>
+          </div>
+          <div class="filter-wrap">
+            <button class="filter-button" type="button" data-filter-trigger="period" aria-haspopup="menu" aria-expanded="false" aria-label="Período: setembro de 2026">
+              <span id="period-label">Período: Set 2026</span><svg class="chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <div class="filter-menu" role="menu" data-filter-menu="period" hidden>
+              <button class="filter-option" type="button" role="menuitemradio" aria-checked="true" data-value="Set 2026">Set 2026</button>
+              <button class="filter-option" type="button" role="menuitemradio" aria-checked="false" data-value="Ago 2026">Ago 2026</button>
+              <button class="filter-option" type="button" role="menuitemradio" aria-checked="false" data-value="Jul 2026">Jul 2026</button>
+            </div>
+          </div>
+        </nav>
+        <div class="lens" role="group" aria-label="Lente de trabalho">
+          <span class="lens-label">Lente:</span>
+          <button class="lens-chip" type="button" aria-pressed="true">Diretoria</button>
+          <button class="lens-chip" type="button" aria-pressed="false">Liderança</button>
+          <button class="lens-chip" type="button" aria-pressed="false">Inteligência</button>
+        </div>
+        <span class="snapshot-chip">snapshot 22/09 · sintéticos</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="feed" id="feed" aria-label="Feed executivo da Central de Receita">
+    <!-- 01 · EXIGE VOCÊ -->
+    <section class="feed-card" id="exige" aria-labelledby="title-exige">
+      <div class="section-heading">
+        <div class="heading-left">
+          <p class="eyebrow"><span class="severity-dot critical" aria-hidden="true"></span>01 · Prioridades de hoje</p>
+          <h1 class="section-title" id="title-exige">Exige você</h1>
+          <p class="section-description">Decisões ordenadas pelo valor em jogo no recorte.</p>
+        </div>
+        <div class="headline-total"><strong>R$ 15,4 mi</strong><span>exigem decisão hoje</span></div>
+      </div>
+      <div class="attention-list" role="list" aria-label="Itens que exigem decisão">
+        <div class="attention-row" role="listitem">
+          <span class="severity-dot critical" aria-label="Sinal crítico"></span>
+          <div class="attention-main">
+            <div class="attention-titleline"><strong>Passo Fundo</strong><span>Previsão vencida · 3 opp · 6 responsáveis</span><span class="evidence proven">Comprovada</span></div>
+            <div class="attention-meta"><span class="owner-mini"><span class="avatar" aria-hidden="true">LP</span>Letícia Prado</span><span>Prazo · 24 set</span></div>
+          </div>
+          <strong class="attention-value num">R$ 1,18 mi</strong>
+          <button class="row-action open-detail" type="button" data-opp="339053" aria-label="Abrir oportunidade ERP Senior da Cooperativa Vale do Sol, em Passo Fundo">Revisar<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+        <div class="attention-row" role="listitem">
+          <span class="severity-dot critical" aria-label="Sinal crítico"></span>
+          <div class="attention-main">
+            <div class="attention-titleline"><strong>Rio Verde</strong><span>Sem ação registrada há 21 dias · 5 opp · 4 responsáveis</span><span class="evidence partial">Parcial</span></div>
+            <div class="attention-meta"><span class="owner-mini"><span class="avatar" aria-hidden="true">PS</span>Patrícia Souza</span><span>Próxima revisão · 26 set</span></div>
+          </div>
+          <strong class="attention-value num">R$ 890 mil</strong>
+          <button class="row-action open-detail" type="button" data-opp="339032" aria-label="Abrir oportunidade ERP Senior da Sementes Vale Verde, em Rio Verde">Cobrar<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+        <div class="attention-row" role="listitem">
+          <span class="severity-dot warning" aria-label="Sinal de atenção"></span>
+          <div class="attention-main">
+            <div class="attention-titleline"><strong>Cuiabá · Filial</strong><span>Slip acima de 60 dias · 4 opp · 3 responsáveis</span><span class="evidence partial">Parcial</span></div>
+            <div class="attention-meta"><span class="owner-mini"><span class="avatar" aria-hidden="true">LF</span>Letícia Prado</span><span>Prazo · revalidar previsão</span></div>
+          </div>
+          <strong class="attention-value num">R$ 640 mil</strong>
+          <button class="row-action open-detail" type="button" data-opp="339010" aria-label="Abrir oportunidade ERP GATec da Casa &amp; Obra Ponta Firme, em Cuiabá">Revalidar<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+        <div class="attention-row" role="listitem">
+          <span class="severity-dot warning" aria-label="Sinal de atenção"></span>
+          <div class="attention-main">
+            <div class="attention-titleline"><strong>Campinas</strong><span>Ganha sem pedido há mais de 30 dias · 3 opp</span><span class="evidence proven">Comprovada</span></div>
+            <div class="attention-meta"><span class="owner-mini"><span class="avatar" aria-hidden="true">RN</span>Rafael Nogueira</span><span>Previsão atual · 12 out</span></div>
+          </div>
+          <strong class="attention-value num">R$ 512 mil</strong>
+          <button class="row-action open-detail" type="button" data-opp="339015" aria-label="Abrir oportunidade HCM Senior da Log Expresso Meridional, em Campinas">Ver detalhe<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+        <div class="attention-row" role="listitem">
+          <span class="severity-dot warning" aria-label="Sinal de atenção"></span>
+          <div class="attention-main">
+            <div class="attention-titleline"><strong>Sorriso</strong><span>Pedido sem conferência há mais de 15 dias · 6 pedidos</span><span class="evidence insufficient">Insuficiente</span></div>
+            <div class="attention-meta"><span class="owner-mini"><span class="avatar" aria-hidden="true">LF</span>Letícia Prado</span><span>Prazo · confirmar no ERP</span></div>
+          </div>
+          <strong class="attention-value num">R$ 430 mil</strong>
+          <button class="row-action open-detail" type="button" data-opp="339002" aria-label="Abrir oportunidade HCM Senior da conta Agro Horizonte, em Sorriso">Conferir<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+      <div class="director-note">
+        <span class="avatar" aria-hidden="true">D</span>
+        <p><strong>Diretoria</strong><span> · 6 decisões do Ciclo 1 a congelar · fórum sexta, 10h</span></p>
+        <span class="evidence insufficient">Insuficiente</span>
+      </div>
+    </section>
+
+    <!-- 02 · FORECAST -->
+    <section class="feed-card" id="forecast" aria-labelledby="title-forecast">
+      <div class="section-heading">
+        <div class="heading-left">
+          <p class="eyebrow">02 · Competência set/2026</p>
+          <h2 class="section-title" id="title-forecast">Forecast do mês</h2>
+          <p class="section-description">Carteira, projeção móvel, régua PEX e realizado — cada leitura preserva sua regra.</p>
+        </div>
+        <span class="header-context">vs. ago</span>
+      </div>
+      <div class="kpi-grid" aria-label="Indicadores do forecast do mês">
+        <article class="kpi">
+          <div class="kpi-label">Pipeline aberto</div>
+          <div class="kpi-value num">R$ 18,33 <small>mi</small></div>
+          <div class="kpi-note"><span class="delta-up">↑ 2%</span><span>vs ago</span></div>
+        </article>
+        <article class="kpi">
+          <div class="kpi-label">Projeção 30d</div>
+          <div class="kpi-value num">R$ 5,56 <small>mi</small></div>
+          <div class="kpi-note"><span class="delta-down">↓ 28%</span><span>vs ago</span></div>
+        </article>
+        <article class="kpi">
+          <div class="kpi-label">Forecast PEX</div>
+          <div class="kpi-value num">R$ 408,5 <small>mil</small></div>
+          <div class="kpi-note"><span class="delta-down">↓ 64%</span><span>vs ago</span></div>
+        </article>
+        <article class="kpi">
+          <div class="kpi-label">Realizado PEX</div>
+          <div class="kpi-value num">R$ 240 <small>mil</small></div>
+          <div class="kpi-note"><span class="delta-down">↓ 74%</span><span>vs ago</span></div>
+        </article>
+      </div>
+      <div class="shortfall" aria-label="A projeção de 30 dias recuou 28 por cento em relação a agosto">
+        <div class="shortfall-copy"><strong>Faltante na projeção de 30 dias</strong><span>R$ 5,56 mi projetados · retração de 28% vs ago; meta não disponível para calcular atingimento.</span></div>
+        <span class="evidence partial">Comparação mensal</span>
+      </div>
+      <div class="meta-slot" aria-label="Meta indisponível sem fonte oficial">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2.5v15M2.5 10h15" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <div><strong>Meta · espaço reservado</strong><span>Meta indisponível sem fonte oficial. Atingimento não calculado.</span></div>
+      </div>
+      <p class="rank-note">PEX é uma régua comercial do mês; realizado PEX não substitui pedido conferido como receita oficial.</p>
+    </section>
+
+    <!-- 03 · ENTRA NA SEMANA -->
+    <section class="feed-card" id="semana" aria-labelledby="title-semana">
+      <div class="section-heading">
+        <div class="heading-left">
+          <p class="eyebrow">03 · Próximos 7 dias</p>
+          <h2 class="section-title" id="title-semana">Entra na semana</h2>
+          <p class="section-description">Fechamentos previstos de 22 a 28 de setembro.</p>
+        </div>
+      </div>
+      <div class="weekly-summary">
+        <strong class="weekly-total num">R$ 360,5 mil</strong>
+        <span class="weekly-count">3 oportunidades</span>
+        <span class="change-badge">↑ +8% vs semana anterior</span>
+      </div>
+      <div class="week-chart" role="img" aria-label="Valores previstos por dia: segunda 120 mil reais, terça 80 mil, quarta 160 mil; quinta a domingo sem entradas">
+        <div class="day-column"><span class="day-label">seg</span><span class="bar-track"><span class="bar-fill" style="--height:75%"></span></span><span class="day-value num">120k</span></div>
+        <div class="day-column"><span class="day-label">ter</span><span class="bar-track"><span class="bar-fill" style="--height:50%"></span></span><span class="day-value num">80k</span></div>
+        <div class="day-column"><span class="day-label">qua</span><span class="bar-track"><span class="bar-fill" style="--height:100%"></span></span><span class="day-value num">160k</span></div>
+        <div class="day-column is-zero"><span class="day-label">qui</span><span class="bar-track"><span class="bar-fill"></span></span><span class="day-value">—</span></div>
+        <div class="day-column is-zero"><span class="day-label">sex</span><span class="bar-track"><span class="bar-fill"></span></span><span class="day-value">—</span></div>
+        <div class="day-column is-zero"><span class="day-label">sáb</span><span class="bar-track"><span class="bar-fill"></span></span><span class="day-value">—</span></div>
+        <div class="day-column is-zero"><span class="day-label">dom</span><span class="bar-track"><span class="bar-fill"></span></span><span class="day-value">—</span></div>
+      </div>
+      <p class="week-note">— representa zero previsto no snapshot, não dado indisponível.</p>
+      <div class="pill-list" aria-label="Oportunidades previstas nesta semana">
+        <button class="opportunity-pill open-detail" type="button" data-opp="week-agrotech" aria-label="Abrir ERP Cloud Migration, conta AgroTech, R$ 160 mil">
+          <span class="opportunity-name"><strong>ERP Cloud Migration</strong>AgroTech</span><span class="opportunity-value num">R$ 160 mil</span>
+        </button>
+        <button class="opportunity-pill open-detail" type="button" data-opp="week-valeverde" aria-label="Abrir Gestão de Ativos, conta Vale Verde, R$ 120 mil">
+          <span class="opportunity-name"><strong>Gestão de Ativos</strong>Vale Verde</span><span class="opportunity-value num">R$ 120 mil</span>
+        </button>
+        <button class="opportunity-pill open-detail" type="button" data-opp="week-casaobra" aria-label="Abrir BI Upgrade, conta Casa &amp; Obra, R$ 80,5 mil">
+          <span class="opportunity-name"><strong>BI Upgrade</strong>Casa &amp; Obra</span><span class="opportunity-value num">R$ 80,5 mil</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 04 · PIPELINE POR ETAPA -->
+    <section class="feed-card" id="pipeline" aria-labelledby="title-pipeline">
+      <div class="section-heading">
+        <div class="heading-left">
+          <p class="eyebrow">04 · Carteira aberta · 59 opp</p>
+          <h2 class="section-title" id="title-pipeline">Pipeline por etapa</h2>
+          <p class="section-description">Composição do pipeline previsto. Selecione uma etapa para abrir uma oportunidade do recorte.</p>
+        </div>
+        <span class="headline-total"><strong>R$ 18,33 mi</strong></span>
+      </div>
+      <div class="stage-list" aria-label="Pipeline aberto agrupado por etapa">
+        <button class="stage-row open-detail" type="button" data-opp="339031" aria-label="Abrir etapa Negociação, R$ 2,43 milhões">
+          <span class="stage-name">Negociação<small>9 oportunidades</small></span><span class="stage-track" aria-hidden="true"><span class="stage-fill" style="--stage:13.3%"></span></span><strong class="stage-value num">R$ 2,43 mi</strong>
+        </button>
+        <button class="stage-row open-detail" type="button" data-opp="339092" aria-label="Abrir etapa SQL, R$ 2,45 milhões">
+          <span class="stage-name">SQL<small>8 oportunidades</small></span><span class="stage-track" aria-hidden="true"><span class="stage-fill" style="--stage:13.4%"></span></span><strong class="stage-value num">R$ 2,45 mi</strong>
+        </button>
+        <button class="stage-row open-detail" type="button" data-opp="339032" aria-label="Abrir etapa Fechamento, R$ 2,25 milhões">
+          <span class="stage-name">Fechamento<small>8 oportunidades</small></span><span class="stage-track" aria-hidden="true"><span class="stage-fill" style="--stage:12.3%"></span></span><strong class="stage-value num">R$ 2,25 mi</strong>
+        </button>
+        <button class="stage-row demais open-detail" type="button" data-opp="339010" aria-label="Abrir demais etapas, R$ 11,2 milhões">
+          <span class="stage-name">Demais<small>34 oportunidades · agregado</small></span><span class="stage-track" aria-hidden="true"><span class="stage-fill" style="--stage:61.1%"></span></span><strong class="stage-value num">R$ 11,2 mi</strong>
+        </button>
+      </div>
+      <div class="stage-footer">
+        <span>Conversão (win rate 90d) <strong>66,7%</strong></span>
+        <span>Ticket médio (wins 90d) <strong>R$ 295,3 mil</strong></span>
+        <span class="metric-info">Conversão = ganhos ÷ ganhos e perdas válidos no período.</span>
+      </div>
+    </section>
+
+    <!-- 05 · NEW NAME -->
+    <section class="feed-card" id="new-name" aria-labelledby="title-newname">
+      <div class="section-heading">
+        <div class="heading-left">
+          <p class="eyebrow">05 · Aquisição · set/2026</p>
+          <h2 class="section-title" id="title-newname">New Name do mês</h2>
+          <p class="section-description">Novas oportunidades marcadas como New Name no snapshot sintético.</p>
+        </div>
+      </div>
+      <div class="month-summary"><strong class="month-total num">R$ 470 mil</strong><span class="month-count">2 oportunidades</span><span class="change-badge">↓ 37% em valor vs ago</span></div>
+      <div class="month-pills" aria-label="Contas em destaque New Name">
+        <article class="mini-account"><button class="open-detail" type="button" data-opp="339089" aria-label="Abrir oportunidade ERP Senior da Agro Boa Safra, R$ 141,5 mil"><span class="account-name">Agro Boa Safra</span><span class="account-meta"><span>1 oportunidade · 18 set</span><strong class="num">R$ 141,5 mil</strong></span></button></article>
+        <article class="mini-account"><button class="open-detail" type="button" data-opp="339093" aria-label="Abrir oportunidade HCM Senior da Laticínios Pampa Dourado, R$ 328,5 mil"><span class="account-name">Laticínios Pampa Dourado</span><span class="account-meta"><span>1 oportunidade · 20 set</span><strong class="num">R$ 328,5 mil</strong></span></button></article>
+        <article class="mini-account"><button class="open-detail" type="button" data-opp="339089" aria-label="Explorar conta Agro Boa Safra"><span class="account-name">Recorte do mês</span><span class="account-meta"><span>2 contas · entrada criada</span><strong>New Name</strong></span></button></article>
+      </div>
+      <div class="nature-note"><span class="stat-chip">ago · 2 opp · R$ 742,5 mil</span><span class="stat-chip">set · 2 opp · R$ 470 mil</span><span class="stat-chip">delta calculado em valor</span></div>
+    </section>
+
+    <!-- 06 · CROSS + PERDIDOS -->
+    <section class="feed-card" id="cross-perdidos" aria-labelledby="title-cross">
+      <div class="section-heading">
+        <div class="heading-left">
+          <p class="eyebrow">06 · Expansão na base · set/2026</p>
+          <h2 class="section-title" id="title-cross">Cross + perdidos</h2>
+          <p class="section-description">Movimento de Cross / Up Sell no mês e contas sem ganho histórico.</p>
+        </div>
+      </div>
+      <div class="month-summary"><strong class="month-total num">R$ 751 mil</strong><span class="month-count">movimento Cross no mês</span></div>
+      <div class="nature-note" style="margin:0 0 13px"><span class="stat-chip">1 ganho · R$ 54,5 mil</span><span class="stat-chip">1 perda · R$ 424,5 mil previstos</span><span class="stat-chip">1 oportunidade aberta · R$ 272 mil</span></div>
+      <div class="month-pills" aria-label="Contas com Cross em destaque">
+        <article class="mini-account"><button class="open-detail" type="button" data-opp="339031" aria-label="Abrir oportunidade Cross da Agro Horizonte"><span class="account-name">Agro Horizonte</span><span class="account-meta"><span>2 abertas · 1 ganha · 1 perdida</span><strong class="num">R$ 589,5 mil</strong></span></button></article>
+        <article class="mini-account"><button class="open-detail" type="button" data-opp="339023" aria-label="Abrir oportunidade Cross da Cooperativa Vale do Sol"><span class="account-name">Cooperativa Vale do Sol</span><span class="account-meta"><span>Sem ganho registrado</span><strong class="num">R$ 574 mil</strong></span></button></article>
+        <article class="mini-account"><button class="open-detail" type="button" data-opp="339047" aria-label="Abrir oportunidade Cross da BioEnergia Mata Alta"><span class="account-name">BioEnergia Mata Alta</span><span class="account-meta"><span>Sem ganho registrado</span><strong class="num">R$ 491,5 mil</strong></span></button></article>
+      </div>
+      <div class="cross-lower">
+        <div class="cross-lower-top"><div><h3>Ainda não é cliente</h3><p>7 contas com 12 perdas e nenhum ganho · oportunidade de retomar relacionamento.</p></div><strong class="loss-total num">R$ 1,9 mi perdidos</strong></div>
+        <button class="cross-drill open-detail" type="button" data-opp="339023" aria-label="Abrir o recorte de contas com perdas e nenhum ganho">Abrir as contas e perdas <span aria-hidden="true">→</span></button>
+      </div>
+    </section>
+
+    <!-- 07 · UNIDADES -->
+    <section class="feed-card" id="unidades" aria-labelledby="title-unidades">
+      <div class="section-heading">
+        <div class="heading-left">
+          <p class="eyebrow">07 · Distribuição da carteira</p>
+          <h2 class="section-title" id="title-unidades">Unidades (29)</h2>
+          <p class="section-description">Pipeline aberto por unidade · marcador esmeralda indica fechamento previsto nos próximos 7 dias.</p>
+        </div>
+        <button class="subtle-link" type="button" data-show-units aria-expanded="false" aria-controls="unit-list">Ver todas (29)</button>
+      </div>
+      <div class="ranking-legend" aria-hidden="true"><span>Unidade · pipeline aberto</span><span>Pipeline · Δ7d · sinais</span></div>
+      <div class="ranking-list" id="unit-list" aria-label="Ranking de 29 unidades por pipeline aberto">
+        <button class="ranking-row open-detail" type="button" data-unit="Rio Verde" data-opp="339032" aria-pressed="false" aria-label="Abrir detalhes de Rio Verde, pipeline de R$ 1,66 milhão, entram R$ 588 mil nesta semana, variação positiva de R$ 120 mil">
+          <span class="ranking-signal critical" aria-label="Sinal crítico"></span><span class="ranking-unit"><span class="ranking-name">Rio Verde</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:100%"></span><span class="pipeline-marker" style="--marker-left:64.5%;--marker-width:35.5%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 1,66 mi</span><span class="ranking-change up">↑ 120k</span><span class="signal-dots" aria-label="um sinal crítico e um sinal de atenção"><i class="red"></i><i class="amber"></i></span></span>
+        </button>
+        <button class="ranking-row open-detail" type="button" data-unit="Passo Fundo" data-opp="339053" aria-pressed="false" aria-label="Abrir detalhes de Passo Fundo, pipeline de R$ 1,18 milhão, entram R$ 609,5 mil nesta semana, variação negativa de R$ 60 mil">
+          <span class="ranking-signal critical" aria-label="Sinal crítico"></span><span class="ranking-unit"><span class="ranking-name">Passo Fundo</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:71.4%"></span><span class="pipeline-marker" style="--marker-left:34.7%;--marker-width:36.7%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 1,18 mi</span><span class="ranking-change down">↓ 60k</span><span class="signal-dots" aria-label="um sinal crítico"><i class="red"></i></span></span>
+        </button>
+        <button class="ranking-row open-detail" type="button" data-unit="Cuiabá · Filial" data-opp="339010" aria-pressed="false" aria-label="Abrir detalhes de Cuiabá filial, pipeline de R$ 1,10 milhão, sem entradas nesta semana, variação positiva de R$ 40 mil">
+          <span class="ranking-signal warning" aria-label="Sinal de atenção"></span><span class="ranking-unit"><span class="ranking-name">Cuiabá · Filial</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:66.4%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 1,10 mi</span><span class="ranking-change up">↑ 40k</span><span class="signal-dots" aria-label="um sinal de atenção"><i class="amber"></i></span></span>
+        </button>
+        <button class="ranking-row open-detail" type="button" data-unit="Primavera do Leste" data-opp="339025" aria-pressed="false" aria-label="Abrir detalhes de Primavera do Leste, pipeline de R$ 1,075 milhão">
+          <span class="ranking-signal" aria-label="Sem sinal destacado"></span><span class="ranking-unit"><span class="ranking-name">Primavera do Leste</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:64.8%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 1,08 mi</span><span class="ranking-change">—</span><span class="signal-dots" aria-label="sem sinal destacado"><i></i></span></span>
+        </button>
+        <button class="ranking-row open-detail" type="button" data-unit="Cuiabá · Matriz" data-opp="339013" aria-pressed="false" aria-label="Abrir detalhes de Cuiabá matriz, pipeline de R$ 855,5 mil, entram R$ 432,5 mil nesta semana">
+          <span class="ranking-signal warning" aria-label="Sinal de atenção"></span><span class="ranking-unit"><span class="ranking-name">Cuiabá · Matriz</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:51.6%"></span><span class="pipeline-marker" style="--marker-left:25.5%;--marker-width:26.1%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 855,5 mil</span><span class="ranking-change">—</span><span class="signal-dots" aria-label="um sinal de atenção"><i class="amber"></i></span></span>
+        </button>
+        <button class="ranking-row open-detail" type="button" data-unit="Rondonópolis" data-opp="339039" aria-pressed="false" aria-label="Abrir detalhes de Rondonópolis, pipeline de R$ 834,5 mil, variação positiva de R$ 40 mil">
+          <span class="ranking-signal" aria-label="Sem sinal destacado"></span><span class="ranking-unit"><span class="ranking-name">Rondonópolis</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:50.3%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 834,5 mil</span><span class="ranking-change up">↑ 40k</span><span class="signal-dots" aria-label="sem sinal destacado"><i></i></span></span>
+        </button>
+        <button class="ranking-row open-detail" type="button" data-unit="Dourados" data-opp="339041" aria-pressed="false" aria-label="Abrir detalhes de Dourados, pipeline de R$ 770 mil">
+          <span class="ranking-signal" aria-label="Sem sinal destacado"></span><span class="ranking-unit"><span class="ranking-name">Dourados</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:46.5%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 770 mil</span><span class="ranking-change">—</span><span class="signal-dots" aria-label="sem sinal destacado"><i></i></span></span>
+        </button>
+        <button class="ranking-row open-detail" type="button" data-unit="Sorriso" data-opp="339002" aria-pressed="false" aria-label="Abrir detalhes de Sorriso, pipeline de R$ 685,5 mil, variação positiva de R$ 25 mil">
+          <span class="ranking-signal" aria-label="Sem sinal destacado"></span><span class="ranking-unit"><span class="ranking-name">Sorriso</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:41.4%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 685,5 mil</span><span class="ranking-change up">↑ 25k</span><span class="signal-dots" aria-label="sem sinal destacado"><i></i></span></span>
+        </button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Araçariguama" data-opp="339017" aria-pressed="false" aria-label="Abrir detalhes de Araçariguama, pipeline de R$ 660 mil, entram R$ 168,5 mil nesta semana" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Araçariguama</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:39.8%"></span><span class="pipeline-marker" style="--marker-left:29.6%;--marker-width:10.2%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 660 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Joinville" data-opp="339035" aria-pressed="false" aria-label="Abrir detalhes de Joinville, pipeline de R$ 643,5 mil" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Joinville</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:38.8%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 643,5 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Videira" data-opp="339044" aria-pressed="false" aria-label="Abrir detalhes de Videira, pipeline de R$ 637 mil" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Videira</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:38.4%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 637 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Cascavel" data-opp="339023" aria-pressed="false" aria-label="Abrir detalhes de Cascavel, pipeline de R$ 582,5 mil" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Cascavel</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:35.1%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 582,5 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Uberlândia" data-opp="339027" aria-pressed="false" aria-label="Abrir detalhes de Uberlândia, pipeline de R$ 558,5 mil" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Uberlândia</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:33.7%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 558,5 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Pelotas" data-opp="339093" aria-pressed="false" aria-label="Abrir detalhes de Pelotas, pipeline de R$ 550 mil" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Pelotas</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:33.2%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 550 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Patos de Minas" data-opp="339070" aria-pressed="false" aria-label="Abrir detalhes de Patos de Minas, pipeline de R$ 537 mil" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Patos de Minas</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:32.4%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 537 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Palotina" data-opp="339040" aria-pressed="false" aria-label="Abrir detalhes de Palotina, pipeline de R$ 529 mil" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Palotina</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:31.9%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 529 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Itajaí" data-opp="339043" aria-pressed="false" aria-label="Abrir detalhes de Itajaí, pipeline de R$ 516 mil" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Itajaí</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:31.1%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 516 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Contagem" data-opp="339019" aria-pressed="false" aria-label="Abrir detalhes de Contagem, pipeline de R$ 513,5 mil" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Contagem</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:31%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 513,5 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Barreiras" data-opp="339097" aria-pressed="false" aria-label="Abrir detalhes de Barreiras, pipeline de R$ 513 mil" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Barreiras</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:31%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 513 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Barra do Garças" data-opp="339037" aria-pressed="false" aria-label="Abrir detalhes de Barra do Garças, pipeline de R$ 507,5 mil" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Barra do Garças</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:30.6%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 507,5 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Goiânia" data-opp="339084" aria-pressed="false" aria-label="Abrir detalhes de Goiânia, pipeline de R$ 502 mil" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Goiânia</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:30.3%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 502 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="São José dos Pinhais" data-opp="339044" aria-pressed="false" aria-label="Abrir detalhes de São José dos Pinhais, pipeline de R$ 500,5 mil" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">São José dos Pinhais</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:30.2%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 500,5 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Fortaleza" data-opp="339016" aria-pressed="false" aria-label="Abrir detalhes de Fortaleza, pipeline de R$ 485 mil, entram R$ 389,5 mil nesta semana" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Fortaleza</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:29.3%"></span><span class="pipeline-marker" style="--marker-left:5.8%;--marker-width:23.5%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 485 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Serra" data-opp="339013" aria-pressed="false" aria-label="Abrir detalhes de Serra, pipeline de R$ 470,5 mil" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Serra</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:28.4%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 470,5 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Ribeirão Preto" data-opp="339082" aria-pressed="false" aria-label="Abrir detalhes de Ribeirão Preto, pipeline de R$ 461,5 mil, variação negativa de R$ 18 mil" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Ribeirão Preto</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:27.8%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 461,5 mil</span><span class="ranking-change down">↓ 18k</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Campinas" data-opp="339015" aria-pressed="false" aria-label="Abrir detalhes de Campinas, pipeline de R$ 407 mil, variação sem alteração" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Campinas</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:24.5%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 407 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Sinop" data-opp="339087" aria-pressed="false" aria-label="Abrir detalhes de Sinop, pipeline de R$ 343,5 mil" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Sinop</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:20.7%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 343,5 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Chapadão do Sul" data-opp="339089" aria-pressed="false" aria-label="Abrir detalhes de Chapadão do Sul, pipeline de R$ 163 mil" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Chapadão do Sul</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:9.8%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 163 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+        <button class="ranking-row open-detail extra-unit" type="button" data-unit="Maringá" data-opp="339087" aria-pressed="false" aria-label="Abrir detalhes de Maringá, pipeline de R$ 88,5 mil" hidden><span class="ranking-signal" aria-hidden="true"></span><span class="ranking-unit"><span class="ranking-name">Maringá</span><span class="pipeline-track" aria-hidden="true"><span class="pipeline-fill" style="--bar:5.3%"></span></span></span><span class="ranking-metrics"><span class="ranking-amount num">R$ 88,5 mil</span><span class="ranking-change">—</span><span class="signal-dots"><i></i></span></span></button>
+      </div>
+      <div class="more-units"><button type="button" data-show-units aria-expanded="false" aria-controls="unit-list">Ver todas as 29 unidades</button><span> · barras proporcionais ao maior pipeline</span></div>
+      <p class="rank-note">Oito maiores unidades por pipeline no topo. Marcador mostra a parte da carteira com previsão nos próximos 7 dias; setas exibem variação registrada no mock.</p>
+    </section>
+
+    <!-- 08 · QUALIDADE E SÍNTESE -->
+    <section class="feed-card" id="qualidade" aria-labelledby="title-qualidade">
+      <div class="section-heading">
+        <div class="heading-left">
+          <p class="eyebrow">08 · Encerramento do recorte</p>
+          <h2 class="section-title" id="title-qualidade">Qualidade do recorte</h2>
+          <p class="section-description">Leitura da base que sustenta os indicadores acima.</p>
+        </div>
+        <span class="evidence partial">2 divergências abertas</span>
+      </div>
+      <div class="quality-grid" aria-label="Indicadores de qualidade do recorte">
+        <div class="quality-item"><div class="quality-label">Completude</div><div class="quality-value num">92<small>%</small></div><div class="quality-track" aria-hidden="true"><div class="quality-fill" style="--quality:92%"></div></div></div>
+        <div class="quality-item"><div class="quality-label">Atualidade</div><div class="quality-value num">76<small>%</small></div><div class="quality-track" aria-hidden="true"><div class="quality-fill" style="--quality:76%"></div></div></div>
+        <div class="quality-item"><div class="quality-label">Reconciliação</div><div class="quality-value num">89<small>%</small></div><div class="quality-track" aria-hidden="true"><div class="quality-fill" style="--quality:89%"></div></div></div>
+      </div>
+      <div class="quality-alert"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 6v4.5m0 3h.01M8.3 3.6 2.4 14a1.4 1.4 0 0 0 1.2 2.1h12.8a1.4 1.4 0 0 0 1.2-2.1L11.7 3.6a2 2 0 0 0-3.4 0Z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>2 divergências abertas · revisar antes de usar o recorte como fotografia oficial.</div>
+      <div class="meeting-synthesis">
+        <h3>Síntese para a reunião</h3>
+        <blockquote>
+          <p>O pipeline avançou 2% sobre agosto, mas a projeção de 30 dias recuou 28%; a meta continua fora do recorte por falta de fonte oficial.</p>
+          <p>Há R$ 360,5 mil com previsão nesta semana e seis decisões do Ciclo 1 para levar ao fórum de sexta, às 10h.</p>
+        </blockquote>
+        <p class="synthesis-source">Síntese demonstrativa · números determinísticos do snapshot; sem geração externa.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="feed-progress" aria-label="Progresso do feed">
+    <a class="progress-dot" href="#exige" aria-label="Ir para 1: Exige você" aria-current="step"></a>
+    <a class="progress-dot" href="#forecast" aria-label="Ir para 2: Forecast do mês"></a>
+    <a class="progress-dot" href="#semana" aria-label="Ir para 3: Entra na semana"></a>
+    <a class="progress-dot" href="#pipeline" aria-label="Ir para 4: Pipeline por etapa"></a>
+    <a class="progress-dot" href="#new-name" aria-label="Ir para 5: New Name do mês"></a>
+    <a class="progress-dot" href="#cross-perdidos" aria-label="Ir para 6: Cross e perdidos"></a>
+    <a class="progress-dot" href="#unidades" aria-label="Ir para 7: Unidades"></a>
+    <a class="progress-dot" href="#qualidade" aria-label="Ir para 8: Qualidade do recorte"></a>
+  </nav>
+  <footer class="feed-footer">Snapshot 22/09 · dados sintéticos · somente leitura</footer>
+
+  <aside class="assistant-panel" id="assistant-panel" role="dialog" aria-labelledby="assistant-title" aria-modal="false" hidden>
+    <button class="assistant-close" id="assistant-close" type="button" aria-label="Fechar assistente"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    <h2 class="assistant-heading" id="assistant-title">Assistente da Receita</h2>
+    <p class="assistant-note">Demonstração · snapshot sintético · somente leitura. Escolha um atalho para retomar a leitura.</p>
+    <div class="assistant-links" aria-label="Atalhos do feed">
+      <button class="assistant-link" type="button" data-scroll-to="exige">Exige você</button>
+      <button class="assistant-link" type="button" data-scroll-to="forecast">Forecast</button>
+      <button class="assistant-link" type="button" data-scroll-to="unidades">Unidades</button>
+    </div>
+  </aside>
+  <button class="assistant-toggle" id="assistant-toggle" type="button" aria-label="Abrir assistente da Receita" aria-expanded="false" aria-controls="assistant-panel">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3.5c.55 4.05 2.45 5.95 6.5 6.5-4.05.55-5.95 2.45-6.5 6.5-.55-4.05-2.45-5.95-6.5-6.5 4.05-.55 5.95-2.45 6.5-6.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M19 15.5c.25 1.85 1.15 2.75 3 3-1.85.25-2.75 1.15-3 3-.25-1.85-1.15-2.75-3-3 1.85-.25 2.75-.9 3-3Z" fill="currentColor"/><path d="M5 2.5c.2 1.4.9 2.1 2.3 2.3C5.9 5 5.2 5.7 5 7.1 4.8 5.7 4.1 5 2.7 4.8 4.1 4.6 4.8 3.9 5 2.5Z" fill="currentColor"/></svg>
+  </button>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" hidden></div>
+  <aside class="detail-drawer" id="detail-drawer" role="dialog" aria-labelledby="drawer-title" aria-modal="true" aria-hidden="true" tabindex="-1" inert>
+    <div class="drawer-head"><p class="drawer-kicker">Detalhe da oportunidade</p><button class="drawer-close" id="drawer-close" type="button" aria-label="Fechar detalhe"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>
+    <h2 class="drawer-title" id="drawer-title">Oportunidade</h2>
+    <p class="drawer-account" id="drawer-account"></p>
+    <div class="drawer-badges"><span class="drawer-badge status" id="drawer-stage"></span><span class="drawer-badge" id="drawer-unit"></span><span class="drawer-badge" id="drawer-evidence">Snapshot sintético</span></div>
+    <div class="drawer-value"><div class="drawer-value-label">Valor previsto</div><div class="drawer-value-number num" id="drawer-value"></div></div>
+    <dl class="drawer-facts">
+      <div><dt>Valor fechado</dt><dd id="drawer-closed"></dd></div>
+      <div><dt>Probabilidade registrada</dt><dd id="drawer-probability"></dd></div>
+      <div><dt>Responsável</dt><dd id="drawer-owner"></dd></div>
+      <div><dt>Previsão atual</dt><dd id="drawer-date"></dd></div>
+    </dl>
+    <section class="drawer-block" aria-labelledby="drawer-history-title"><h3 id="drawer-history-title">Histórico da conta · Win / Loss</h3><p class="history-highlight" id="drawer-history">3 ganhos · 2 perdas · último há 4 meses</p><p>O histórico aparece no drill para dar contexto ao relacionamento da conta, sem substituir os valores do recorte atual.</p></section>
+    <p class="drawer-footnote">Protótipo demonstrativo. Informações do mock local; sem conexão com CRM ou atualização em tempo real.</p>
+    <button class="drawer-return" id="drawer-return" type="button">Voltar ao feed</button>
+  </aside>
+
+  <script>
+    (() => {
+      const opportunities = {
+        "339001": { name: "ERP GATec", account: "Agro Horizonte", unit: "Sorriso · Matriz", stage: "Ganha · Fechamento", amount: 285000, closed: 268500, probability: 100, owner: "Rafael Nogueira", date: "31 jul 2026", history: "3 ganhos · 2 perdas · último há 4 meses" },
+        "339002": { name: "HCM Senior", account: "Agro Horizonte", unit: "Sorriso · Matriz", stage: "Aberta · Negociação", amount: 96000, closed: null, probability: 75, owner: "Letícia Prado", date: "10 out 2026", history: "3 ganhos · 2 perdas · último há 4 meses" },
+        "339010": { name: "ERP GATec", account: "Casa & Obra Ponta Firme", unit: "Cuiabá · Filial", stage: "Aberta · Qualificação", amount: 636500, closed: null, probability: 35, owner: "Letícia Prado", date: "20 ago 2026", history: "1 ganho · 0 perdas · histórico de conta no mock" },
+        "339013": { name: "ERP GATec", account: "Frigorífico Serra Branca", unit: "Cuiabá · Matriz", stage: "Aberta · Proposta", amount: 432500, closed: null, probability: 82, owner: "Patrícia Souza", date: "24 set 2026", history: "1 ganho · 1 perda · histórico de conta no mock" },
+        "339015": { name: "HCM Senior", account: "Log Expresso Meridional", unit: "Campinas · Filial", stage: "Aberta · Proposta", amount: 282500, closed: null, probability: 67, owner: "Rafael Nogueira", date: "12 out 2026", history: "1 ganho · 0 perdas · histórico de conta no mock" },
+        "339016": { name: "ERP GATec", account: "Varejo Bom Preço Mais", unit: "Fortaleza · Filial", stage: "Aberta · SQL", amount: 389500, closed: null, probability: 48, owner: "Gabriela Matos", date: "24 set 2026", history: "0 ganhos · 1 perda · histórico de conta no mock" },
+        "339017": { name: "ERP Senior", account: "BioEnergia Mata Alta", unit: "Araçariguama · Matriz", stage: "Aberta · Negociação", amount: 168500, closed: null, probability: 75, owner: "Eduardo Lima", date: "28 set 2026", history: "1 ganho · 1 perda · histórico de conta no mock" },
+        "339019": { name: "ERP GATec", account: "Distribuidora Minas Norte", unit: "Contagem · Filial", stage: "Aberta · Qualificação", amount: 106500, closed: null, probability: 38, owner: "Letícia Prado", date: "06 out 2026", history: "0 ganhos · 1 perda · histórico de conta no mock" },
+        "339023": { name: "ERP Senior", account: "Cooperativa Vale do Sol", unit: "Passo Fundo · Filial", stage: "Aberta · Qualificação", amount: 574000, closed: null, probability: 40, owner: "Eduardo Lima", date: "17 jul 2026", history: "0 ganhos · 1 perda · último há 2 meses" },
+        "339025": { name: "ERP GATec", account: "Agro Ipê Amarelo", unit: "Primavera do Leste · Matriz", stage: "Aberta · Negociação", amount: 618000, closed: null, probability: 75, owner: "Patrícia Souza", date: "05 nov 2026", history: "0 ganhos · 1 perda · histórico de conta no mock" },
+        "339027": { name: "HCM Senior", account: "Insumos Raiz Forte", unit: "Uberlândia · Filial", stage: "Aberta · Originação", amount: 343500, closed: null, probability: 10, owner: "Eduardo Lima", date: "12 out 2026", history: "1 ganho · 1 perda · histórico de conta no mock" },
+        "339020": { name: "ERP Senior", account: "Agro Rio Bonito", unit: "Barra do Garças · Filial", stage: "Aberta · Negociação", amount: 109000, closed: null, probability: 55, owner: "Rafael Nogueira", date: "14 jul 2026", history: "1 ganho · 1 perda · histórico de conta no mock" },
+        "339031": { name: "ERP GATec", account: "Agro Horizonte", unit: "Rio Verde · Filial", stage: "Aberta · Negociação", amount: 317500, closed: null, probability: 82, owner: "Diego Fernandes", date: "31 out 2026", history: "3 ganhos · 2 perdas · último há 4 meses" },
+        "339032": { name: "ERP Senior", account: "Sementes Vale Verde", unit: "Rio Verde · Filial", stage: "Aberta · Fechamento", amount: 588000, closed: null, probability: 92, owner: "Patrícia Souza", date: "26 set 2026", history: "1 ganho · 0 perdas · histórico de conta no mock" },
+        "339035": { name: "ERP Senior", account: "Distribuidora Ponta Sul", unit: "Joinville · Matriz", stage: "Aberta · Qualificação", amount: 350000, closed: null, probability: 38, owner: "Patrícia Souza", date: "04 nov 2026", history: "2 ganhos · 0 perdas · histórico de conta no mock" },
+        "339039": { name: "HCM Senior", account: "Insumos Horizonte do Vale", unit: "Rondonópolis · Matriz", stage: "Aberta · Originação", amount: 396500, closed: null, probability: 16, owner: "Patrícia Souza", date: "12 nov 2026", history: "1 ganho · 0 perdas · histórico de conta no mock" },
+        "339040": { name: "ERP GATec", account: "Casa & Obra Ponta Firme", unit: "Cuiabá · Filial", stage: "Aberta · Originação", amount: 463500, closed: null, probability: 10, owner: "Diego Fernandes", date: "11 out 2026", history: "1 ganho · 0 perdas · histórico de conta no mock" },
+        "339041": { name: "ERP Senior", account: "Óleo Brasil Tropical", unit: "Dourados · Filial", stage: "Aberta · Fechamento", amount: 637000, closed: null, probability: 91, owner: "Eduardo Lima", date: "04 nov 2026", history: "1 ganho · 0 perdas · histórico de conta no mock" },
+        "339043": { name: "ERP GATec", account: "Frigorífico Serra Branca", unit: "Cuiabá · Matriz", stage: "Aberta · Originação", amount: 423000, closed: null, probability: 16, owner: "Letícia Prado", date: "17 out 2026", history: "1 ganho · 1 perda · histórico de conta no mock" },
+        "339044": { name: "ERP Senior", account: "Cooperativa Alto Vale", unit: "Videira · Filial", stage: "Aberta · Qualificação", amount: 545000, closed: null, probability: 40, owner: "Rafael Nogueira", date: "07 nov 2026", history: "1 ganho · 0 perdas · histórico de conta no mock" },
+        "339047": { name: "ERP Senior", account: "BioEnergia Mata Alta", unit: "Araçariguama · Matriz", stage: "Aberta · Qualificação", amount: 491500, closed: null, probability: 30, owner: "Gabriela Matos", date: "05 nov 2026", history: "0 ganhos · 1 perda · histórico de conta no mock" },
+        "339053": { name: "ERP Senior", account: "Cooperativa Vale do Sol", unit: "Passo Fundo · Filial", stage: "Aberta · Proposta", amount: 609500, closed: null, probability: 53, owner: "Letícia Prado", date: "24 set 2026", history: "0 ganhos · 1 perda · último há 2 meses" },
+        "339070": { name: "ERP GATec", account: "Casa & Obra Ponta Firme", unit: "Cuiabá · Filial", stage: "Ganha · Fechamento", amount: 576500, closed: 530500, probability: 100, owner: "Patrícia Souza", date: "29 jul 2026", history: "1 ganho · 0 perdas · histórico de conta no mock" },
+        "339082": { name: "ERP GATec", account: "Transporte Carga Certa", unit: "Ribeirão Preto · Filial", stage: "Perdida · Proposta", amount: 520000, closed: null, probability: 0, owner: "Rafael Nogueira", date: "16 jun 2026", history: "0 ganhos · 1 perda · histórico de conta no mock" },
+        "339084": { name: "HCM Senior", account: "Varejo Ponta de Estoque", unit: "Goiânia · Filial", stage: "Perdida · Proposta", amount: 539000, closed: null, probability: 0, owner: "Rafael Nogueira", date: "24 jul 2026", history: "0 ganhos · 1 perda · histórico de conta no mock" },
+        "339087": { name: "HCM Senior", account: "Insumos Raiz Forte", unit: "Sinop · Filial", stage: "Perdida · Proposta", amount: 582000, closed: null, probability: 0, owner: "Diego Fernandes", date: "17 jul 2026", history: "1 ganho · 1 perda · histórico de conta no mock" },
+        "339089": { name: "ERP Senior", account: "Agro Boa Safra", unit: "Chapadão do Sul · Matriz", stage: "Aberta · SQL", amount: 141500, closed: null, probability: 21, owner: "Rafael Nogueira", date: "18 out 2026", history: "1 ganho · 0 perdas · histórico de conta no mock" },
+        "339092": { name: "ERP Senior", account: "Sementes Vale Verde", unit: "Rio Verde · Filial", stage: "Aberta · SQL", amount: 520000, closed: null, probability: 35, owner: "Diego Fernandes", date: "16 nov 2026", history: "1 ganho · 0 perdas · histórico de conta no mock" },
+        "339093": { name: "HCM Senior", account: "Laticínios Pampa Dourado", unit: "Pelotas · Filial", stage: "Aberta · Qualificação", amount: 328500, closed: null, probability: 31, owner: "Diego Fernandes", date: "14 out 2026", history: "1 ganho · 0 perdas · histórico de conta no mock" },
+        "339097": { name: "ERP GATec", account: "Agro Cerrado Azul", unit: "Barreiras · Filial", stage: "Perdida · Negociação", amount: 640000, closed: null, probability: 0, owner: "Diego Fernandes", date: "22 set 2026", history: "1 ganho · 1 perda · histórico de conta no mock" },
+        "week-agrotech": { name: "ERP Cloud Migration", account: "AgroTech", unit: "Rio Verde", stage: "Aberta · Negociação", amount: 160000, closed: null, probability: 75, owner: "Rafael Nogueira", date: "23 set 2026", history: "3 ganhos · 2 perdas · último há 4 meses" },
+        "week-valeverde": { name: "Gestão de Ativos", account: "Vale Verde", unit: "Passo Fundo", stage: "Aberta · Proposta", amount: 120000, closed: null, probability: 75, owner: "Letícia Prado", date: "21 set 2026", history: "3 ganhos · 2 perdas · último há 4 meses" },
+        "week-casaobra": { name: "BI Upgrade", account: "Casa & Obra", unit: "Cuiabá", stage: "Aberta · SQL", amount: 80500, closed: null, probability: 60, owner: "Eduardo Lima", date: "22 set 2026", history: "3 ganhos · 2 perdas · último há 4 meses" }
+      };
+      const money = value => value == null ? "Não registrado" : new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(value);
+      const drawer = document.getElementById("detail-drawer");
+      const backdrop = document.getElementById("drawer-backdrop");
+      const closeDrawerButton = document.getElementById("drawer-close");
+      const returnButton = document.getElementById("drawer-return");
+      let returnFocus = null;
+      let returnScroll = 0;
+      let toastTimer;
+      const toast = document.getElementById("toast");
+
+      function announce(message) {
+        toast.textContent = message;
+        toast.hidden = false;
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => { toast.hidden = true; }, 2600);
+      }
+      function openDrawer(trigger) {
+        const item = opportunities[trigger.dataset.opp];
+        if (!item) { announce("Detalhe não disponível neste recorte."); return; }
+        returnFocus = trigger;
+        returnScroll = window.scrollY;
+        const unit = trigger.dataset.unit || item.unit;
+        document.getElementById("drawer-title").textContent = item.name;
+        document.getElementById("drawer-account").textContent = item.account + " · " + unit;
+        document.getElementById("drawer-stage").textContent = item.stage;
+        document.getElementById("drawer-unit").textContent = "Unidade · " + unit;
+        document.getElementById("drawer-value").textContent = money(item.amount);
+        document.getElementById("drawer-closed").textContent = money(item.closed);
+        document.getElementById("drawer-probability").textContent = item.probability + "%";
+        document.getElementById("drawer-owner").textContent = item.owner;
+        document.getElementById("drawer-date").textContent = item.date;
+        document.getElementById("drawer-history").textContent = item.history;
+        backdrop.hidden = false;
+        drawer.inert = false;
+        drawer.setAttribute("aria-hidden", "false");
+        document.body.classList.add("drawer-open");
+        requestAnimationFrame(() => drawer.classList.add("is-open"));
+        closeDrawerButton.focus();
+      }
+      function closeDrawer() {
+        drawer.classList.remove("is-open");
+        drawer.inert = true;
+        drawer.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("drawer-open");
+        backdrop.hidden = true;
+        window.scrollTo({ top: returnScroll, behavior: "instant" });
+        if (returnFocus && returnFocus.isConnected) requestAnimationFrame(() => returnFocus.focus({ preventScroll: true }));
+      }
+      document.querySelectorAll(".open-detail").forEach(button => button.addEventListener("click", () => openDrawer(button)));
+      closeDrawerButton.addEventListener("click", closeDrawer);
+      returnButton.addEventListener("click", closeDrawer);
+      backdrop.addEventListener("click", closeDrawer);
+      drawer.addEventListener("keydown", event => {
+        if (event.key === "Escape") { event.preventDefault(); closeDrawer(); return; }
+        if (event.key !== "Tab") return;
+        const focusables = [...drawer.querySelectorAll("button:not([disabled]), a[href], [tabindex]:not([tabindex='-1'])")].filter(el => !el.hidden);
+        const first = focusables[0], last = focusables[focusables.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      });
+
+      const triggers = [...document.querySelectorAll("[data-filter-trigger]")];
+      function closeMenus(except) {
+        triggers.forEach(trigger => {
+          const isExcept = trigger === except;
+          trigger.setAttribute("aria-expanded", String(isExcept && !document.querySelector(`[data-filter-menu='${trigger.dataset.filterTrigger}']`).hidden));
+          if (!isExcept) document.querySelector(`[data-filter-menu='${trigger.dataset.filterTrigger}']`).hidden = true;
+        });
+      }
+      triggers.forEach(trigger => trigger.addEventListener("click", () => {
+        const menu = document.querySelector(`[data-filter-menu='${trigger.dataset.filterTrigger}']`);
+        const willOpen = menu.hidden;
+        closeMenus(trigger);
+        menu.hidden = !willOpen;
+        trigger.setAttribute("aria-expanded", String(willOpen));
+        if (willOpen) menu.querySelector("button")?.focus();
+      }));
+      document.querySelectorAll(".filter-option").forEach(option => option.addEventListener("click", () => {
+        const menu = option.closest(".filter-menu");
+        const kind = menu.dataset.filterMenu;
+        menu.querySelectorAll(".filter-option").forEach(item => item.setAttribute("aria-checked", String(item === option)));
+        const trigger = document.querySelector(`[data-filter-trigger='${kind}']`);
+        const value = option.dataset.value;
+        const label = document.getElementById(kind === "unit" ? "unit-label" : kind === "concept" ? "concept-label" : "period-label");
+        label.textContent = kind === "unit" ? "Unidade: " + value : kind === "concept" ? "Conceito: " + value : "Período: " + value;
+        trigger.setAttribute("aria-label", label.textContent);
+        menu.hidden = true;
+        trigger.setAttribute("aria-expanded", "false");
+        trigger.focus();
+        announce("Recorte selecionado: " + label.textContent + ". Snapshot demonstrativo.");
+      }));
+      document.addEventListener("click", event => {
+        if (!event.target.closest(".filter-wrap")) closeMenus(null);
+      });
+      document.addEventListener("keydown", event => {
+        if (event.key === "Escape") closeMenus(null);
+      });
+
+      document.querySelectorAll(".lens-chip").forEach(button => button.addEventListener("click", () => {
+        document.querySelectorAll(".lens-chip").forEach(chip => chip.setAttribute("aria-pressed", String(chip === button)));
+        announce("Lente selecionada: " + button.textContent + ".");
+      }));
+      const showUnitsButtons = [...document.querySelectorAll("[data-show-units]")];
+      function toggleUnits() {
+        const firstExtra = document.querySelector(".extra-unit");
+        const expand = firstExtra.hidden;
+        document.querySelectorAll(".extra-unit").forEach(row => { row.hidden = !expand; });
+        showUnitsButtons.forEach(button => {
+          button.setAttribute("aria-expanded", String(expand));
+          button.textContent = expand ? "Mostrar só as 8 maiores" : (button.classList.contains("subtle-link") ? "Ver todas (29)" : "Ver todas as 29 unidades");
+        });
+        if (expand) announce("Ranking completo: 29 unidades.");
+      }
+      showUnitsButtons.forEach(button => button.addEventListener("click", toggleUnits));
+
+      const sideToggle = document.getElementById("side-toggle");
+      sideToggle.addEventListener("click", () => {
+        const colapsada = document.body.classList.toggle("side-collapsed");
+        sideToggle.setAttribute("aria-expanded", String(!colapsada));
+        sideToggle.title = colapsada ? "Expandir" : "Minimizar";
+      });
+
+      const assistant = document.getElementById("assistant-panel");
+      const assistantToggle = document.getElementById("assistant-toggle");
+      const assistantClose = document.getElementById("assistant-close");
+      function closeAssistant() { assistant.hidden = true; assistantToggle.setAttribute("aria-expanded", "false"); assistantToggle.focus(); }
+      assistantToggle.addEventListener("click", () => {
+        assistant.hidden = !assistant.hidden;
+        assistantToggle.setAttribute("aria-expanded", String(!assistant.hidden));
+        if (assistant.hidden) assistantToggle.focus(); else assistantClose.focus();
+      });
+      assistantClose.addEventListener("click", closeAssistant);
+      assistant.addEventListener("keydown", event => { if (event.key === "Escape") closeAssistant(); });
+      document.querySelectorAll("[data-scroll-to]").forEach(button => button.addEventListener("click", () => {
+        document.getElementById(button.dataset.scrollTo).scrollIntoView({ behavior: "smooth", block: "start" });
+        closeAssistant();
+      }));
+
+      const sections = [...document.querySelectorAll(".feed-card")];
+      const dots = [...document.querySelectorAll(".progress-dot")];
+      const observer = new IntersectionObserver(entries => {
+        const visible = entries.filter(entry => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (!visible) return;
+        const index = sections.indexOf(visible.target);
+        dots.forEach((dot, dotIndex) => {
+          if (dotIndex === index) dot.setAttribute("aria-current", "step");
+          else dot.removeAttribute("aria-current");
+        });
+      }, { rootMargin: "-20% 0px -60% 0px", threshold: [0, .15, .35, .55] });
+      sections.forEach(section => observer.observe(section));
+    })();
+  </script>
+</body>
+</html>

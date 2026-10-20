@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Central de Receita · Cockpit Feed</title>
+<style>
+  :root{
+    --bg:#070B0A; --bg2:#0A0F0E; --surface:#101816; --surface2:#15201D; --line:#1E2B27; --line2:#2A3B36;
+    --ink:#E8F2EE; --ink2:#9FB4AD; --ink3:#6E847D;
+    --em:#2DD4A7; --em-dim:rgba(45,212,167,.14); --em-line:rgba(45,212,167,.35);
+    --red:#F87171; --red-dim:rgba(248,113,113,.12);
+    --amber:#FBBF24; --amber-dim:rgba(251,191,36,.12);
+    --blue:#60A5FA;
+    --r:18px; --r-sm:12px;
+    --font:'Public Sans',ui-sans-serif,'Segoe UI',Inter,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-snap-type:y proximity;scroll-behavior:smooth;background:var(--bg)}
+  body{font-family:var(--font);color:var(--ink);background:
+    radial-gradient(1200px 500px at 80% -10%, rgba(45,212,167,.06), transparent 60%),
+    var(--bg);}
+  button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+  button:focus-visible,a:focus-visible{outline:2px solid var(--em);outline-offset:3px;border-radius:8px}
+  .num{font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+  /* ---------- topbar ---------- */
+  .top{position:fixed;inset:0 0 auto 0;z-index:50;height:56px;display:flex;align-items:center;gap:14px;
+    padding:0 clamp(16px,3vw,40px);background:rgba(7,11,10,.82);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:14px;letter-spacing:.01em}
+  .brand i{width:8px;height:8px;border-radius:3px;background:var(--em);display:inline-block;box-shadow:0 0 12px var(--em)}
+  .brand small{color:var(--ink3);font-weight:500}
+  .pills{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .pill{border:1px solid var(--line2);border-radius:999px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--ink2);background:var(--surface)}
+  .pill.active{background:var(--em-dim);border-color:var(--em-line);color:var(--em)}
+  .snap-chip{font-size:11px;color:var(--ink3)}
+
+  /* ---------- progress rail (stories) ---------- */
+  .rail{position:fixed;right:clamp(10px,2vw,26px);top:50%;translate:0 -50%;z-index:40;display:flex;flex-direction:column;gap:10px}
+  .rail a{width:8px;height:8px;border-radius:50%;background:var(--line2);display:block;transition:.25s}
+  .rail a.on{background:var(--em);box-shadow:0 0 10px var(--em)}
+  .rail a:hover{background:var(--ink2)}
+
+  /* ---------- feed ---------- */
+  main{max-width:1080px;margin:0 auto;padding:96px clamp(16px,4vw,40px) 40px}
+  .card{scroll-snap-align:center;min-height:min(78vh,760px);margin-bottom:26px;
+    background:linear-gradient(180deg,var(--surface) 0%,var(--bg2) 100%);
+    border:1px solid var(--line);border-radius:var(--r);padding:clamp(20px,3vw,32px);
+    display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+  .k{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+  .k h2{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+  .k .total{margin-left:auto;font-size:13px;font-weight:700;color:var(--em)}
+  .sub{font-size:12px;color:var(--ink3);margin-bottom:18px}
+
+  /* exige você */
+  .exige{display:flex;flex-direction:column;flex:1;min-height:0}
+  .exige-row{display:grid;grid-template-columns:14px minmax(0,1fr) auto auto;gap:14px;align-items:center;
+    padding:15px 4px;border-top:1px solid var(--line)}
+  .exige-row:first-of-type{border-top:none}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .dot.crit{background:var(--red);box-shadow:0 0 10px rgba(248,113,113,.5)}
+  .dot.warn{background:var(--amber);box-shadow:0 0 10px rgba(251,191,36,.4)}
+  .exige-row .who{min-width:0}
+  .exige-row .who b{display:block;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .exige-row .who span{font-size:12px;color:var(--ink3)}
+  .exige-row .val{font-size:clamp(22px,2.6vw,30px);font-weight:800;text-align:right}
+  .exige-row .val small{display:block;font-size:11px;font-weight:600;color:var(--ink3)}
+  .go{border:1px solid var(--em-line);background:var(--em-dim);color:var(--em);font-size:12px;font-weight:700;
+    border-radius:10px;padding:9px 14px;white-space:nowrap}
+  .go:hover{background:rgba(45,212,167,.22)}
+
+  /* entra na semana */
+  .big{font-size:clamp(48px,7vw,84px);font-weight:800;letter-spacing:-.03em;line-height:1;margin:8px 0 2px}
+  .big small{font-size:.38em;font-weight:700;color:var(--ink2);letter-spacing:0}
+  .delta{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--em);
+    background:var(--em-dim);border-radius:999px;padding:5px 12px;margin-top:8px}
+  .week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:26px}
+  .day{display:flex;flex-direction:column;gap:8px;align-items:stretch;height:120px}
+  .day .barwrap{flex:1;display:flex;align-items:flex-end;background:var(--surface2);border-radius:10px;overflow:hidden}
+  .day .bar{width:100%;background:linear-gradient(180deg,var(--em),rgba(45,212,167,.35));border-radius:10px 10px 4px 4px;min-height:4px}
+  .day.off .bar{background:linear-gradient(180deg,var(--line2),var(--line))}
+  .day .lbl{font-size:10px;font-weight:700;color:var(--ink3);text-align:center;text-transform:uppercase;letter-spacing:.08em}
+  .day .v{font-size:11px;font-weight:700;color:var(--ink2);text-align:center}
+  .tops{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+  .top-pill{display:flex;align-items:center;gap:10px;border:1px solid var(--line2);background:var(--surface2);
+    border-radius:999px;padding:9px 16px 9px 12px;font-size:13px}
+  .top-pill b{font-weight:700}
+  .top-pill .num{color:var(--em);font-weight:800}
+  .top-pill:hover{border-color:var(--em-line)}
+
+  /* unidades */
+  .units{display:flex;flex-direction:column;flex:1;min-height:0}
+  .unit{display:grid;grid-template-columns:minmax(90px,150px) minmax(0,1fr) auto;gap:14px;align-items:center;padding:11px 4px;border-top:1px solid var(--line)}
+  .unit:first-of-type{border-top:none}
+  .unit .nm{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .unit .barline{position:relative;height:26px}
+  .unit .track{position:absolute;inset:0;background:var(--surface2);border-radius:7px}
+  .unit .fill{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,rgba(45,212,167,.28),rgba(45,212,167,.75));border-radius:7px}
+  .unit .mini{position:absolute;top:50%;translate:0 -50%;height:6px;border-radius:4px;background:var(--blue);opacity:.9}
+  .unit .right{display:flex;align-items:center;gap:12px;justify-content:flex-end}
+  .unit .uv{font-size:15px;font-weight:800;text-align:right}
+  .unit .uv small{display:block;font-size:10px;color:var(--ink3);font-weight:600}
+  .var{font-size:12px;font-weight:800;display:inline-flex;gap:3px;align-items:center}
+  .var.up{color:var(--em)} .var.dn{color:var(--red)} .var.fl{color:var(--ink3)}
+  .sdots{display:flex;gap:4px}
+  .sdots i{width:6px;height:6px;border-radius:50%;display:inline-block}
+  .units-scroll{overflow-y:auto;min-height:0;max-height:340px;padding-right:4px}
+  .units-scroll::-webkit-scrollbar{width:6px}
+  .units-scroll::-webkit-scrollbar-thumb{background:var(--line2);border-radius:6px}
+
+  /* pipeline */
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .kpi{background:var(--surface2);border:1px solid var(--line);border-radius:var(--r-sm);padding:16px 16px 14px}
+  .kpi .t{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+  .kpi .v{font-size:clamp(20px,2.4vw,30px);font-weight:800;margin-top:8px}
+  .kpi .v em{font-style:normal;font-size:.52em;font-weight:700;color:var(--ink2)}
+  .kpi .d{font-size:11.5px;color:var(--ink3);margin-top:4px}
+  .kpi.bad{border-color:rgba(248,113,113,.3);background:linear-gradient(180deg,var(--red-dim),var(--surface2))}
+  .kpi.bad .v{color:var(--red)}
+  .etapas{margin-top:26px;display:flex;flex-direction:column;gap:10px}
+  .etapa{display:grid;grid-template-columns:120px 1fr 90px;gap:12px;align-items:center}
+  .etapa .nm{font-size:12.5px;font-weight:600;color:var(--ink2)}
+  .etapa .tr{height:12px;background:var(--surface2);border-radius:6px;overflow:hidden}
+  .etapa .fl{height:100%;border-radius:6px;background:linear-gradient(90deg,rgba(45,212,167,.25),var(--em))}
+  .etapa.dim .fl{background:var(--line2)}
+  .etapa .vv{font-size:13px;font-weight:800;text-align:right}
+
+  /* footer + fab */
+  .foot{position:fixed;inset:auto 0 0 0;z-index:50;display:flex;justify-content:center;pointer-events:none}
+  .foot span{pointer-events:auto;margin-bottom:14px;background:rgba(16,24,22,.85);border:1px solid var(--line2);
+    backdrop-filter:blur(10px);color:var(--ink3);font-size:11px;font-weight:600;border-radius:999px;padding:7px 16px}
+  .fab{position:fixed;right:clamp(16px,3vw,40px);bottom:34px;z-index:60;width:52px;height:52px;border-radius:16px;
+    background:linear-gradient(135deg,var(--em),#14B98A);display:grid;place-items:center;
+    box-shadow:0 10px 30px rgba(45,212,167,.35);color:#04110C}
+  .fab:hover{transform:translateY(-2px)}
+  .fab svg{width:22px;height:22px}
+
+  @media (max-width:720px){
+    .grid4{grid-template-columns:1fr 1fr}
+    .exige-row{grid-template-columns:12px minmax(0,1fr) auto}
+    .exige-row .go{display:none}
+    .etapa{grid-template-columns:96px 1fr 76px}
+    .rail{display:none}
+    .pill{padding:5px 10px;font-size:11px}
+  }
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><i></i>Senior <small>· Central de Receita</small></div>
+  <div class="pills">
+    <button class="pill active" aria-pressed="true">Todas as unidades</button>
+    <button class="pill" aria-pressed="false">Público</button>
+    <button class="pill" aria-pressed="false">Privado</button>
+    <span class="snap-chip num">snapshot 22/09</span>
+  </div>
+</header>
+
+<nav class="rail" aria-label="Progresso do feed">
+  <a href="#exige" class="on" aria-label="Exige você"></a>
+  <a href="#semana" aria-label="Entra na semana"></a>
+  <a href="#unidades" aria-label="Unidades"></a>
+  <a href="#pipeline" aria-label="Pipeline e PEX"></a>
+</nav>
+
+<main>
+
+  <!-- 1 · EXIGE VOCÊ -->
+  <section class="card" id="exige" aria-label="Exige você — decisões por valor">
+    <div class="k"><h2>Exige você</h2><span class="total num">R$ 15,4 mi hoje</span></div>
+    <p class="sub">ordenado por dinheiro em jogo · 1 decisão por linha</p>
+    <div class="exige">
+      <div class="exige-row">
+        <span class="dot crit" aria-hidden="true"></span>
+        <div class="who"><b>Passo Fundo</b><span>Previsão vencida · 3 opp · 6 resp.</span></div>
+        <div class="val num">R$ 1,18 mi<small>recuperável</small></div>
+        <button class="go">Resolver</button>
+      </div>
+      <div class="exige-row">
+        <span class="dot crit" aria-hidden="true"></span>
+        <div class="who"><b>Rio Verde</b><span>Sem ação registrada 21d · 5 opp · 4 resp.</span></div>
+        <div class="val num">R$ 890 mil<small>parado</small></div>
+        <button class="go">Cobrar</button>
+      </div>
+      <div class="exige-row">
+        <span class="dot warn" aria-hidden="true"></span>
+        <div class="who"><b>Cuiabá</b><span>Slip &gt; 60 dias · 4 opp · 3 resp.</span></div>
+        <div class="val num">R$ 640 mil<small>em risco</small></div>
+        <button class="go">Revalidar</button>
+      </div>
+      <div class="exige-row">
+        <span class="dot warn" aria-hidden="true"></span>
+        <div class="who"><b>Campinas</b><span>Win sem pedido &gt; 30d · 3 opp · 2 resp.</span></div>
+        <div class="val num">R$ 512 mil<small>sem pedido</small></div>
+        <button class="go">Pedir pedido</button>
+      </div>
+      <div class="exige-row">
+        <span class="dot warn" aria-hidden="true"></span>
+        <div class="who"><b>Sorriso</b><span>Pedido não conferido &gt; 15d · 6 pedidos</span></div>
+        <div class="val num">R$ 430 mil<small>a conferir</small></div>
+        <button class="go">Conferir</button>
+      </div>
+      <div class="exige-row">
+        <span class="dot" style="background:var(--blue)" aria-hidden="true"></span>
+        <div class="who"><b>Diretoria</b><span>Decisões do Ciclo 1 a congelar · D01–D11</span></div>
+        <div class="val num">6 decisões<small>fórum sexta 10h</small></div>
+        <button class="go">Ver decisões</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · ENTRA NA SEMANA -->
+  <section class="card" id="semana" aria-label="O que entra na semana">
+    <div class="k"><h2>Entra na semana</h2><span class="total num">7 dias</span></div>
+    <p class="sub">fechamentos previstos · 22 a 28 set</p>
+    <div>
+      <div class="big num">R$ 360,5 <small>mil · 3 oportunidades</small></div>
+      <span class="delta">▲ +8% vs semana anterior</span>
+    </div>
+    <div class="week" role="img" aria-label="Entradas por dia da semana: segunda 120 mil, terça 80,5 mil, quarta 160 mil, quinta 0, sexta 0, sábado 0, domingo 0">
+      <div class="day"><div class="barwrap"><div class="bar" style="height:75%"></div></div><span class="v num">120k</span><span class="lbl">seg</span></div>
+      <div class="day"><div class="barwrap"><div class="bar" style="height:50%"></div></div><span class="v num">80k</span><span class="lbl">ter</span></div>
+      <div class="day"><div class="barwrap"><div class="bar" style="height:100%"></div></div><span class="v num">160k</span><span class="lbl">qua</span></div>
+      <div class="day off"><div class="barwrap"><div class="bar" style="height:3%"></div></div><span class="v num">—</span><span class="lbl">qui</span></div>
+      <div class="day off"><div class="barwrap"><div class="bar" style="height:3%"></div></div><span class="v num">—</span><span class="lbl">sex</span></div>
+      <div class="day off"><div class="barwrap"><div class="bar" style="height:3%"></div></div><span class="v num">—</span><span class="lbl">sáb</span></div>
+      <div class="day off"><div class="barwrap"><div class="bar" style="height:3%"></div></div><span class="v num">—</span><span class="lbl">dom</span></div>
+    </div>
+    <div class="tops">
+      <button class="top-pill"><b>ERP Cloud Migration · AgroTech</b> <span class="num">R$ 160 mil</span></button>
+      <button class="top-pill"><b>Gestão de Ativos · Vale Verde</b> <span class="num">R$ 120 mil</span></button>
+      <button class="top-pill"><b>BI Upgrade · Casa &amp; Obra</b> <span class="num">R$ 80,5 mil</span></button>
+    </div>
+  </section>
+
+  <!-- 3 · UNIDADES -->
+  <section class="card" id="unidades" aria-label="Ranking de unidades">
+    <div class="k"><h2>Unidades</h2><span class="total num">29 · pipeline R$ 18,33 mi</span></div>
+    <p class="sub">barra = pipeline aberto · traço azul = entra 7d · clique filtra</p>
+    <div class="units">
+      <div class="units-scroll">
+        <div class="unit" role="button" tabindex="0" aria-label="Rio Verde, pipeline 1,66 milhões, entra 7 dias 410 mil, variação positiva 120 mil">
+          <span class="nm">Rio Verde</span>
+          <span class="barline"><span class="track"></span><span class="fill" style="width:100%"></span><span class="mini" style="left:calc(100% - 26%);width:26%"></span></span>
+          <span class="right"><span class="sdots" aria-hidden="true"><i style="background:var(--red)"></i><i style="background:var(--amber)"></i></span><span class="var up">▲ 120k</span><span class="uv num">R$ 1,66 mi<small>9 opp</small></span></span>
+        </div>
+        <div class="unit" role="button" tabindex="0">
+          <span class="nm">Passo Fundo</span>
+          <span class="barline"><span class="track"></span><span class="fill" style="width:71%"></span><span class="mini" style="left:calc(71% - 14%);width:14%"></span></span>
+          <span class="right"><span class="sdots" aria-hidden="true"><i style="background:var(--red)"></i></span><span class="var dn">▼ 60k</span><span class="uv num">R$ 1,18 mi<small>7 opp</small></span></span>
+        </div>
+        <div class="unit" role="button" tabindex="0">
+          <span class="nm">Cuiabá</span>
+          <span class="barline"><span class="track"></span><span class="fill" style="width:66%"></span><span class="mini" style="left:calc(66% - 12%);width:12%"></span></span>
+          <span class="right"><span class="sdots" aria-hidden="true"><i style="background:var(--amber)"></i></span><span class="var up">▲ 40k</span><span class="uv num">R$ 1,10 mi<small>6 opp</small></span></span>
+        </div>
+        <div class="unit" role="button" tabindex="0">
+          <span class="nm">Campinas</span>
+          <span class="barline"><span class="track"></span><span class="fill" style="width:59%"></span><span class="mini" style="left:calc(59% - 10%);width:10%"></span></span>
+          <span class="right"><span class="sdots" aria-hidden="true"><i style="background:var(--blue)"></i></span><span class="var fl">—</span><span class="uv num">R$ 980 mil<small>5 opp</small></span></span>
+        </div>
+        <div class="unit" role="button" tabindex="0">
+          <span class="nm">Sorriso</span>
+          <span class="barline"><span class="track"></span><span class="fill" style="width:52%"></span></span>
+          <span class="right"><span class="sdots" aria-hidden="true"></span><span class="var up">▲ 25k</span><span class="uv num">R$ 870 mil<small>4 opp</small></span></span>
+        </div>
+        <div class="unit" role="button" tabindex="0">
+          <span class="nm">Ribeirão Preto</span>
+          <span class="barline"><span class="track"></span><span class="fill" style="width:46%"></span></span>
+          <span class="right"><span class="sdots" aria-hidden="true"><i style="background:var(--amber)"></i></span><span class="var dn">▼ 18k</span><span class="uv num">R$ 760 mil<small>4 opp</small></span></span>
+        </div>
+        <div class="unit" role="button" tabindex="0">
+          <span class="nm">Goiânia</span>
+          <span class="barline"><span class="track"></span><span class="fill" style="width:40%"></span></span>
+          <span class="right"><span class="sdots" aria-hidden="true"></span><span class="var up">▲ 12k</span><span class="uv num">R$ 665 mil<small>3 opp</small></span></span>
+        </div>
+        <div class="unit" role="button" tabindex="0">
+          <span class="nm">Uberlândia</span>
+          <span class="barline"><span class="track"></span><span class="fill" style="width:35%"></span></span>
+          <span class="right"><span class="sdots" aria-hidden="true"></span><span class="var fl">—</span><span class="uv num">R$ 585 mil<small>3 opp</small></span></span>
+        </div>
+        <div class="unit" role="button" tabindex="0">
+          <span class="nm">Fortaleza</span>
+          <span class="barline"><span class="track"></span><span class="fill" style="width:29%"></span></span>
+          <span class="right"><span class="sdots" aria-hidden="true"></span><span class="var up">▲ 8k</span><span class="uv num">R$ 490 mil<small>3 opp</small></span></span>
+        </div>
+        <div class="unit" role="button" tabindex="0">
+          <span class="nm">+ 20 unidades</span>
+          <span class="barline"><span class="track"></span><span class="fill" style="width:22%"></span></span>
+          <span class="right"><span class="sdots" aria-hidden="true"></span><span class="var fl">—</span><span class="uv num">R$ 6,0 mi<small>17 opp</small></span></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · PIPELINE & PEX -->
+  <section class="card" id="pipeline" aria-label="Pipeline e PEX">
+    <div class="k"><h2>Pipeline &amp; PEX</h2><span class="total num">set/2026</span></div>
+    <p class="sub">aberto vs projeção vs competência · zero real e indisponível diferenciados</p>
+    <div class="grid4">
+      <div class="kpi"><div class="t">Pipeline aberto</div><div class="v num">R$ 18,33 <em>mi</em></div><div class="d">59 oportunidades</div></div>
+      <div class="kpi"><div class="t">Projeção 30d</div><div class="v num">R$ 5,56 <em>mi</em></div><div class="d">23 oportunidades · −2,19 mi desde 15/09</div></div>
+      <div class="kpi"><div class="t">Forecast PEX</div><div class="v num">R$ 408,5 <em>mil</em></div><div class="d">competência set · 3 oportunidades</div></div>
+      <div class="kpi bad"><div class="t">Previsão vencida</div><div class="v num">R$ 6,06 <em>mi</em></div><div class="d">16 oportunidades · 6 responsáveis</div></div>
+    </div>
+    <div class="etapas">
+      <div class="etapa"><span class="nm">Negociação</span><span class="tr"><span class="fl" style="width:99%"></span></span><span class="vv num">R$ 2,43 mi</span></div>
+      <div class="etapa"><span class="nm">SQL</span><span class="tr"><span class="fl" style="width:100%"></span></span><span class="vv num">R$ 2,45 mi</span></div>
+      <div class="etapa"><span class="nm">Fechamento</span><span class="tr"><span class="fl" style="width:92%"></span></span><span class="vv num">R$ 2,25 mi</span></div>
+      <div class="etapa dim"><span class="nm">Demais etapas</span><span class="tr"><span class="fl" style="width:100%"></span></span><span class="vv num">R$ 11,2 mi</span></div>
+    </div>
+  </section>
+
+</main>
+
+<div class="foot"><span>Snapshot 22/09 · dados sintéticos · somente leitura</span></div>
+
+<button class="fab" aria-label="Pergunte à Receita">
+  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 5.7L19.6 9l-5.7 1.9L12 16.6l-1.9-5.7L4.4 9l5.7-1.3L12 2zm7 12l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9.9-2.6zM5.5 14l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7.7-2z"/></svg>
+</button>
+
+<script>
+  // rail acompanha o cartão visível
+  const links=[...document.querySelectorAll('.rail a')];
+  const cards=links.map(a=>document.querySelector(a.getAttribute('href')));
+  const io=new IntersectionObserver((es)=>{
+    es.forEach(e=>{ if(e.isIntersecting){ const i=cards.indexOf(e.target); links.forEach((l,j)=>l.classList.toggle('on',i===j)); } });
+  },{rootMargin:'-40% 0px -40% 0px'});
+  cards.forEach(c=>io.observe(c));
+  // pills de recorte (visual)
+  document.querySelectorAll('.top .pill').forEach(p=>p.addEventListener('click',()=>{
+    document.querySelectorAll('.top .pill').forEach(x=>x.setAttribute('aria-pressed','false'));
+    p.setAttribute('aria-pressed','true');
+    document.querySelectorAll('.top .pill').forEach(x=>x.classList.toggle('active',x===p));
+  }));
+  // unidade filtra (visual: marca pill do topo)
+  document.querySelectorAll('.unit').forEach(u=>u.addEventListener('click',()=>{
+    const nome=u.querySelector('.nm').textContent.split(' — ')[0].replace('+ ','');
+    const pill=document.querySelector('.top .pill');
+    pill.textContent='Unidade: '+nome.replace(/\s\d+.*/,'');
+  }));
+</script>
+</body>
+</html>
