@@ -1,6 +1,6 @@
 import { BLOCOS_HOME } from '../copy'
 import type { Kpi, SemanaRow } from '../model'
-import { suavizar } from './weekly-forecast-scene'
+import { suavizar } from '../chart-math'
 
 /**
  * Bloco analítico `Evolução do mês` (plano Task 5 Step 1, l.469-479).

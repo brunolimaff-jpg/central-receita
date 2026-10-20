@@ -272,7 +272,7 @@ export function CommercialV3App() {
         <Link href={nav.href('config')} className="font-semibold text-[#086b6b] underline">Consultar cargas</Link>
       </div>}
       {view === 'config' && <ImportScreen draft={importDraft} canImport={canImport} onSaved={draft => { importEpoch.current++; setPreviousImportDraft(importDraft); setImportDraft(draft); setImportError('') }} loading={importLoading} loadError={importError} nav={nav} />}
-      {executiveView && <ExecutivePage opportunities={importDraft?.opportunities ?? null} orders={importDraft?.orders ?? null} previous={previousImportDraft} nav={nav} demoWeeks={home.semanas} demoWeek={home.semanaAtual} demoKpis={home.kpis} demoAsOf={COMMERCIAL_SNAPSHOT.asOf} carregando={importLoading && !importDraft} />}
+      {executiveView && <ExecutivePage opportunities={importDraft?.opportunities ?? null} orders={importDraft?.orders ?? null} previous={previousImportDraft} history={importDraft?.history ?? []} nav={nav} carregando={importLoading && !importDraft} />}
 
       {view === 'agent' && <AgentScreen briefing={briefing} from={from} nav={nav} />}
 

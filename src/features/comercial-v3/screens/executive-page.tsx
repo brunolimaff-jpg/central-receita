@@ -12,10 +12,20 @@ import { BarraProgressoAnimada, Donut, ImpactRing, MetricCard, MovementCard, PAI
 import { NewNameSection } from '../components/new-name-section'
 import { PipelineSection } from '../components/pipeline-section'
 import type { CommercialNav } from '../nav'
-import type { ImportDraft } from '../manual-import-client'
-import type { Kpi, SemanaRow } from '../model'
+import type { ImportDraft, ImportHistoryEntry } from '../manual-import-client'
 import type { MovementLabel } from '../movement-rows'
+import { buildTrajectory, type TrajectorySnapshot } from '../trajectory-model'
 import { CARTOES_FORECAST, ImportedForecastScreen, selectForecastMovements } from './import-forecast-screen'
+
+/**
+ * O snapshot do histórico usa `number | null`, onde nulo contamina a conta. O
+ * modelo da trajetória só publica pontos com resumo inteiro conhecido; este
+ * guarda diz quais entradas podem virar ponto, sem converter nulo em zero.
+ */
+const resumoConhecido = (snapshot: ImportHistoryEntry['snapshot']): boolean =>
+  snapshot !== undefined
+  && snapshot.forecastTotal !== null && snapshot.entered !== null && snapshot.exited !== null
+  && snapshot.changed !== null && snapshot.realized !== null
 
 /**
  * Visão Executiva: painel de leitura do mês de referência (docs/PLANO-VISAO-EXECUTIVA.md).
@@ -79,15 +89,13 @@ function EmptySection({ id, titulo, contexto, nav, carregando }: { id: string; t
   )
 }
 
-export function ExecutivePage({ opportunities, orders, previous, nav, demoWeeks, demoWeek, demoKpis, demoAsOf, carregando = false }: {
+export function ExecutivePage({ opportunities, orders, previous, history, nav, carregando = false }: {
   opportunities: ImportDraft['opportunities']
   orders: ImportDraft['orders']
   previous: ImportDraft | null
+  /** Histórico de cargas já confirmadas, com o snapshot numérico quando existir. */
+  history: ImportHistoryEntry[]
   nav: CommercialNav
-  demoWeeks: SemanaRow[]
-  demoWeek: number | null
-  demoKpis: Kpi[]
-  demoAsOf: string
   carregando?: boolean
 }) {
   const referenceDate = opportunities?.referenceDate ?? orders?.referenceDate ?? ''
@@ -106,6 +114,19 @@ export function ExecutivePage({ opportunities, orders, previous, nav, demoWeeks,
     [orders, opportunities, previousOrders, previousOpportunities, ordersReferenceDate],
   )
   const pipeline = useMemo(() => opportunities && referenceDate ? buildPipelineOverview(opportunities.records, referenceDate) : null, [opportunities, referenceDate])
+  const trajectory = useMemo(
+    () => buildTrajectory({
+      opportunities: opportunities?.records ?? [],
+      previous: previousOpportunities,
+      referenceDate,
+      // O histórico guarda `number | null`; o modelo só desenha um ponto quando o
+      // resumo inteiro é conhecido. Carga com resumo nulo fica de fora do eixo.
+      history: history.flatMap(entry => entry.snapshot && resumoConhecido(entry.snapshot)
+        ? [{ at: entry.at, snapshot: entry.snapshot as TrajectorySnapshot }]
+        : []),
+    }),
+    [opportunities, previousOpportunities, referenceDate, history],
+  )
 
   const resultado = forecast?.result
   const esperado = resultado?.projected ?? null
@@ -334,18 +355,8 @@ export function ExecutivePage({ opportunities, orders, previous, nav, demoWeeks,
         ? <PipelineSection records={opportunities.records} previousRecords={previousOpportunities} referenceDate={referenceDate} />
         : <EmptySection id="opportunities" titulo="Oportunidades" contexto="Entradas, saídas e mudanças na carteira aberta." nav={nav} carregando={carregando} />}
 
-      {temCarga && demoWeeks.length > 0 && (
-        <PanelSection
-          id="trajectory"
-          titulo="Trajetória da Receita"
-          contexto="Cortes semanais de sexta. Cenário demonstrativo, ainda sem histórico da carga."
-          acao={<span className="revenue-pill tone-marca">Demonstrativo</span>}
-        >
-          <div aria-label="Trajetória da Receita, demonstrativa e não associada à carga importada">
-            <AgentHero semanas={demoWeeks} semanaAtual={demoWeek} kpis={demoKpis} asOf={demoAsOf} />
-          </div>
-        </PanelSection>
-      )}
+      {/* Ticket 04 move a seção para logo depois do movimento do forecast. */}
+      <AgentHero model={trajectory} />
     </div>
   )
 }
