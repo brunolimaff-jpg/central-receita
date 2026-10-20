@@ -226,6 +226,11 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
               </Stagger>
 
               <Panel titulo="Movimento do forecast" subtitulo="Entradas, saídas, ganhos e perdas do mês contra a carga anterior.">
+                {resultado?.notice && (
+                  <p role="note" className="mb-3 rounded-[10px] bg-dado-atencao-suave px-4 py-3 text-[13px] leading-5 text-dado-atencao">
+                    {resultado.notice}
+                  </p>
+                )}
                 <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                   {forecast && CARTOES_FORECAST.map(({ key }) => {
                     const item = grupo(key)

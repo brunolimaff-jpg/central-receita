@@ -159,6 +159,12 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate }: 
         />
       </Panel>
 
+      {monthResult.notice && (
+        <p role="note" className="rounded-[10px] bg-dado-atencao-suave px-4 py-3 text-[13px] leading-5 text-dado-atencao">
+          {monthResult.notice}
+        </p>
+      )}
+
       <p className="px-1 text-[12px] leading-5 text-ink-muted">
         {monthResult.probabilityAvailable
           ? 'Critério: Proposta ou Negociação, chance de 75% ou mais, previsão no mês.'
