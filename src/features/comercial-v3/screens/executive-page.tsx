@@ -6,7 +6,7 @@ import { ArrowRight, CheckCircle2, Lightbulb, Target, TrendingUp, TriangleAlert,
 import { calculateNewNameModel } from '../new-name-model'
 import { buildPipelineOverview } from '../pipeline-model'
 import { formatarOportunidades, formatarPercentualInteiro, formatarRealCompacto } from '../format'
-import { AgentHero } from '../components/agent-hero'
+import { TrajectoryChart, TrajectoryLegend } from '../components/trajectory-chart'
 import { FadeUp, Stagger, StaggerItem } from '../components/motion-primitives'
 import { BarraProgressoAnimada, Donut, ImpactRing, MetricCard, MovementCard, PAINEL, Panel, PanelSection, Selo, formatarDataCurta, type RingGroup, type Tom } from '../components/executive-ui'
 import { NewNameSection } from '../components/new-name-section'
@@ -14,7 +14,7 @@ import { PipelineSection } from '../components/pipeline-section'
 import type { CommercialNav } from '../nav'
 import type { ImportDraft, ImportHistoryEntry } from '../manual-import-client'
 import type { MovementLabel } from '../movement-rows'
-import { buildTrajectory, type TrajectorySnapshot } from '../trajectory-model'
+import { buildTrajectory, cabecalhoTrajetoria, type TrajectorySnapshot } from '../trajectory-model'
 import { CARTOES_FORECAST, ImportedForecastScreen, selectForecastMovements } from './import-forecast-screen'
 
 /**
@@ -31,9 +31,8 @@ const resumoConhecido = (snapshot: ImportHistoryEntry['snapshot']): boolean =>
  * Visão Executiva: painel de leitura do mês de referência (docs/PLANO-VISAO-EXECUTIVA.md).
  *
  * Ordem: saudação com o retrato do mês, indicadores, movimento do forecast e o
- * briefing à direita; abaixo, as seções Forecast, New Name e Oportunidades, e por
- * último a trajetória semanal, que é demonstrativa. Quem abre a tela vê primeiro
- * o que veio da carga real.
+ * briefing à direita; logo depois, a Trajetória da Receita (sempre visível); e
+ * abaixo, as seções Forecast, New Name e Oportunidades.
  */
 
 const NOTAS_FORECAST: Record<string, string> = {
@@ -127,6 +126,7 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
     }),
     [opportunities, previousOpportunities, referenceDate, history],
   )
+  const cabecalho = cabecalhoTrajetoria(trajectory, previous?.opportunities?.importedAt ?? previous?.opportunities?.savedAt ?? null)
 
   const resultado = forecast?.result
   const esperado = resultado?.projected ?? null
@@ -343,6 +343,24 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
         )}
       </section>
 
+      {/* Sempre visível, inclusive sem carga: o diretor precisa saber que a seção existe. */}
+      <PanelSection
+        id="trajectory"
+        titulo="Trajetória da Receita"
+        contexto={cabecalho.contexto}
+        acao={cabecalho.selo ? <span className={`revenue-pill tone-${cabecalho.selo.tom}`}>{cabecalho.selo.texto}</span> : undefined}
+      >
+        <section className="revenue-panel vidro min-w-0">
+          {trajectory.regime !== 'vazio' && (
+            <header className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-[12px] text-ink-muted">Valores em reais, acumulados até cada data da carga.</p>
+              <TrajectoryLegend model={trajectory} />
+            </header>
+          )}
+          <TrajectoryChart model={trajectory} />
+        </section>
+      </PanelSection>
+
       {opportunities
         ? <ImportedForecastScreen batch={opportunities} previousBatch={previous?.opportunities ?? null} referenceDate={referenceDate} />
         : <EmptySection id="forecast" titulo="Forecast" contexto="Previsto, realizado e o que mudou desde a carga anterior." nav={nav} carregando={carregando} />}
@@ -354,9 +372,6 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
       {opportunities
         ? <PipelineSection records={opportunities.records} previousRecords={previousOpportunities} referenceDate={referenceDate} />
         : <EmptySection id="opportunities" titulo="Oportunidades" contexto="Entradas, saídas e mudanças na carteira aberta." nav={nav} carregando={carregando} />}
-
-      {/* Ticket 04 move a seção para logo depois do movimento do forecast. */}
-      <AgentHero model={trajectory} />
     </div>
   )
 }
