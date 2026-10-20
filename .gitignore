@@ -8,3 +8,4 @@ dist/
 
 *.bak-*
 
+.claude/worktrees/
