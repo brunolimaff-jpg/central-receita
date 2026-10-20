@@ -43,7 +43,13 @@ export function CommercialShell({
 }: CommercialShellProps) {
   return (
     <div className="revenue-app">
-      <div aria-hidden className="revenue-bg" />
+      <div aria-hidden className="revenue-bg">
+        <div className="revenue-blob revenue-blob-1" />
+        <div className="revenue-blob revenue-blob-2" />
+        <div className="revenue-blob revenue-blob-3" />
+        <div className="revenue-blob revenue-blob-4" />
+        <div className="revenue-grain" />
+      </div>
       <div aria-hidden className="revenue-bg-faixa" />
       <CommercialSidebar view={executiveMode ? 'home' : view} from={from} nav={nav} importPreview={importPreview} dataCarga={dataCarga} paginaCorrida={executiveMode} />
 

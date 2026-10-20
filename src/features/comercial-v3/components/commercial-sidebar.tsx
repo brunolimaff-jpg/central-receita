@@ -108,6 +108,11 @@ export function CommercialSidebar({
         navegação; com a foto da sede atrás do topo, o bloco centralizado lê
         como assinatura da casa, e a navegação abaixo mantém a guia própria.
       */}
+      {/*
+        Duas marcas, uma por estado da coluna. Expandida: o wordmark com a
+        assinatura. Recolhida: só o símbolo "S", que a marca permite usar
+        isolado como apoio — e é a única forma que cabe em 72px sem truncar.
+      */}
       <Link href={nav.href('home')} className="mb-5 flex flex-col items-center gap-1 px-3 pb-1 text-center">
         <Image
           src="/brand/senior-official-logos/slide-12-logo-01.svg"
@@ -115,7 +120,15 @@ export function CommercialSidebar({
           width={112}
           height={36}
           priority
-          className="h-[34px] w-auto"
+          className="revenue-marca-logo h-[34px] w-auto"
+        />
+        <Image
+          src="/brand/senior-official-logos/senior-simbolo-verde.png"
+          alt="Senior"
+          width={24}
+          height={45}
+          priority
+          className="revenue-marca-simbolo h-[34px] w-auto"
         />
         <span className="revenue-marca-texto text-[11px] font-medium tracking-[0.02em] text-ink-muted">Central de Receita</span>
       </Link>
