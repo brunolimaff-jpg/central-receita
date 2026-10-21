@@ -17,21 +17,21 @@ Não é: realizado de vendas, e nunca soma dinheiro sobre o forecast (ADR-0005).
 Código: substatus `em conferência` em `src/features/comercial-v3/new-name-model.ts` (`DEFAULT_STATUS_MAPPING`). A fila como bloco de tela: ainda não implementado.
 
 ### Realizado de vendas
-Marco final único: pedidos conferidos ou integrados com ERP. Um pedido conta uma vez, qualquer que seja o número de itens. Denominador do atingimento.
-Não é: ganhos no CRM; faturamento ou reconhecimento contábil (ficam fora).
-Código: ainda não implementado como marco único. No New Name de hoje (`src/features/comercial-v3/new-name-model.ts:409`), conta como realizado oficial todo pedido com substatus `conferido` — e, no agrupamento de pedidos (`new-name-model.ts:303-306`), `DATA CONFERENCIA` preenchida vira substatus `conferido`, inclusive pedidos "Integrado com ERP", salvo devolvido e cancelado. Ou seja: integrado com data de conferência já conta; só integrado sem data de conferência fica fora. O marco único explícito depende da confirmação da Fabi (issue #4).
+Marco final: pedido que passou pelo gate oficial de conclusão. O gate documentado é a integração com ERP (ADR-0001); a decisão de 20/10/2026 trata conferido e integrado como um único marco gerencial, sem validar que a conferência implique integração (issue #4). Um pedido conta uma vez, qualquer que seja o número de itens. Denominador do atingimento.
+Não é: ganhos no CRM; faturamento ou reconhecimento contábil (ficam fora). Também não é "conferido ou integrado" como se a equivalência estivesse comprovada.
+Pendência: qual evento e qual data autorizam o realizado oficial; ver [evidência do realizado](docs/EVIDENCIA-REALIZADO-E-PENDENCIAS.md).
 
 ## Situações do pedido
 
 ### Integrado (Integrado com ERP)
-Fato com data que encerra a pendência e autoriza o realizado (ADR-0001). No ADR-0001 o integrado era o único autorizador; desde 20/10/2026 o conferido também conta no mesmo marco (ver "Em aberto").
-Não é: um 5º estado da fila; sai dos totais pendentes.
+Fato com data que encerra a pendência e autoriza o realizado (ADR-0001). O ADR-0001 tratava o integrado como único autorizador; a decisão de produto de 20/10/2026 agrupa conferido e integrado no mesmo marco gerencial, sem validar a equivalência. Conferência isolada não comprova integração.
+Não é: um 5º estado da fila; sai dos totais pendentes. A fonte de pedidos não traz data própria de integração.
 Código: substatus `integrado` em `src/features/comercial-v3/new-name-model.ts` (`DEFAULT_STATUS_MAPPING`: `INTEGRADO`, `INTEGRADO COM ERP`).
 
 ### Conferido
-Pedido cuja conferência foi concluída, com data registrada em `DATA CONFERENCIA`. Desde 20/10/2026 conta no realizado de vendas (mesmo marco do integrado). No Dash e no ADR-0001 era pendente — divergência registrada em "Em aberto".
-Não é: "quase seguro" (vocabulário evitado); enquanto a mudança não entrar, segue fora do realizado no código.
-Código: substatus `conferido` em `src/features/comercial-v3/new-name-model.ts`; hoje é o único que soma no realizado oficial do New Name (`new-name-model.ts:409`).
+Pedido cuja conferência foi concluída, com data registrada em `DATA CONFERENCIA`. A decisão de produto de 20/10/2026 o agrupa com o integrado no mesmo marco gerencial; não é regra oficial validada, e conferência isolada não comprova integração. No Dash e no ADR-0001 era pendente — divergência registrada em "Em aberto".
+Não é: sinônimo de integrado; "quase seguro" (vocabulário evitado).
+Código: substatus `conferido` em `src/features/comercial-v3/new-name-model.ts`; hoje é o único que soma no realizado oficial do New Name (`new-name-model.ts:410`).
 
 ### Em conferência
 Pedido na fila, ainda sem conclusão.
@@ -136,6 +136,7 @@ Código: `src/features/comercial-v3/pipeline-model.ts` (sem previsão ou previs�
 
 ### Meta e atingimento
 Meta de MRR vem do Acordo de Metas, por competência e filial (fora da carga: fonte separada). Atingimento = realizado de vendas ÷ meta.
+**DECISÃO DO USUÁRIO (Bruno):** a meta monetária do executivo é MRR. A rubrica elegível e a competência do atingimento individual são **NÃO VERIFICADAS**; `PRODUTO - VALOR MANUTENCAO` é leitura não validada, não a regra oficial (issue #8).
 Não é: potencial do mês, que é ganhos no CRM + forecast aberto.
 Código: campo `meta`, `atingimento` e KPIs em `src/features/comercial-v3/model.ts`; fonte externa da meta: ainda não implementado.
 
@@ -158,7 +159,7 @@ Zero ≠ indisponível ≠ desatualizado. Defasagem de fontes, reconciliação i
 Código: `sumKnown` propaga nulo em `src/features/comercial-v3/forecast-month.ts`; `Não classificado` em `src/features/comercial-v3/new-name-model.ts`.
 
 ### DATA CONFERENCIA
-Única data de conclusão presente na fonte de pedidos; hoje é ela que define o mês do realizado. Mudar isso exige confirmação da Fabi (issue #4).
+Única data de conclusão presente na fonte de pedidos; hoje é ela que define o mês do realizado. Não prova integração nem competência oficial. Mudar isso exige confirmação da Fabi (issue #4).
 Código: coluna `conferenceDate` em `src/features/comercial-v3/manual-import.ts`; usada em `src/features/comercial-v3/new-name-model.ts:285-294`.
 
 ### Filial
@@ -183,8 +184,9 @@ Acrescido nesta iteração: chamar o ganho comercial de "Realizado" — desde 20
 
 Divergências entre o Dash (e ADRs antigos) e as decisões de 20/10/2026, pendentes de resolução no código:
 
-1. **Conferido × integrado no realizado.** ADR-0001 e o Dash tratam só a integração como autorizadora do realizado; conferido era pendente. A decisão de 20/10/2026 (issue #1) faz conferido e integrado serem o mesmo marco único. No código atual, o realizado oficial do New Name já inclui integrado com `DATA CONFERENCIA` preenchida (`new-name-model.ts:303-306`: data preenchida vira substatus `conferido`), mas integrado sem data fica fora do realizado de qualquer mês (`new-name-model.ts:409`) — a resolução depende da confirmação da Fabi (issue #4).
+1. **Conferido × integrado no realizado.** ADR-0001 e o Dash tratam só a integração como autorizadora do realizado; conferido era pendente. A decisão de 20/10/2026 (issue #1) faz conferido e integrado serem o mesmo marco gerencial, mas não comprova que a conferência implique integração. Relato derivado da reunião de 05/10/2026 diz que a apuração da Fabi só trata a oportunidade como ganha após a integração do pedido; a fonte primária não foi auditada. Risco potencial de superestimação: ainda não há desvio medido. Ver [evidência do realizado](docs/EVIDENCIA-REALIZADO-E-PENDENCIAS.md) (issue #4).
 2. **Data do realizado.** A fonte não tem data de integração; `DATA CONFERENCIA` segue definindo o mês. Se pedido integrado sem data de conferência aparecer, ele exibe "integrado" mas não entra no realizado de nenhum mês (issue #4).
 3. **Nome do dashboard PEX.** O Dash chamava o total de "realizado PEX" (`legado/dash-com-ia/src/lib/domain/forecast-pex.ts`, campo `regra`). Vale a decisão posterior: o que ali é "Fechadas e Ganhas no mês" exibe "Ganhos no CRM".
 4. **Filial: unidade de negócio versus conta.** O Dash derivava a filial da conta; o projeto novo usa `UNIDADE NEGOCIO OPORTUNIDADE`. Confirmar com a Fabi (issue #8).
 5. **Naturezas Base/C4L.** O Dash tinha as quatro naturezas do CRM Integrado MG com estados de mapeamento; o projeto novo ainda não as leu, e os valores reais de `CLASSIFICACAO DO PEDIDO` seguem por confirmar com a Fabi (issue #8).
+6. **Rubrica e competência do MRR elegível.** A meta individual em MRR é decisão do Bruno (issue #8); a rubrica elegível e a competência do atingimento não estão comprovadas, e `PRODUTO - VALOR MANUTENCAO` não é a regra oficial validada.

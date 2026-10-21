@@ -2,6 +2,8 @@
 
 **Status:** aceita (vinculativa — debate Astra 29/09/2026, validada pelo dono)
 
+**Situação (21/10/2026):** a decisão de produto de 20/10/2026 agrupa conferido e integrado no mesmo marco gerencial, sem validar a equivalência. O conflito e as pendências estão em [evidência do realizado](../EVIDENCIA-REALIZADO-E-PENDENCIAS.md); a decisão abaixo não muda.
+
 ## Contexto
 
 No processo real da Senior, contrato assinado fica numa fila até integrar no faturamento. A receita só é reconhecida na integração; se não entrar até o último dia do mês, é reconhecida no mês seguinte — no fim de trimestre, desliza o trimestre.
