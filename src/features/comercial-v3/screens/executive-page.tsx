@@ -14,25 +14,16 @@ import { PipelineSection } from '../components/pipeline-section'
 import type { CommercialNav } from '../nav'
 import type { ImportDraft, ImportHistoryEntry } from '../manual-import-client'
 import type { MovementLabel } from '../movement-rows'
-import { buildTrajectory, cabecalhoTrajetoria, type TrajectorySnapshot } from '../trajectory-model'
+import { buildTrajectory, cabecalhoTrajetoria } from '../trajectory-model'
+import { resumoViraPonto } from '../trajectory-snapshot'
 import { CARTOES_FORECAST, ImportedForecastScreen, selectForecastMovements } from './import-forecast-screen'
-
-/**
- * O snapshot do histórico usa `number | null`, onde nulo contamina a conta. O
- * modelo da trajetória só publica pontos com resumo inteiro conhecido; este
- * guarda diz quais entradas podem virar ponto, sem converter nulo em zero.
- */
-const resumoConhecido = (snapshot: ImportHistoryEntry['snapshot']): boolean =>
-  snapshot !== undefined
-  && snapshot.forecastTotal !== null && snapshot.entered !== null && snapshot.exited !== null
-  && snapshot.changed !== null && snapshot.realized !== null
 
 /**
  * Visão Executiva: painel de leitura do mês de referência (docs/PLANO-VISAO-EXECUTIVA.md).
  *
- * Ordem: saudação com o retrato do mês, indicadores, movimento do forecast e o
- * briefing à direita; logo depois, a Trajetória da Receita (sempre visível); e
- * abaixo, as seções Forecast, New Name e Oportunidades.
+ * Ordem: saudação com o retrato do mês, indicadores, a Trajetória da Receita
+ * (sempre visível), movimento do forecast e o briefing à direita; e abaixo, as
+ * seções Forecast, New Name e Oportunidades.
  */
 
 const NOTAS_FORECAST: Record<string, string> = {
@@ -118,10 +109,12 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
       opportunities: opportunities?.records ?? [],
       previous: previousOpportunities,
       referenceDate,
-      // O histórico guarda `number | null`; o modelo só desenha um ponto quando o
-      // resumo inteiro é conhecido. Carga com resumo nulo fica de fora do eixo.
-      history: history.flatMap(entry => entry.snapshot && resumoConhecido(entry.snapshot)
-        ? [{ at: entry.at, snapshot: entry.snapshot as TrajectorySnapshot }]
+      // A ponte compara cargas do mesmo mês; a referência da anterior vem da carga.
+      previousReferenceDate: previous?.opportunities?.referenceDate,
+      // O histórico guarda `number | null`; o gate é o mesmo do módulo de
+      // snapshot. Só previsto e realizado conhecidos bastam para o ponto.
+      history: history.flatMap(entry => resumoViraPonto(entry.snapshot)
+        ? [{ at: entry.at, snapshot: entry.snapshot }]
         : []),
     }),
     [opportunities, previousOpportunities, referenceDate, history],
@@ -212,11 +205,42 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
           </header>
         </FadeUp>
 
-        {temCarga ? (
-          <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_345px]">
-            <div className="grid min-w-0 content-start gap-4">
-              {/* Três por linha no desktop: cinco colunas deixavam cada número
-                  com menos de 200px e truncavam "R$ 29,3 mi" em "R$ 2…". */}
+        <div className={`grid min-w-0 gap-4 ${temCarga ? 'xl:grid-cols-[minmax(0,1fr)_345px]' : ''}`}>
+          {!temCarga && (
+            <section aria-label="Sem carga importada" className={`${PAINEL} grid gap-3 xl:col-span-2`}>
+              <p className="text-[15px] font-bold text-ink-strong">{carregando ? 'Carregando a última carga…' : 'Nenhuma carga importada.'}</p>
+              <p className="text-[13px] text-ink-muted">Importe as planilhas de Forecast e New Name em Configurações para ver os números deste mês.</p>
+              <div>
+                <Link href={nav.href('config')} className="inline-flex min-h-10 items-center gap-2 rounded-[10px] bg-brand-escuro px-4 text-[13px] font-semibold text-white transition-premium hover:bg-verde-escuro">
+                  Abrir Configurações
+                  <ArrowRight aria-hidden className="h-4 w-4" />
+                </Link>
+              </div>
+            </section>
+          )}
+
+          <div className="grid min-w-0 content-start gap-4">
+            <section
+              id="trajectory"
+              data-home-nav="trajectory"
+              aria-labelledby="trajectory-titulo"
+              className="revenue-panel vidro scroll-mt-6 min-w-0"
+            >
+              <h2 id="trajectory-titulo" className="sr-only">Trajetória da Receita</h2>
+              {trajectory.regime !== 'vazio' && (
+                <header className="mb-1 flex flex-wrap items-center justify-between gap-2 px-1">
+                  <p className="text-[12px] text-ink-muted">
+                    Valores em reais, acumulados até cada data da carga.
+                    {cabecalho.selo && <span className={`revenue-pill ml-2 tone-${cabecalho.selo.tom}`}>{cabecalho.selo.texto}</span>}
+                  </p>
+                  <TrajectoryLegend model={trajectory} />
+                </header>
+              )}
+              <TrajectoryChart model={trajectory} altura={200} />
+            </section>
+            {/* Três por linha no desktop: cinco colunas deixavam cada número
+                com menos de 200px e truncavam "R$ 29,3 mi" em "R$ 2…". */}
+            {temCarga && (
               <Stagger className="grid grid-cols-2 gap-3 lg:grid-cols-3">
                 {faixa.map(item => (
                   <StaggerItem key={item.rotulo} className="h-full">
@@ -224,75 +248,81 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
                   </StaggerItem>
                 ))}
               </Stagger>
+            )}
 
-              <Panel titulo="Movimento do forecast" subtitulo="Entradas, saídas, ganhos e perdas do mês contra a carga anterior.">
-                {resultado?.notice && (
-                  <p role="note" className="mb-3 rounded-[10px] bg-dado-atencao-suave px-4 py-3 text-[13px] leading-5 text-dado-atencao">
-                    {resultado.notice}
-                  </p>
-                )}
-                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                  {forecast && CARTOES_FORECAST.map(({ key }) => {
-                    const item = grupo(key)
-                    const disponivel = key === 'Entrou' ? resultado!.entered !== null : key === 'Saiu' ? resultado!.exited !== null : true
-                    return (
-                      <MovementCard
-                        key={key}
-                        movimento={key as MovementLabel}
-                        valor={item?.value ?? null}
-                        contagem={formatarOportunidades(item?.count ?? 0)}
-                        nota={NOTAS_FORECAST[key]}
-                        disponivel={disponivel}
-                        href="#forecast"
-                      />
-                    )
-                  })}
-                </div>
-              </Panel>
-
-              <div className="grid gap-4 md:grid-cols-3">
-                <Panel className="grid content-center gap-3">
-                  <div className="flex items-center gap-3">
-                    <span aria-hidden className="revenue-brief-icon grid place-items-center tone-marca"><Target className="h-[17px] w-[17px]" strokeWidth={2} /></span>
-                    <span className="text-[13px] font-semibold text-ink-strong">Atingimento do previsto</span>
+            {temCarga && (
+              <>
+                <Panel titulo="Movimento do forecast" subtitulo="Entradas, saídas, ganhos e perdas do mês contra a carga anterior.">
+                  {resultado?.notice && (
+                    <p role="note" className="mb-3 rounded-[10px] bg-dado-atencao-suave px-4 py-3 text-[13px] leading-5 text-dado-atencao">
+                      {resultado.notice}
+                    </p>
+                  )}
+                  <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                    {forecast && CARTOES_FORECAST.map(({ key }) => {
+                      const item = grupo(key)
+                      const disponivel = key === 'Entrou' ? resultado!.entered !== null : key === 'Saiu' ? resultado!.exited !== null : true
+                      return (
+                        <MovementCard
+                          key={key}
+                          movimento={key as MovementLabel}
+                          valor={item?.value ?? null}
+                          contagem={formatarOportunidades(item?.count ?? 0)}
+                          nota={NOTAS_FORECAST[key]}
+                          disponivel={disponivel}
+                          href="#forecast"
+                        />
+                      )
+                    })}
                   </div>
-                  <BarraProgressoAnimada valor={progresso ?? 0} rotulo="Ganhos no CRM sobre previsto" />
-                  <p className="text-[12px] text-ink-muted">
-                    {progresso === null
-                      ? 'Sem previsto na carga para calcular o atingimento.'
-                      : `${formatarPercentualInteiro(progresso / 100)} do previsto já ganho no CRM.`}
-                  </p>
                 </Panel>
 
-                <Panel className="grid content-center gap-3">
-                  <span className="text-[13px] font-semibold text-ink-strong">Saldo do mês</span>
-                  <strong className={`num text-[26px] font-bold leading-none tracking-[-0.035em] ${saldo === null ? 'text-ink-strong' : saldo > 0 ? 'text-dado-positivo' : saldo < 0 ? 'text-dado-negativo' : 'text-ink-strong'}`}>
-                    {saldo === null ? '—' : `${saldo > 0 ? '+' : saldo < 0 ? '−' : ''}${formatarRealCompacto(Math.abs(saldo))}`}
-                  </strong>
-                  <p className="text-[12px] text-ink-muted">
-                    {saldo === null
-                      ? 'Entrou e Saiu só aparecem a partir da segunda carga.'
-                      : `${formatarRealCompacto(ganhou?.value ?? null)} ganhos · ${formatarRealCompacto(perdeu?.value ?? null)} perdidos.`}
-                  </p>
-                </Panel>
-
-                <Panel className="grid content-center gap-3">
-                  <span className="text-[13px] font-semibold text-ink-strong">New Name nos ganhos no CRM</span>
-                  <div className="flex items-center gap-3">
-                    <Donut valor={participacaoNN ?? 0} rotulo="dos ganhos no CRM" tom="marca" />
-                    <div className="min-w-0">
-                      <strong className="num block text-[20px] font-bold leading-none tracking-[-0.03em] text-ink-strong">
-                        {newName ? formatarRealCompacto(newName.indicators.realizedValue) : '—'}
-                      </strong>
-                      <small className="mt-1 block text-[12px] text-ink-muted">
-                        {newName ? `${newName.indicators.newAccounts} ${newName.indicators.newAccounts === 1 ? 'conta nova' : 'contas novas'} no período` : 'Sem carga de pedidos'}
-                      </small>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <Panel className="grid content-center gap-3">
+                    <div className="flex items-center gap-3">
+                      <span aria-hidden className="revenue-brief-icon grid place-items-center tone-marca"><Target className="h-[17px] w-[17px]" strokeWidth={2} /></span>
+                      <span className="text-[13px] font-semibold text-ink-strong">Atingimento do previsto</span>
                     </div>
-                  </div>
-                </Panel>
-              </div>
-            </div>
+                    <BarraProgressoAnimada valor={progresso ?? 0} rotulo="Ganhos no CRM sobre previsto" />
+                    <p className="text-[12px] text-ink-muted">
+                      {progresso === null
+                        ? 'Sem previsto na carga para calcular o atingimento.'
+                        : `${formatarPercentualInteiro(progresso / 100)} do previsto já ganho no CRM.`}
+                    </p>
+                  </Panel>
 
+                  <Panel className="grid content-center gap-3">
+                    <span className="text-[13px] font-semibold text-ink-strong">Saldo do mês</span>
+                    <strong className={`num text-[26px] font-bold leading-none tracking-[-0.035em] ${saldo === null ? 'text-ink-strong' : saldo > 0 ? 'text-dado-positivo' : saldo < 0 ? 'text-dado-negativo' : 'text-ink-strong'}`}>
+                      {saldo === null ? '—' : `${saldo > 0 ? '+' : saldo < 0 ? '−' : ''}${formatarRealCompacto(Math.abs(saldo))}`}
+                    </strong>
+                    <p className="text-[12px] text-ink-muted">
+                      {saldo === null
+                        ? 'Entrou e Saiu só aparecem a partir da segunda carga.'
+                        : `${formatarRealCompacto(ganhou?.value ?? null)} ganhos · ${formatarRealCompacto(perdeu?.value ?? null)} perdidos.`}
+                    </p>
+                  </Panel>
+
+                  <Panel className="grid content-center gap-3">
+                    <span className="text-[13px] font-semibold text-ink-strong">New Name nos ganhos no CRM</span>
+                    <div className="flex items-center gap-3">
+                      <Donut valor={participacaoNN ?? 0} rotulo="dos ganhos no CRM" tom="marca" />
+                      <div className="min-w-0">
+                        <strong className="num block text-[20px] font-bold leading-none tracking-[-0.03em] text-ink-strong">
+                          {newName ? formatarRealCompacto(newName.indicators.realizedValue) : '—'}
+                        </strong>
+                        <small className="mt-1 block text-[12px] text-ink-muted">
+                          {newName ? `${newName.indicators.newAccounts} ${newName.indicators.newAccounts === 1 ? 'conta nova' : 'contas novas'} no período` : 'Sem carga de pedidos'}
+                        </small>
+                      </div>
+                    </div>
+                  </Panel>
+                </div>
+              </>
+            )}
+          </div>
+
+          {temCarga && (
             <aside className="grid content-start gap-4">
               <Panel titulo="Briefing de hoje" subtitulo="Principais sinais do período.">
                 <div className="grid gap-2.5">
@@ -333,38 +363,9 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
                 <ImpactRing titulo="Impacto no mês" legenda="Peso de cada movimento; o centro traz o saldo líquido." grupos={anelForecast} saldo={saldo} />
               )}
             </aside>
-          </div>
-        ) : (
-          <section aria-label="Sem carga importada" className={`${PAINEL} grid gap-3`}>
-            <p className="text-[15px] font-bold text-ink-strong">{carregando ? 'Carregando a última carga…' : 'Nenhuma carga importada.'}</p>
-            <p className="text-[13px] text-ink-muted">Importe as planilhas de Forecast e New Name em Configurações para ver os números deste mês.</p>
-            <div>
-              <Link href={nav.href('config')} className="inline-flex min-h-10 items-center gap-2 rounded-[10px] bg-brand-escuro px-4 text-[13px] font-semibold text-white transition-premium hover:bg-verde-escuro">
-                Abrir Configurações
-                <ArrowRight aria-hidden className="h-4 w-4" />
-              </Link>
-            </div>
-          </section>
-        )}
-      </section>
-
-      {/* Sempre visível, inclusive sem carga: o diretor precisa saber que a seção existe. */}
-      <PanelSection
-        id="trajectory"
-        titulo="Trajetória da Receita"
-        contexto={cabecalho.contexto}
-        acao={cabecalho.selo ? <span className={`revenue-pill tone-${cabecalho.selo.tom}`}>{cabecalho.selo.texto}</span> : undefined}
-      >
-        <section className="revenue-panel vidro min-w-0">
-          {trajectory.regime !== 'vazio' && (
-            <header className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <p className="text-[12px] text-ink-muted">Valores em reais, acumulados até cada data da carga.</p>
-              <TrajectoryLegend model={trajectory} />
-            </header>
           )}
-          <TrajectoryChart model={trajectory} />
-        </section>
-      </PanelSection>
+        </div>
+      </section>
 
       {opportunities
         ? <ImportedForecastScreen batch={opportunities} previousBatch={previous?.opportunities ?? null} referenceDate={referenceDate} />

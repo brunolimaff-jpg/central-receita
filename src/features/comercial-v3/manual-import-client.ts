@@ -119,10 +119,14 @@ export async function saveImportDraft(workspace: ImportWorkspace, previous: Impo
   }
   const month = referenceDate.slice(0, 7)
   const previousRecords = previous?.opportunities?.records ?? null
+  // A carga anterior é avaliada no mês dela; a atual, no mês desta importação.
+  const previousReferenceDate = previous?.opportunities?.referenceDate
+  const previousMonth = previousReferenceDate?.slice(0, 7) ?? month
   const snapshot = workspace.opportunities
     ? trajectorySnapshotFrom(
       calculateForecastMonth(workspace.opportunities.records, previousRecords, month, referenceDate, 'mês'),
-      previousRecords && calculateForecastMonth(previousRecords, null, month, referenceDate, 'mês'),
+      previousRecords && calculateForecastMonth(previousRecords, null, previousMonth, previousReferenceDate ?? referenceDate, 'mês'),
+      previousReferenceDate,
     )
     : null
   const draft: ImportDraft = { ...savedWorkspace, revision: crypto.randomUUID(), history: [

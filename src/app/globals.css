@@ -936,6 +936,170 @@
     position: relative;
     text-align: center;
   }
+
+  /* ---------- Campo de arquivo da importação ---------- */
+  /*
+   * Três estados num só alvo: parado (ícone flutua 6px), arrastando (borda
+   * cônica girando) e lendo (barra com brilho correndo). O brilho não reporta
+   * porcentagem porque a leitura não expõe progresso — seria número inventado.
+   */
+  .revenue-dropzone {
+    position: relative;
+    display: flex;
+    min-height: 9rem;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px dashed var(--hairline);
+    border-radius: 10px;
+    background: var(--surface-base);
+    padding: 1rem;
+    text-align: center;
+    transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .revenue-dropzone[data-estado='parado']:hover {
+    border-color: var(--verde-institucional);
+    background: var(--dado-positivo-suave);
+  }
+
+  .revenue-dropzone[data-estado='arrastando'] {
+    border-color: transparent;
+    background: var(--dado-positivo-suave);
+  }
+
+  .revenue-dropzone[data-estado='bloqueado'] {
+    cursor: not-allowed;
+    border-color: var(--hairline-suave);
+    background: var(--surface-sunken);
+    opacity: 0.6;
+  }
+
+  .revenue-dropzone[data-estado='lendo'] {
+    cursor: progress;
+    opacity: 0.9;
+  }
+
+  /*
+   * O input de arquivo é `sr-only` (1×1 px): o foco vive nele, não no label.
+   * Por isso o anel precisa vir do foco dentro da área — `:focus-visible` no
+   * label nunca casaria e o input não tem tamanho para desenhar contorno.
+   */
+  .revenue-dropzone:focus-within {
+    outline: 2px solid var(--verde-institucional);
+    outline-offset: 2px;
+  }
+
+  /* Borda cônica girando — só no arrastar. Fallback: borda verde estática abaixo. */
+  .revenue-dropzone[data-estado='arrastando']::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 2px;
+    background: conic-gradient(from var(--revenue-ang, 0deg), var(--verde-institucional), var(--verde-neon), var(--verde-claro), var(--verde-institucional));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    animation: revenue-girar-borda 1.4s linear infinite;
+    pointer-events: none;
+  }
+
+  /* Sem conic-gradient ou sem mask-compostável, a borda cônica não aparece:
+     volta a borda verde estática para o estado de arrastar continuar visível. */
+  @supports not ((background: conic-gradient(from 0deg, red, blue)) and (mask-composite: exclude)) {
+    .revenue-dropzone[data-estado='arrastando'] {
+      border-color: var(--verde-institucional);
+    }
+
+    .revenue-dropzone[data-estado='arrastando']::before {
+      content: none;
+    }
+  }
+
+  .revenue-dropzone-icone {
+    display: flex;
+    height: 2.75rem;
+    width: 2.75rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--surface-raised);
+    color: var(--verde-escuro);
+    box-shadow: 0 0 0 1px var(--hairline-suave);
+  }
+
+  .revenue-dropzone[data-estado='parado'] .revenue-dropzone-icone {
+    animation: revenue-flutuar 3.4s ease-in-out infinite;
+  }
+
+  /* Barra de leitura: brilho atravessa, sem porcentagem. */
+  .revenue-leitura-barra {
+    position: relative;
+    overflow: hidden;
+    height: 4px;
+    width: 12rem;
+    max-width: 100%;
+    border-radius: 999px;
+    background: var(--dado-positivo-suave);
+  }
+
+  .revenue-leitura-barra::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, var(--verde-claro) 50%, transparent);
+    animation: revenue-shimmer 1.6s ease-in-out infinite;
+  }
+
+  .revenue-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid var(--hairline);
+    background: var(--surface-raised);
+    padding: 0.125rem 0.5rem;
+    font-size: 12px;
+    line-height: 1.25rem;
+    color: var(--ink-muted);
+  }
+
+  .revenue-faixa-pronta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--verde-claro);
+    background: var(--dado-positivo-suave);
+    padding: 0.5rem 0.75rem;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--verde-escuro);
+  }
+}
+
+@property --revenue-ang {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes revenue-girar-borda {
+  to { --revenue-ang: 360deg; }
+}
+
+@keyframes revenue-flutuar {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes revenue-shimmer {
+  to { transform: translateX(100%); }
 }
 
 @media (prefers-reduced-transparency: reduce) {
@@ -968,6 +1132,18 @@
 @media (prefers-reduced-motion: reduce) {
   .revenue-blob {
     animation: none !important;
+  }
+
+  /* Campo de arquivo: nenhuma das três animações novas roda. O estado continua
+     legível pelo ícone, pela borda e pelo texto. */
+  .revenue-dropzone[data-estado='parado'] .revenue-dropzone-icone,
+  .revenue-dropzone[data-estado='arrastando']::before,
+  .revenue-leitura-barra::after {
+    animation: none !important;
+  }
+
+  .revenue-dropzone {
+    transition: none !important;
   }
 }
 

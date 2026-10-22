@@ -477,3 +477,55 @@ test('previous applies the same authentication and authorization as current', as
   const wrongOrigin = new Request('https://other.example/api/imports/previous', { headers: { 'oai-authenticated-user-id': 'fabi-site-user' } })
   assert.equal((await handleRequest(wrongOrigin, env)).status, 403)
 })
+
+/* ---------- COR02: o worker compara cargas pelo mês de referência de cada uma ---------- */
+
+test('COR02: carga anterior de outro mês grava movimento nulo, nunca zero', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  // Setembro carregado em 30/09 e outubro em 01/10: a virada de mês é permitida.
+  const setembro = workspace({ opportunityRecords: [record('opportunities', 1, { forecastDate: '2026-09-20', predictedValue: 900 })] })
+  setembro.opportunities.referenceDate = '2026-09-30'
+  setembro.orders.referenceDate = '2026-09-30'
+  const first = await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: setembro, previousRevision: null, referenceDate: '2026-09-30',
+  }), env)
+  assert.equal(first.status, 200, env.DB.lastError?.message)
+  const primeira = await first.json()
+
+  const outubro = workspace({ opportunityHash: 'c', opportunityRecords: [record('opportunities', 1, { forecastDate: '2026-10-01', predictedValue: 1000 })] })
+  outubro.opportunities.referenceDate = '2026-10-01'
+  outubro.orders.referenceDate = '2026-10-01'
+  const second = await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: outubro, previousRevision: primeira.revision, referenceDate: '2026-10-01',
+  }), env)
+  assert.equal(second.status, 200, env.DB.lastError?.message)
+  const snapshot = (await second.json()).history[0].snapshot
+  assert.equal(snapshot.forecastTotal, 1000)
+  assert.equal(snapshot.entered, null, 'não inventa entrada ao trocar de mês')
+  assert.equal(snapshot.exited, null, 'não inventa saída ao trocar de mês')
+  assert.equal(snapshot.changed, null)
+})
+
+test('COR02: cargas do mesmo mês em dias diferentes continuam comparando (20/10 → 21/10)', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  const primeiro = workspace({ opportunityRecords: [record('opportunities', 1, { forecastDate: '2026-10-20', predictedValue: 1000 })] })
+  primeiro.opportunities.referenceDate = '2026-10-20'
+  primeiro.orders.referenceDate = '2026-10-20'
+  const first = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: primeiro, previousRevision: null, referenceDate: '2026-10-20',
+  }), env)).json()
+  const segundo = workspace({ opportunityHash: 'c', opportunityRecords: [record('opportunities', 1, { forecastDate: '2026-10-20', predictedValue: 1200 })] })
+  segundo.opportunities.referenceDate = '2026-10-21'
+  segundo.orders.referenceDate = '2026-10-21'
+  const response = await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: segundo, previousRevision: first.revision, referenceDate: '2026-10-21',
+  }), env)
+  assert.equal(response.status, 200, env.DB.lastError?.message)
+  const snapshot = (await response.json()).history[0].snapshot
+  assert.equal(snapshot.forecastTotal, 1200)
+  assert.equal(snapshot.entered, 0)
+  assert.equal(snapshot.exited, 0)
+  assert.equal(snapshot.changed, 200)
+})

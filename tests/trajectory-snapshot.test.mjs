@@ -75,3 +75,36 @@ test('carga sem momento anterior com movimento é lida como primeira carga, não
     forecastTotal: 15000, entered: null, exited: null, changed: null, realized: 0,
   })
 })
+
+/* ---------- COR02: comparar cargas exige o mês de referência de cada uma ---------- */
+
+test('COR02: carga anterior de outro mês não gera movimento: nulo, nunca zero', () => {
+  const outubro = [rec({ opportunityId: '1', forecastDate: '2026-10-01', predictedValue: 1000 })]
+  const setembro = [rec({ opportunityId: '1', forecastDate: '2026-09-20', predictedValue: 900 })]
+  const atual = calculateForecastMonth(outubro, setembro, '2026-10', '2026-10-01', 'mês')
+  const anterior = calculateForecastMonth(setembro, null, '2026-09', '2026-09-30', 'mês')
+  const resultado = trajectorySnapshotFrom(atual, anterior, '2026-09-30')
+  assert.equal(resultado.forecastTotal, 1000)
+  assert.equal(resultado.entered, null)
+  assert.equal(resultado.exited, null)
+  assert.equal(resultado.changed, null)
+})
+
+test('COR02: a carga anterior é avaliada no mês dela, não no mês atual', () => {
+  const outubro = [rec({ opportunityId: '1', forecastDate: '2026-10-01', predictedValue: 1000 })]
+  const setembro = [rec({ opportunityId: '1', forecastDate: '2026-09-20', predictedValue: 900 })]
+  // A régua atual continua no mês; a anterior agora é lida no mês dela.
+  const atual = calculateForecastMonth(outubro, setembro, '2026-10', '2026-10-01', 'mês')
+  const anterior = calculateForecastMonth(setembro, null, '2026-09', '2026-09-30', 'mês')
+  assert.equal(anterior.predicted.value, 900, 'setembro é lido em setembro')
+  assert.equal(atual.predicted.value, 1000)
+})
+
+test('COR02: mesmo mês em dias diferentes compara normalmente (20/10 → 21/10)', () => {
+  const anterior = calculateForecastMonth([rec({ opportunityId: '1', forecastDate: '2026-10-20', predictedValue: 1000 })], null, '2026-10', '2026-10-20', 'mês')
+  const atual = calculateForecastMonth([rec({ opportunityId: '1', forecastDate: '2026-10-20', predictedValue: 1050 })], [rec({ opportunityId: '1', forecastDate: '2026-10-20', predictedValue: 1000 })], '2026-10', '2026-10-21', 'mês')
+  const resultado = trajectorySnapshotFrom(atual, anterior, '2026-10-20')
+  assert.equal(resultado.entered, 0)
+  assert.equal(resultado.exited, 0)
+  assert.equal(resultado.changed, 50)
+})

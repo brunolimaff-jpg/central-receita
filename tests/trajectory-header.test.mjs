@@ -15,7 +15,7 @@ test('sem carga: convite para importar e nenhum selo', () => {
 
 test('uma carga: acumulado do mês e selo "1 carga" no tom da marca', () => {
   assert.deepEqual(cabecalhoTrajetoria(modelo('A', ['05/10']), null),
-    { contexto: 'Acumulado do mês pela data de fechamento e de conferência.', selo: { texto: '1 carga', tom: 'marca' } })
+    { contexto: 'Acumulado do mês pela previsão e pela efetivação do fechamento.', selo: { texto: '1 carga', tom: 'marca' } })
 })
 
 test('duas cargas: subtítulo nomeia a data da anterior', () => {

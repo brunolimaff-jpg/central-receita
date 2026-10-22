@@ -88,7 +88,6 @@ const ESQUERDA = 78
 const MARGEM_DIREITA = 24
 const TOPO = 18
 const ESPACO_ROTULOS_X = 40
-const BASE = ALTURA - ESPACO_ROTULOS_X
 const DESENHO = { duration: 0.42, ease: [0.2, 0, 0, 1] as const }
 
 const COR: Record<TrajectorySeries['kind'], string> = {
@@ -134,8 +133,9 @@ type Coluna = {
 
 /**
  * Colunas de inspeção. No regime C cada carga é um ponto — duas cargas no mesmo
- * dia continuam distintas, e o eixo as separa por índice. Em A e B as séries
- * compartilham datas, então a coluna é a data.
+ * dia continuam distintas, no mesmo X da data civil, com a hora no rótulo; o
+ * eixo desenha um rótulo por posição. Em A e B as séries compartilham datas,
+ * então a coluna é a data.
  */
 function colunasDe(model: TrajectoryModel): Coluna[] {
   if (model.regime === 'C') {
@@ -162,7 +162,11 @@ function colunasDe(model: TrajectoryModel): Coluna[] {
   }))
 }
 
-export function TrajectoryChart({ model }: { model: TrajectoryModel }) {
+/**
+ * `altura` permite a versão compacta da Home sem mexer no desenho: eixo, escala
+ * e rótulos seguem os mesmos cálculos, só a área do SVG encolhe.
+ */
+export function TrajectoryChart({ model, altura = ALTURA }: { model: TrajectoryModel; altura?: number }) {
   const reduzido = useReducedMotion()
   const [indicePointer, setIndicePointer] = useState<number | null>(null)
   const [indiceFoco, setIndiceFoco] = useState<number | null>(null)
@@ -191,17 +195,16 @@ export function TrajectoryChart({ model }: { model: TrajectoryModel }) {
   }, [])
 
   const direita = Math.max(ESQUERDA + 120, largura - MARGEM_DIREITA)
+  const base = altura - ESPACO_ROTULOS_X
   const colunas = useMemo(() => colunasDe(model), [model])
 
   const xPorColuna = useMemo(() => {
-    // Em C, duas cargas no mesmo dia são dois pontos: o eixo separa por índice.
-    if (model.regime === 'C') {
-      return colunas.map((_, indice) => colunas.length === 1
-        ? (ESQUERDA + direita) / 2
-        : ESQUERDA + indice / (colunas.length - 1) * (direita - ESQUERDA))
-    }
-    return dateChartPositions(colunas.map(coluna => coluna.date), ESQUERDA, direita)
-  }, [colunas, direita, model.regime])
+    /*
+     * O X é sempre a data civil. Em C, duas cargas no mesmo dia ficam no mesmo X
+     * — são dois pontos preservados, com a hora no rótulo, não um ponto médio.
+     */
+    return dateChartPositions(colunas.map(coluna => coluna.date.slice(0, 10)), ESQUERDA, direita)
+  }, [colunas, direita])
 
   const escala = useMemo(() => {
     const valores = model.series.flatMap(serie => serie.points.map(ponto => valorDoPonto(serie, ponto)))
@@ -220,7 +223,7 @@ export function TrajectoryChart({ model }: { model: TrajectoryModel }) {
     )
   }
 
-  const y = (valor: number) => BASE - Math.min(Math.max(valor, 0), escala.topo) / escala.topo * (BASE - TOPO)
+  const y = (valor: number) => base - Math.min(Math.max(valor, 0), escala.topo) / escala.topo * (base - TOPO)
 
   /*
    * O ponto do traço "restante" carrega o acumulado do previsto, porque é dele
@@ -249,7 +252,7 @@ export function TrajectoryChart({ model }: { model: TrajectoryModel }) {
 
   const areaPrevisto = caminhos.find(caminho => caminho.serie.kind === 'previsto')?.segmentos
     .filter(segmento => segmento.length > 1)
-    .map(segmento => `${suavizar(segmento)} L ${segmento[segmento.length - 1][0]} ${BASE} L ${segmento[0][0]} ${BASE} Z`) ?? []
+    .map(segmento => `${suavizar(segmento)} L ${segmento[segmento.length - 1][0]} ${base} L ${segmento[0][0]} ${base} Z`) ?? []
 
   const rotulos = model.series.flatMap((serie, posicao) => {
     const indice = colunas.findLastIndex(coluna => valorDeLeitura(coluna.id, posicao) !== null)
@@ -309,7 +312,18 @@ export function TrajectoryChart({ model }: { model: TrajectoryModel }) {
 
   const percentualGuia = indiceAtivo !== null ? (xPorColuna[indiceAtivo] ?? ESQUERDA) / largura * 100 : 50
   const cartaoADireita = percentualGuia < 50
-  const marcas = thinAxisPositions(colunas.length)
+  // Um rótulo por posição: cargas do mesmo dia compartilham o X, então as marcas
+  // repetidas caem. Fica a primeira ocorrência de cada posição; a última posição
+  // do eixo continua presente, porque a primeira ocorrência dela é ela mesma.
+  const marcas = (() => {
+    const vistos = new Set<number>()
+    return thinAxisPositions(colunas.length).filter(indice => {
+      const x = xPorColuna[indice]
+      if (vistos.has(x)) return false
+      vistos.add(x)
+      return true
+    })
+  })()
   const semDataSufixo = model.semData === 1 ? '1 registro sem data' : `${model.semData} registros sem data`
 
   return (
@@ -319,7 +333,7 @@ export function TrajectoryChart({ model }: { model: TrajectoryModel }) {
           role="group"
           aria-label="Trajetória da receita: acumulado por data. Use as setas para inspecionar cada ponto."
           onPointerMove={inspecionar}
-          viewBox={`0 0 ${largura} ${ALTURA}`}
+          viewBox={`0 0 ${largura} ${altura}`}
           preserveAspectRatio="xMidYMid meet"
           className="block h-auto w-full"
         >
@@ -390,7 +404,7 @@ export function TrajectoryChart({ model }: { model: TrajectoryModel }) {
           {inspecionando && colunaAtiva && (
             /* A guia é o único movimento com mola: ela acompanha o ponteiro. */
             <motion.g aria-hidden pointerEvents="none" style={{ x: guia }}>
-              <line x1="0" x2="0" y1={TOPO} y2={BASE} stroke="var(--verde-escuro)" strokeWidth="1.5" strokeDasharray="4 3" />
+              <line x1="0" x2="0" y1={TOPO} y2={base} stroke="var(--verde-escuro)" strokeWidth="1.5" strokeDasharray="4 3" />
             </motion.g>
           )}
 
@@ -418,7 +432,7 @@ export function TrajectoryChart({ model }: { model: TrajectoryModel }) {
             <text
               key={`marca-${indice}-${colunas[indice].label}`}
               x={xPorColuna[indice]}
-              y={ALTURA - 10}
+              y={altura - 10}
               textAnchor={colunas.length === 1 ? 'middle' : indice === 0 ? 'start' : indice === colunas.length - 1 ? 'end' : 'middle'}
               fill="var(--ink-muted)"
               fontSize="11"

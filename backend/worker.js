@@ -225,6 +225,13 @@ const sumKnown = (records, value) => records.some(record => value(record) === nu
 
 function trajectorySnapshot(workspace, previousWorkspace, referenceDate) {
   const month = referenceDate.slice(0, 7)
+  /*
+   * A ponte só compara cargas do mesmo mês. A carga anterior é lida no mês
+   * dela, não no mês atual; se o mês mudou, o movimento fica nulo — nunca zero.
+   */
+  const previousReferenceDate = previousWorkspace?.opportunities?.referenceDate
+  const monthPrevious = previousReferenceDate === undefined ? month : (validDate(previousReferenceDate, localDate()) ? previousReferenceDate.slice(0, 7) : null)
+  const comparavel = monthPrevious === month
   const monthStart = `${month}-01`
   const monthEnd = new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0)).toISOString().slice(0, 10)
   const eligible = records => {
@@ -242,7 +249,10 @@ function trajectorySnapshot(workspace, previousWorkspace, referenceDate) {
     realized: sumKnown(realized, record => record.closedValue),
   }
   if (!previousWorkspace?.opportunities) return snapshot
+  if (!comparavel) return snapshot
   const previous = eligible(previousWorkspace.opportunities.records ?? [])
+  // A régua anterior usa o mês dela; `monthPrevious` já foi validado como igual.
+
   const previousById = new Map(previous.map(record => [record.opportunityId, record]))
   const currentIds = new Set(current.map(record => record.opportunityId))
   const entered = current.filter(record => !previousById.has(record.opportunityId))

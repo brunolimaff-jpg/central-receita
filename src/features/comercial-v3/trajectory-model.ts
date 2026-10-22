@@ -1,13 +1,17 @@
 import { calculateForecastMonth, FORECAST_MIN_PROBABILITY, isForecastStage } from './forecast-month.ts'
 import type { ImportedRecord } from './manual-import'
 
-/** Resumo numérico de uma carga, em reais; é o que o histórico guarda para os regimes B e C. */
+/**
+ * Resumo numérico de uma carga, em reais; é o que o histórico guarda para os
+ * regimes B e C. `null` é desconhecido — a primeira carga não tem movimento, e
+ * um valor nulo na planilha contamina a conta. Nunca vira zero.
+ */
 export type TrajectorySnapshot = {
-  forecastTotal: number
-  entered: number
-  exited: number
-  changed: number
-  realized: number
+  forecastTotal: number | null
+  entered: number | null
+  exited: number | null
+  changed: number | null
+  realized: number | null
 }
 
 export type TrajectoryPoint = {
@@ -84,6 +88,13 @@ const somaConhecida = (values: Array<number | null>): number | null =>
 
 const soma = (accumulated: number | null, value: number | null) => accumulated === null || value === null ? null : accumulated + value
 
+/** `2026-10-21` → `2026-10`; `null` se a data não for ISO válida. */
+function mesDaReferencia(referenceDate: string): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(referenceDate)) return null
+  const date = new Date(`${referenceDate}T12:00:00Z`)
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === referenceDate ? referenceDate.slice(0, 7) : null
+}
+
 /** Soma por data acumulando no tempo; lacuna é `null`, nunca zero. */
 function acumularPorData(records: ImportedRecord[], dateOf: (record: ImportedRecord) => string, valueOf: (record: ImportedRecord) => number | null) {
   const groups = new Map<string, Array<number | null>>()
@@ -109,6 +120,8 @@ export function buildTrajectory(args: {
   opportunities: ImportedRecord[]
   previous: ImportedRecord[] | null
   referenceDate: string
+  /** Mês da carga anterior; sem ele, assume o mesmo mês da atual. */
+  previousReferenceDate?: string
   history: Array<{ at: string; snapshot?: TrajectorySnapshot }>
 }): TrajectoryModel {
   if (args.opportunities.length === 0) {
@@ -131,12 +144,12 @@ export function buildTrajectory(args: {
   const datado = forecast.predicted.value
   const previsto = somaConhecida([datado, somaConhecida(semDataRecords.map(record => record.predictedValue))])
   const realizado = forecast.realized.value
-  const totals = { previsto, realizado, datado, semData: semDataRecords.length, ponte: ponteDaCarga(forecast, args.previous, month, args.referenceDate) }
+  const totals = { previsto, realizado, datado, semData: semDataRecords.length, ponte: ponteDaCarga(forecast, args.previous, month, args.referenceDate, args.previousReferenceDate) }
 
   if (regime === 'C') {
     const snapshots = [...withSnapshot].sort((a, b) => a.at.localeCompare(b.at))
     const labels = rotulosDeCarga(snapshots.map(entry => entry.at))
-    const points = (field: 'forecast' | 'realized', pick: (snapshot: TrajectorySnapshot) => number) =>
+    const points = (field: 'forecast' | 'realized', pick: (snapshot: TrajectorySnapshot) => number | null) =>
       snapshots.map((entry, index) => ({
         date: entry.at.slice(0, 10),
         label: labels[index],
@@ -185,8 +198,18 @@ export function buildTrajectory(args: {
  * previsto do mês dela; Entrou e Saiu vêm do próprio `calculateForecastMonth`;
  * Alterou é a variação de valor de quem está nas duas.
  */
-function ponteDaCarga(forecast: ReturnType<typeof calculateForecastMonth>, previous: ImportedRecord[] | null, month: string, referenceDate: string): TrajectoryBridge | null {
+function ponteDaCarga(forecast: ReturnType<typeof calculateForecastMonth>, previous: ImportedRecord[] | null, month: string, referenceDate: string, previousReferenceDate?: string): TrajectoryBridge | null {
   if (previous === null) return null
+  // A ponte só compara cargas do mesmo mês de referência. Sem referência da
+  // anterior, ela herda o mês atual; com referência ausente ou inválida, não publica.
+  const monthAnterior = previousReferenceDate === undefined ? month : mesDaReferencia(previousReferenceDate)
+  if (monthAnterior === null || monthAnterior !== month) {
+    return {
+      // O total de cada carga continua correto no mês dela; só a decomposição fica oculta.
+      totalAnterior: calculateForecastMonth(previous, null, monthAnterior ?? month, referenceDate, 'mês').predicted.value,
+      totalAtual: forecast.predicted.value, publicada: false, lances: [],
+    }
+  }
   const anterior = calculateForecastMonth(previous, null, month, referenceDate, 'mês').predicted
   const antes = new Map(anterior.records.map(record => [record.opportunityId, record.predictedValue]))
   const variacoes = forecast.predicted.records.filter(record => antes.has(record.opportunityId)).map(record => {
@@ -223,7 +246,7 @@ export function cabecalhoTrajetoria(model: TrajectoryModel, anteriorEm: string |
   selo: { texto: string; tom: 'marca' | 'info' } | null
 } {
   if (model.regime === 'vazio') return { contexto: 'Importe a planilha de oportunidades para acompanhar o mês.', selo: null }
-  if (model.regime === 'A') return { contexto: 'Acumulado do mês pela data de fechamento e de conferência.', selo: { texto: '1 carga', tom: 'marca' } }
+  if (model.regime === 'A') return { contexto: 'Acumulado do mês pela previsão e pela efetivação do fechamento.', selo: { texto: '1 carga', tom: 'marca' } }
   if (model.regime === 'B') {
     return {
       contexto: anteriorEm ? `Comparado à carga de ${label(anteriorEm.slice(0, 10))}.` : 'Comparado à carga anterior.',

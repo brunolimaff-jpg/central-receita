@@ -2,6 +2,7 @@
 
 import { useCallback, useSyncExternalStore } from 'react'
 import { CommercialSidebar, CommercialTopbar } from './commercial-sidebar'
+import { MotionRoot } from './motion-primitives'
 import { sharedImportEnabled } from '../manual-import-client'
 import { CHAVE_NAVEGACAO, collapseInicial, gravarPreferencia, lerPreferencia, type NavCollapse } from '../nav-collapse'
 import type { CommercialNav } from '../nav'
@@ -88,48 +89,50 @@ export function CommercialShell({
   }, [navState])
 
   return (
-    <div className="revenue-app" data-nav={navState}>
-      <div aria-hidden className="revenue-bg">
-        <div className="revenue-blob revenue-blob-1" />
-        <div className="revenue-blob revenue-blob-2" />
-        <div className="revenue-blob revenue-blob-3" />
-        <div className="revenue-blob revenue-blob-4" />
-        <div className="revenue-grain" />
-      </div>
-      <div aria-hidden className="revenue-bg-faixa" />
-      <CommercialSidebar
-        view={executiveMode ? 'home' : view}
-        from={from}
-        nav={nav}
-        importPreview={importPreview}
-        dataCarga={dataCarga}
-        paginaCorrida={executiveMode}
-        navState={navState}
-        onAlternarNav={alternarNav}
-      />
+    <MotionRoot>
+      <div className="revenue-app" data-nav={navState}>
+        <div aria-hidden className="revenue-bg">
+          <div className="revenue-blob revenue-blob-1" />
+          <div className="revenue-blob revenue-blob-2" />
+          <div className="revenue-blob revenue-blob-3" />
+          <div className="revenue-blob revenue-blob-4" />
+          <div className="revenue-grain" />
+        </div>
+        <div aria-hidden className="revenue-bg-faixa" />
+        <CommercialSidebar
+          view={executiveMode ? 'home' : view}
+          from={from}
+          nav={nav}
+          importPreview={importPreview}
+          dataCarga={dataCarga}
+          paginaCorrida={executiveMode}
+          navState={navState}
+          onAlternarNav={alternarNav}
+        />
 
-      <div className="relative z-[2] min-w-0">
-        {view === 'config' ? (
-          <header className="revenue-control mb-4 rounded-[10px] px-4 py-3 text-[13px] text-ink-muted">
-            Importação manual · {sharedImportEnabled ? 'dados compartilhados de' : 'piloto local de'} New Name e Forecast
-          </header>
-        ) : executiveMode ? null : (
-          <CommercialTopbar
-            view={view}
-            period={period}
-            solution={solution}
-            branch={branch}
-            query={query}
-            monthLabel={monthLabel}
-            solutions={solutions}
-            branches={branches}
-            nav={nav}
-          />
-        )}
-        <main className="mx-auto w-full max-w-[1500px] min-w-0 pb-24 pt-4 lg:pb-10 lg:pt-[18px]">
-          {children}
-        </main>
+        <div className="relative z-[2] min-w-0">
+          {view === 'config' ? (
+            <header className="revenue-control mb-4 rounded-[10px] px-4 py-3 text-[13px] text-ink-muted">
+              Importação manual · {sharedImportEnabled ? 'dados compartilhados de' : 'piloto local de'} New Name e Forecast
+            </header>
+          ) : executiveMode ? null : (
+            <CommercialTopbar
+              view={view}
+              period={period}
+              solution={solution}
+              branch={branch}
+              query={query}
+              monthLabel={monthLabel}
+              solutions={solutions}
+              branches={branches}
+              nav={nav}
+            />
+          )}
+          <main className="mx-auto w-full max-w-[1500px] min-w-0 pb-24 pt-4 lg:pb-10 lg:pt-[18px]">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </MotionRoot>
   )
 }

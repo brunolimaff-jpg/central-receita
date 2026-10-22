@@ -25,6 +25,14 @@ test('distribuição temporal preserva distâncias reais, virada de mês e ponto
   assert.throws(() => dateChartPositions(['2026-02-30'], 0, 300))
 })
 
+test('COR06: cargas no mesmo dia ficam no mesmo X, sem deduplicar e sem desempatar por hora', () => {
+  // Duas cargas em 05/10 (09:10 e 16:40) entre 01/10 e 09/10: quatro datas, uma duplicada.
+  const datas = ['2026-10-01', '2026-10-05', '2026-10-05', '2026-10-09']
+  const x = dateChartPositions(datas, 0, 300)
+  assert.equal(x[1], x[2], 'mesmo dia civil ocupa o mesmo X')
+  assert.deepEqual(x, [0, 150, 150, 300], 'proporção entre dias vem do helper, sem regra nova')
+})
+
 test('linhas de snapshot ligam somente os pontos medidos', () => {
   assert.equal(lineChartPath([]), '')
   assert.equal(lineChartPath([[10, 20]]), 'M 10 20')

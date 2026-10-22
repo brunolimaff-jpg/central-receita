@@ -1,6 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { buildTrajectory, montarPonte, ponteReconcilia } from '../src/features/comercial-v3/trajectory-model.ts'
+import { calculateForecastMonth } from '../src/features/comercial-v3/forecast-month.ts'
+import { resumoViraPonto, trajectorySnapshotFrom } from '../src/features/comercial-v3/trajectory-snapshot.ts'
 
 const REFERENCE_DATE = '2026-10-20'
 
@@ -74,6 +76,26 @@ test('ponte fecha (valores em reais, diferença de R$ 0,00)', () => {
 
 test('ponte com diferença de R$ 0,02 não fecha', () => {
   assert.equal(ponteReconcilia({ totalAnterior: 1000, totalAtual: 1500.02, entrou: 800, saiu: -400, alterou: 100 }), false)
+})
+
+test('tolerância de R$ 0,01: resíduo de ±0,01 publica; ±0,011 não publica', () => {
+  // Componentes constantes somam 500; os totais variam para deixar resíduo conhecido.
+  const componentes = { entrou: 800, saiu: -400, alterou: 100 }
+  const casos = [
+    { totalAtual: 1500.01, resíduo: 0.01, publicada: true },
+    { totalAtual: 1499.99, resíduo: -0.01, publicada: true },
+    { totalAtual: 1500.011, resíduo: 0.011, publicada: false },
+    { totalAtual: 1499.989, resíduo: -0.011, publicada: false },
+  ]
+  for (const { totalAtual, resíduo, publicada } of casos) {
+    const args = { totalAnterior: 1000, totalAtual, ...componentes }
+    assert.equal(ponteReconcilia(args), publicada, `resíduo de ${resíduo}`)
+    const ponte = montarPonte(args)
+    assert.equal(ponte.publicada, publicada, `lances de resíduo de ${resíduo}`)
+    assert.deepEqual(ponte.lances.map(lance => [lance.movimento, lance.valor]),
+      publicada ? [['Entrou', 800], ['Saiu', -400], ['Alterou valor', 100]] : [],
+      `lances de resíduo de ${resíduo}`)
+  }
 })
 
 test('ponte com um componente nulo não reconcilia: nulo nunca vira zero', () => {
@@ -244,4 +266,107 @@ test('ponte com valor nulo: não publica', () => {
   const { ponte } = build([rec({ opportunityId: '1', predictedValue: 100 })], { previous })
   assert.equal(ponte.publicada, false)
   assert.deepEqual(ponte.lances, [])
+})
+
+/* ---------- COR01: C com três pontos na ponte producer → histórico → gate da página ---------- */
+
+const MES = '2026-10'
+
+/** O producer real: `trajectorySnapshotFrom` sobre a régua do forecast. */
+const producerSnapshot = (current, previous = null) =>
+  trajectorySnapshotFrom(
+    calculateForecastMonth(current, previous, MES, REFERENCE_DATE, 'mês'),
+    previous ? calculateForecastMonth(previous, null, MES, REFERENCE_DATE, 'mês') : null,
+  )
+
+/** Carga 1: sem carga anterior, o movimento fica nulo; previsto e realizado são conhecidos. */
+const carga1 = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 110 }),
+  rec({ opportunityId: '9', stage: 'Fechada e Ganha', forecastDate: null, predictedValue: null, closedValue: 10, closingDate: '2026-10-05' })]
+const carga2 = [rec({ opportunityId: '1', forecastDate: '2026-10-12', predictedValue: 220 }),
+  rec({ opportunityId: '9', stage: 'Fechada e Ganha', forecastDate: null, predictedValue: null, closedValue: 20, closingDate: '2026-10-12' })]
+const carga3 = [rec({ opportunityId: '1', forecastDate: '2026-10-19', predictedValue: 330 }),
+  rec({ opportunityId: '9', stage: 'Fechada e Ganha', forecastDate: null, predictedValue: null, closedValue: 30, closingDate: '2026-10-19' })]
+
+const historicoReal = () => [
+  { at: '2026-10-18T10:00:00Z', snapshot: producerSnapshot(carga3, carga2) },
+  { at: '2026-10-12T10:00:00Z', snapshot: producerSnapshot(carga2, carga1) },
+  { at: '2026-10-05T10:00:00Z', snapshot: producerSnapshot(carga1) },
+]
+
+test('COR01: três cargas reais com a primeira sem movimento chegam ao gate da página como C com três pontos', () => {
+  const history = historicoReal()
+  assert.equal(history[2].snapshot.entered, null, 'a primeira carga mantém movimento nulo')
+
+  // O MESMO gate que a página aplica antes de chamar o modelo.
+  const model = build(carga3, { previous: carga2, history: history.filter(entrada => resumoViraPonto(entrada.snapshot)) })
+  assert.equal(model.regime, 'C')
+  const previsto = pontos(model, 'previsto')
+  assert.deepEqual(previsto.map(ponto => ponto.label), ['05/10', '12/10', '18/10'])
+  assert.deepEqual(previsto.map(ponto => ponto.forecast), [110, 220, 330])
+  assert.deepEqual(pontos(model, 'realizado').map(ponto => ponto.realized), [10, 20, 30])
+  assert.equal(model.previsto, 330)
+})
+
+test('COR01: carga sem previsto conhecido não vira ponto nem zero; cai para B', () => {
+  const semPrevisto = [rec({ opportunityId: '1', forecastDate: '2026-10-12', predictedValue: null })]
+  const history = [
+    { at: '2026-10-18T10:00:00Z', snapshot: producerSnapshot(carga3, carga2) },
+    { at: '2026-10-12T10:00:00Z', snapshot: producerSnapshot(semPrevisto) },
+    { at: '2026-10-05T10:00:00Z', snapshot: producerSnapshot(carga1) },
+  ]
+  assert.equal(history[1].snapshot.forecastTotal, null)
+  const validos = history.filter(entrada => resumoViraPonto(entrada.snapshot))
+  assert.equal(validos.length, 2, 'carga sem previsto conhecido não vira ponto nem zero')
+})
+
+/* ---------- COR02: a comparação é entre cargas do MESMO mês de referência ---------- */
+
+test('COR02: cargas no mesmo mês em dias diferentes comparam normalmente (20/10 e 21/10)', () => {
+  const previous = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 1000 })]
+  const current = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 1200 })]
+  const model = build(current, { previous })
+  assert.equal(model.regime, 'B')
+  assert.equal(model.ponte.publicada, true)
+  assert.equal(model.ponte.totalAnterior, 1000)
+  assert.equal(model.ponte.totalAtual, 1200)
+  assert.deepEqual(model.ponte.lances.map(lance => [lance.movimento, lance.valor]), [['Alterou valor', 200]])
+})
+
+test('COR02: carga anterior de outro mês bloqueia a ponte e não inventa movimentos', () => {
+  const previous = [rec({ opportunityId: '1', forecastDate: '2026-09-30', predictedValue: 1000 })]
+  const current = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 1200 })]
+  const model = buildTrajectory({ opportunities: current, previous, previousReferenceDate: '2026-09-30', referenceDate: REFERENCE_DATE, history: [] })
+  assert.equal(model.regime, 'B')
+  assert.equal(model.ponte.publicada, false)
+  assert.deepEqual(model.ponte.lances, [])
+  assert.equal(model.previsto, 1200)
+})
+
+test('COR02: virada de mês 30/09 → 01/10 bloqueia; 21/10 → 21/10 e 20/10 → 21/10 não', () => {
+  const setembro = [rec({ opportunityId: '1', forecastDate: '2026-09-20', predictedValue: 900 })]
+  const outubro = [rec({ opportunityId: '1', forecastDate: '2026-10-20', predictedValue: 1000 })]
+  assert.equal(buildTrajectory({ opportunities: outubro, previous: setembro, previousReferenceDate: '2026-09-30', referenceDate: REFERENCE_DATE, history: [] }).ponte.publicada, false)
+
+  const vigesimo = [rec({ opportunityId: '1', forecastDate: '2026-10-20', predictedValue: 1000 })]
+  const vigesimoPrimeiro = [rec({ opportunityId: '1', forecastDate: '2026-10-20', predictedValue: 1050 })]
+  assert.equal(buildTrajectory({ opportunities: vigesimoPrimeiro, previous: vigesimo, previousReferenceDate: '2026-10-21', referenceDate: REFERENCE_DATE, history: [] }).ponte.publicada, true)
+})
+
+test('COR02: a referência da carga anterior vem explícita; sem ela, o mês atual continua valendo', () => {
+  const anterior = [rec({ opportunityId: '1', forecastDate: '2026-09-20', predictedValue: 1000 })]
+  const atual = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 1100 })]
+  // Chamadores antigos não passam a referência: o contrato é opcional e mantém o mês atual.
+  assert.equal(build(atual, { previous: anterior }).regime, 'B')
+  const comParametro = buildTrajectory({ opportunities: atual, previous: anterior, previousReferenceDate: '2026-09-20', referenceDate: REFERENCE_DATE, history: [] })
+  assert.equal(comParametro.ponte.publicada, false)
+  assert.equal(comParametro.ponte.totalAtual, 1100)
+})
+
+test('COR02: mês de referência ausente ou inválido não presume comparação', () => {
+  const previous = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 1000 })]
+  const current = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 1200 })]
+  for (const invalido of ['', '2026-1', 'outubro', '2026-13-01']) {
+    const model = buildTrajectory({ opportunities: current, previous, previousReferenceDate: invalido, referenceDate: REFERENCE_DATE, history: [] })
+    assert.equal(model.ponte.publicada, false, `referência anterior "${invalido}" não compara`)
+  }
 })
