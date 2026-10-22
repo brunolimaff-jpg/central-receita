@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { formatarMilhoes, formatarComSinal, formatarRealCompacto, formatarRealComSinal } from '../src/features/comercial-v3/format.ts'
+import { formatarMilhoes, formatarComSinal, formatarRealCompacto, formatarRealComSinal, formatarSaldo } from '../src/features/comercial-v3/format.ts'
 
 test('valor compacto preserva ausente, zero, milhares e milhões', () => {
   assert.equal(formatarRealCompacto(null), '—')
@@ -25,4 +25,14 @@ test('deltas com sinal explícito, em milhões e em reais', () => {
   assert.equal(formatarRealComSinal(0), 'R$ 0')
   assert.equal(formatarRealComSinal(120_000), '+R$ 120 mil')
   assert.equal(formatarRealComSinal(-2_500_000), '−R$ 2,5 mi')
+})
+
+test('saldo abaixo de R$ 10 mil fica em reais para a conta fechar na tela', () => {
+  assert.equal(formatarSaldo(null), '—')
+  assert.equal(formatarSaldo(0), 'R$ 0')
+  assert.equal(formatarSaldo(-2500), '−R$ 2.500')
+  assert.equal(formatarSaldo(2500), '+R$ 2.500')
+  assert.equal(formatarSaldo(-1800), '−R$ 1.800')
+  assert.equal(formatarSaldo(19000), '+R$ 19 mil')
+  assert.equal(formatarSaldo(-1250000), '−R$ 1,3 mi')
 })

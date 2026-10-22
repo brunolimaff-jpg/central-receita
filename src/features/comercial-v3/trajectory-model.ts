@@ -228,9 +228,9 @@ export function buildTrajectory(args: {
 }
 
 /**
- * Componentes da ponte pela mesma régua do forecast: total de cada carga é o
- * previsto do mês dela; Entrou e Saiu vêm do próprio `calculateForecastMonth`;
- * Alterou é a variação de valor de quem está nas duas.
+ * Componentes da ponte, lidos de `calculateForecastMonth` — a única régua do
+ * saldo. A trajetória não recalcula entradas, saídas e variações: se recalculasse,
+ * voltaria a existir uma segunda conta para o mesmo mês.
  */
 function ponteDaCarga(forecast: ReturnType<typeof calculateForecastMonth>, previous: ImportedRecord[] | null, month: string, referenceDate: string, previousReferenceDate?: string): TrajectoryBridge | null {
   if (previous === null) return null
@@ -244,19 +244,12 @@ function ponteDaCarga(forecast: ReturnType<typeof calculateForecastMonth>, previ
       totalAtual: forecast.predicted.value, publicada: false, lances: [],
     }
   }
-  const anterior = calculateForecastMonth(previous, null, month, referenceDate, 'mês').predicted
-  const antes = new Map(anterior.records.map(record => [record.opportunityId, record.predictedValue]))
-  const variacoes = forecast.predicted.records.filter(record => antes.has(record.opportunityId)).map(record => {
-    const valorAntes = antes.get(record.opportunityId)!
-    return record.predictedValue === null || valorAntes === null ? null : record.predictedValue - valorAntes
-  })
-  const saiu = forecast.exited?.value ?? null
   return montarPonte({
-    totalAnterior: anterior.value,
-    totalAtual: forecast.predicted.value,
-    entrou: forecast.entered?.value ?? null,
-    saiu: saiu === null ? null : -saiu,
-    alterou: somaConhecida(variacoes),
+    totalAnterior: forecast.bridge?.totalAnterior ?? null,
+    totalAtual: forecast.bridge?.totalAtual ?? null,
+    entrou: forecast.bridge?.entrou ?? null,
+    saiu: forecast.bridge?.saiu ?? null,
+    alterou: forecast.bridge?.alterou ?? null,
   })
 }
 

@@ -77,10 +77,6 @@ export function sortByImpact(rows: MovementRow[]): MovementRow[] {
 
 const byId = (records: ImportedRecord[]) => new Map(records.map(record => [record.opportunityId, record]))
 
-/** Mesma normalização de `forecast-month.ts`; duplicada aqui porque os testes carregam o módulo pelo Node. */
-const normalizeStage = (stage: string) => stage.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().replace(/\s+/g, ' ').toLocaleUpperCase('pt-BR')
-const CLOSED_STAGES = ['FECHADA E GANHA', 'FECHADA E PERDIDA']
-
 /** Forecast do mês: Entrou, Saiu (com Postergou), Ganhou e Perdeu, a partir do cálculo `calculateForecastMonth`. */
 export function forecastMovementRows(result: ForecastMonthResult, current: ImportedRecord[]): MovementRow[] {
   const now = byId(current)
@@ -92,13 +88,12 @@ export function forecastMovementRows(result: ForecastMonthResult, current: Impor
   for (const before of result.exited?.records ?? []) {
     const after = now.get(before.opportunityId)
     /*
-     * Oportunidade que fechou no período já entra em Ganhou/Perdeu com o valor
-     * fechado. Contá-la também em Saiu inflava o saldo e o anel do mês: uma
-     * perda aparecia duas vezes, uma pelo valor previsto e outra pelo fechado.
-     * O teste é local pelo mesmo motivo que o módulo evita imports de valor:
-     * os testes carregam este arquivo direto pelo Node.
+     * Quem fechou continua em Saiu: deixou o previsto aberto, e é isso que a
+     * regra chama de saída (REGRAS-NEGOCIO §movimentos). O desfecho aparece em
+     * Ganhou/Perdeu como classificação, não como uma segunda parcela do saldo —
+     * o saldo vem da ponte, Entrou + Saiu + Alterou. Antes esta linha era
+     * descartada, e a tela mostrava "Saiu R$ 0" ao lado de uma ponte com saída.
      */
-    if (after && CLOSED_STAGES.includes(normalizeStage(after.stage))) continue
     rows.push(rowFrom(
       after ?? before,
       postponedIds.has(before.opportunityId) ? 'Postergou' : 'Saiu',

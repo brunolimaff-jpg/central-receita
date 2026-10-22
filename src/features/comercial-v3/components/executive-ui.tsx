@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { ArrowDownRight, ArrowUpRight, CheckCircle2, Clock3, Pencil, XCircle, type LucideIcon } from 'lucide-react'
 import { BarraAnimada } from './motion-primitives'
-import { formatarRealComSinal } from '../format'
+import { formatarRealComSinal, formatarSaldo } from '../format'
 import type { MovementLabel } from '../movement-rows'
 
 /**
@@ -196,7 +196,7 @@ const COR_ANEL: Record<MovementLabel, string> = {
  * Aqui cada movimento ocupa uma barra proporcional à própria magnitude, e o
  * saldo é uma linha à parte, com sinal. Lê-se de cima para baixo.
  */
-export function ImpactRing({ titulo, legenda, grupos, saldo }: { titulo: string; legenda: string; grupos: RingGroup[]; saldo: number | null }) {
+export function ImpactRing({ titulo, legenda, grupos, saldo, rotuloSaldo = 'Saldo no mês' }: { titulo: string; legenda: string; grupos: RingGroup[]; saldo: number | null; rotuloSaldo?: string }) {
   const maior = grupos.reduce((maximo, grupo) => Math.max(maximo, grupo.peso), 0)
   const comValor = grupos.some(grupo => grupo.valor !== null)
   return (
@@ -218,9 +218,9 @@ export function ImpactRing({ titulo, legenda, grupos, saldo }: { titulo: string;
             })}
           </ul>
           <div className="mt-3 flex items-baseline justify-between gap-3 border-t border-hairline pt-3">
-            <span className="text-[12px] font-medium text-ink-muted">Saldo no mês</span>
+            <span className="text-[12px] font-medium text-ink-muted">{rotuloSaldo}</span>
             <strong className={`num text-[18px] font-bold tracking-[-0.02em] ${saldo === null ? 'text-ink-strong' : saldo > 0 ? 'text-dado-positivo' : saldo < 0 ? 'text-dado-negativo' : 'text-ink-strong'}`}>
-              {formatarRealComSinal(saldo)}
+              {formatarSaldo(saldo)}
             </strong>
           </div>
         </>

@@ -82,6 +82,22 @@ export function formatarRealCompacto(valor: number | null): string {
   return `${sinal}${bruto.split(ESPACO_NAO_SEPARAVEL).join(ESPACO_COMUM)}`
 }
 
+/**
+ * Saldo de movimento, com sinal. Abaixo de R$ 10 mil fica em reais, sem
+ * arredondar para milhar: o saldo existe para reconciliar com a curva, e
+ * "−R$ 3 mil" no lugar de "−R$ 2.500" faria a conta não fechar na mesma tela.
+ */
+export function formatarSaldo(valor: number | null): string {
+  if (valor === null) return '—'
+  if (valor === 0) return formatarRealCompacto(0)
+  const sinal = valor > 0 ? '+' : '−'
+  const abs = Math.abs(valor)
+  if (abs < 10_000) {
+    return `${sinal}${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(abs).split(ESPACO_NAO_SEPARAVEL).join(ESPACO_COMUM)}`
+  }
+  return `${sinal}${formatarRealCompacto(abs)}`
+}
+
 /** `+R$ 80 mil` / `−R$ 1,2 mi` / `R$ 0` / `—`: valor com sinal para cartões e colunas Δ. */
 export function formatarRealComSinal(valor: number | null): string {
   if (valor === null) return '—'

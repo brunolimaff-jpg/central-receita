@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { ImportBatch, ImportedRecord } from '../manual-import'
 import { calculateForecastMonth, isClosedStage, isForecastStage, type ForecastPeriod } from '../forecast-month'
+import { ponteReconcilia } from '../trajectory-model'
 import { formatarOportunidades, formatarPercentualInteiro, formatarRealCompacto } from '../format'
 import { forecastFocusFromHash, forecastHashFor, HASH_FORECAST_GANHOU, type ForecastFocusMovement } from '../forecast-focus'
 import { forecastMovementRows, groupMovements, type MovementLabel } from '../movement-rows'
@@ -117,12 +118,32 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
   const projetado = monthResult.projected
   const realizado = monthResult.realized.value
   const percentual = projetado !== null && projetado > 0 && realizado !== null ? Math.min(100, realizado / projetado * 100) : null
-  const saldo = grupos.some(item => item.value === null) ? null : grupos.reduce((soma, item) => soma + (item.value ?? 0), 0)
+  /*
+   * O saldo é a variação do previsto entre as cargas, não a soma dos cartões:
+   * quem fechou aparece em Saiu e também em Ganhou/Perdeu, e somar as quatro
+   * parcelas contaria a mesma oportunidade duas vezes. A ponte já reconcilia
+   * (Entrou + Saiu + Alterou) com a diferença dos totais.
+   */
+  const saldo = result.bridge
+    ? ponteReconcilia({
+        totalAnterior: result.bridge.totalAnterior,
+        totalAtual: result.bridge.totalAtual,
+        entrou: result.bridge.entrou,
+        saiu: result.bridge.saiu,
+        alterou: result.bridge.alterou,
+      })
+      ? (result.bridge.entrou ?? 0) + (result.bridge.saiu ?? 0) + (result.bridge.alterou ?? 0)
+      : null
+    : null
+  /*
+   * O anel mostra a decomposição do saldo. Ganhou e Perdeu ficam de fora porque
+   * já estão dentro de Saiu — a oportunidade que fechou deixou o previsto
+   * aberto. Eles continuam visíveis nos cartões e na lista, como desfecho.
+   */
   const anel: RingGroup[] = [
-    { rotulo: 'Entrou', movimento: 'Entrou', valor: grupo('Entrou').value, peso: grupo('Entrou').weight },
-    { rotulo: 'Saiu e postergou', movimento: 'Saiu', valor: grupo('Saiu').value, peso: grupo('Saiu').weight },
-    { rotulo: 'Ganhou', movimento: 'Ganhou', valor: grupo('Ganhou').value, peso: grupo('Ganhou').weight },
-    { rotulo: 'Perdeu', movimento: 'Perdeu', valor: grupo('Perdeu').value, peso: grupo('Perdeu').weight },
+    { rotulo: 'Entrou', movimento: 'Entrou', valor: result.bridge?.entrou ?? null, peso: Math.abs(result.bridge?.entrou ?? 0) },
+    { rotulo: 'Saiu e postergou', movimento: 'Saiu', valor: result.bridge?.saiu ?? null, peso: Math.abs(result.bridge?.saiu ?? 0) },
+    { rotulo: 'Alterou valor', movimento: 'Alterou valor', valor: result.bridge?.alterou ?? null, peso: Math.abs(result.bridge?.alterou ?? 0) },
   ]
   const mesLabel = mesPorExtenso(month)
 
@@ -157,7 +178,7 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
             </div>
             <p className="mt-2.5 text-[12px] text-ink-muted">
               {period === 'semana'
-                ? 'Semana: cartões e lista da semana; ganhos, previsto e em aberto do mês inteiro. '
+                ? 'Semana: entradas, saídas e saldo comparam as carteiras elegíveis na semana nas duas cargas. Ganhos e perdas usam a data de efetivação; previsto, ganhos e em aberto seguem o mês. '
                 : 'Mês da data de referência: cartões, lista e indicadores no mês. '}
               Meta indisponível na carga.
             </p>
@@ -167,9 +188,16 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
             {CARTOES_FORECAST.map(({ key }) => {
               const item = grupo(key)
               const ok = disponivel[key as keyof typeof disponivel]
+              /*
+               * Na semana, a comparação é entre as carteiras elegíveis naquela
+               * janela em cada carga — não significa que a mudança aconteceu
+               * naquela semana. O rótulo diz o que a conta faz.
+               */
               const nota = key === 'Entrou'
-                ? 'Passou a cumprir o critério do mês'
-                : key === 'Saiu' ? `Inclui ${result.postponed?.count ?? 0} postergadas`
+                ? (period === 'semana' ? 'Na carteira da semana, não estava na carga anterior' : 'Passou a cumprir o critério do mês')
+                : key === 'Saiu' ? (period === 'semana'
+                    ? `Saiu da carteira da semana · ${result.postponed?.count ?? 0} postergadas`
+                    : `Inclui ${result.postponed?.count ?? 0} postergadas`)
                   : key === 'Ganhou' ? 'Fechadas como ganhas no período' : 'Fechadas como perdidas no período'
               return (
                 <MovementCard
@@ -191,11 +219,11 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
           </div>
         </div>
 
-        <ImpactRing titulo="Impacto no forecast do mês" legenda="Peso de cada movimento; o centro traz o saldo líquido." grupos={anel} saldo={saldo} />
+        <ImpactRing titulo={period === 'semana' ? 'Impacto no forecast da semana' : 'Impacto no forecast do mês'} legenda="Peso de cada movimento; o centro traz o saldo líquido." grupos={anel} saldo={saldo} rotuloSaldo={period === 'semana' ? 'Saldo da semana' : 'Saldo no mês'} />
       </div>
 
       <Panel
-        titulo={selecionado ? `${selecionado} · ${formatarOportunidades(linhas.length)}` : 'Principais movimentos do mês'}
+        titulo={selecionado ? `${selecionado} · ${formatarOportunidades(linhas.length)}` : period === 'semana' ? 'Principais movimentos da semana' : 'Principais movimentos do mês'}
         subtitulo="Maior impacto primeiro. Δ valor é o efeito no forecast do mês."
         acao={selecionado && (
           <button type="button" onClick={() => { setSelecionado(null); marcarHash(null) }} className="rounded-[8px] px-2.5 py-1.5 text-[12px] font-semibold text-brand-escuro transition-premium hover:bg-dado-positivo-suave">

@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react'
 import { ArrowRight, CheckCircle2, Lightbulb, Target, TrendingUp, TriangleAlert, Users } from 'lucide-react'
 import { calculateNewNameModel } from '../new-name-model'
 import { buildPipelineOverview } from '../pipeline-model'
-import { formatarOportunidades, formatarPercentualInteiro, formatarRealCompacto } from '../format'
+import { formatarOportunidades, formatarPercentualInteiro, formatarRealCompacto, formatarSaldo } from '../format'
 import { TrajectoryChart, TrajectoryLegend } from '../components/trajectory-chart'
 import { FadeUp, Stagger, StaggerItem } from '../components/motion-primitives'
 import { BarraProgressoAnimada, ImpactRing, MetricCard, MovementCard, PAINEL, Panel, PanelSection, Selo, formatarDataCurta, type RingGroup, type Tom } from '../components/executive-ui'
@@ -14,7 +14,7 @@ import { PipelineSection } from '../components/pipeline-section'
 import type { CommercialNav } from '../nav'
 import type { ImportDraft, ImportHistoryEntry } from '../manual-import-client'
 import type { MovementLabel } from '../movement-rows'
-import { buildTrajectory, cabecalhoTrajetoria } from '../trajectory-model'
+import { buildTrajectory, cabecalhoTrajetoria, ponteReconcilia } from '../trajectory-model'
 import { resumoViraPonto } from '../trajectory-snapshot'
 import { HASH_FORECAST, HASH_FORECAST_GANHOU } from '../forecast-focus'
 import { CARTOES_FORECAST, ImportedForecastScreen, selectForecastMovements } from './import-forecast-screen'
@@ -143,18 +143,16 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
   const mesCurto = mesExtenso.split(' de ')[0]
 
   const grupo = (key: string) => forecast?.grupos.find(item => item.key === key) ?? null
-  const ganhou = grupo('Ganhou')
-  const perdeu = grupo('Perdeu')
   /*
-   * O saldo só existe quando os quatro movimentos têm valor. Sem carga anterior,
-   * Entrou e Saiu são desconhecidos: somar Ganhou e Perdeu sozinhos e chamar de
-   * "saldo do mês" esconderia metade do movimento.
+   * O saldo é a variação do previsto entre as duas cargas, pela mesma ponte da
+   * Trajetória. Somar os quatro cartões contaria duas vezes quem fechou — está
+   * em Saiu e em Ganhou/Perdeu — e a Home mostrava um número que não fechava
+   * com a curva logo acima. Sem carga anterior não há saldo: "—", não zero.
    */
-  const saldo = forecast
-    && resultado?.entered !== null
-    && resultado?.exited !== null
-    && !forecast.grupos.some(item => item.value === null)
-    ? forecast.grupos.reduce((soma, item) => soma + (item.value ?? 0), 0)
+  const ponte = resultado?.bridge ?? null
+  const saldo = ponte
+    && ponteReconcilia({ totalAnterior: ponte.totalAnterior, totalAtual: ponte.totalAtual, entrou: ponte.entrou, saiu: ponte.saiu, alterou: ponte.alterou })
+    ? (ponte.entrou ?? 0) + (ponte.saiu ?? 0) + (ponte.alterou ?? 0)
     : null
 
   const faixa: Array<{ rotulo: string; valor: string; nota?: string; tom: Tom; href: string; onActivate?: () => void }> = [
@@ -171,11 +169,11 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
    * o motivo. Ganhou e Perdeu vêm de uma única carga e sempre têm valor.
    */
   const temAnterior = resultado?.entered !== null && resultado?.exited !== null
-  const anelForecast: RingGroup[] = forecast ? [
-    { rotulo: 'Entrou', movimento: 'Entrou', valor: temAnterior ? grupo('Entrou')?.value ?? null : null, peso: temAnterior ? grupo('Entrou')?.weight ?? 0 : 0 },
-    { rotulo: 'Saiu e postergou', movimento: 'Saiu', valor: temAnterior ? grupo('Saiu')?.value ?? null : null, peso: temAnterior ? grupo('Saiu')?.weight ?? 0 : 0 },
-    { rotulo: 'Ganhou', movimento: 'Ganhou', valor: grupo('Ganhou')?.value ?? null, peso: grupo('Ganhou')?.weight ?? 0 },
-    { rotulo: 'Perdeu', movimento: 'Perdeu', valor: grupo('Perdeu')?.value ?? null, peso: grupo('Perdeu')?.weight ?? 0 },
+  /* Mesma decomposição da ponte: Ganhou/Perdeu já estão dentro de Saiu. */
+  const anelForecast: RingGroup[] = forecast && temAnterior ? [
+    { rotulo: 'Entrou', movimento: 'Entrou', valor: ponte?.entrou ?? null, peso: Math.abs(ponte?.entrou ?? 0) },
+    { rotulo: 'Saiu e postergou', movimento: 'Saiu', valor: ponte?.saiu ?? null, peso: Math.abs(ponte?.saiu ?? 0) },
+    { rotulo: 'Alterou valor', movimento: 'Alterou valor', valor: ponte?.alterou ?? null, peso: Math.abs(ponte?.alterou ?? 0) },
   ] : []
 
   const nome = 'Giovanni'
@@ -306,12 +304,12 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
                   <Panel className="grid content-center gap-3">
                     <span className="text-[13px] font-semibold text-ink-strong">Saldo do mês</span>
                     <strong className={`num text-[26px] font-bold leading-none tracking-[-0.035em] ${saldo === null ? 'text-ink-strong' : saldo > 0 ? 'text-dado-positivo' : saldo < 0 ? 'text-dado-negativo' : 'text-ink-strong'}`}>
-                      {saldo === null ? '—' : `${saldo > 0 ? '+' : saldo < 0 ? '−' : ''}${formatarRealCompacto(Math.abs(saldo))}`}
+                      {formatarSaldo(saldo)}
                     </strong>
                     <p className="text-[12px] text-ink-muted">
                       {saldo === null
                         ? 'Entrou e Saiu só aparecem a partir da segunda carga.'
-                        : `${formatarRealCompacto(ganhou?.value ?? null)} ganhos · ${formatarRealCompacto(perdeu?.value ?? null)} perdidos.`}
+                        : `Entrou ${formatarRealCompacto(ponte?.entrou ?? null)} · Saiu ${formatarRealCompacto(ponte?.saiu ?? null)} · Alterou ${formatarRealCompacto(ponte?.alterou ?? null)}`}
                     </p>
                   </Panel>
 
@@ -346,8 +344,8 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
                   <Sinal
                     icone={TrendingUp}
                     tom={saldo !== null && saldo < 0 ? 'negativo' : 'positivo'}
-                    titulo={saldo === null ? 'Movimento indisponível' : saldo < 0 ? `${formatarRealCompacto(Math.abs(saldo))} saíram do mês` : `${formatarRealCompacto(saldo)} entraram no mês`}
-                    detalhe={saldo === null ? 'A comparação começa na próxima importação' : `Entrou ${formatarRealCompacto(grupo('Entrou')?.value ?? null)} · Saiu ${formatarRealCompacto(grupo('Saiu')?.value ?? null)}`}
+                    titulo={saldo === null ? 'Movimento indisponível' : saldo < 0 ? `Previsto caiu ${formatarSaldo(Math.abs(saldo)).replace(/^[+−]/, '')}` : `Previsto subiu ${formatarSaldo(saldo)}`}
+                    detalhe={saldo === null ? 'A comparação começa na próxima importação' : `Entrou ${formatarRealCompacto(ponte?.entrou ?? null)} · Saiu ${formatarRealCompacto(ponte?.saiu ?? null)}`}
                     href="#forecast"
                   />
                   <Sinal
