@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { calculateForecastMonth } from '../src/features/comercial-v3/forecast-month.ts'
+import { calculateForecastMonth, FORECAST_PROBABILITY_NOTICE } from '../src/features/comercial-v3/forecast-month.ts'
 
 const record = (id, values = {}) => ({ row: id, opportunityId: String(id), orderId: '', accountId: '1', account: `Conta ${id}`, stage: 'Negociação', status: '', classification: '', representative: '', executive: '', ownerGroup: '', forecastDate: '2026-10-12', closingDate: null, conferenceDate: null, predictedValue: 100, closedValue: null, maintenance: null, product: '', module: '', modality: '', ...values })
 const calculate = (current, previous, period = 'mês') => calculateForecastMonth(current, previous, '2026-10', '2026-10-14', period)
@@ -46,4 +46,21 @@ test('vazio, nulos, datas fora do período e ausência de anterior', () => {
   assert.equal(result.exited, null)
   assert.equal(result.missing, 0)
   assert.equal(calculate([], [], 'mês').lost.count, 0)
+})
+
+test('sem probabilidade, o aviso aparece e o total é igual ao de hoje (sem corte)', () => {
+  const current = [record(1), record(2, { stage: 'Proposta' }), record(3, { predictedValue: 300 })]
+  const result = calculate(current, null)
+  assert.equal(result.probabilityAvailable, false)
+  assert.equal(result.notice, FORECAST_PROBABILITY_NOTICE)
+  // Sem a coluna, toda oportunidade em Proposta/Negociação do mês entra — o total de hoje.
+  assert.equal(result.predicted.count, 3)
+  assert.equal(result.predicted.value, 500)
+})
+
+test('com probabilidade, o aviso não aparece', () => {
+  const current = [record(1, { probability: 0.8 }), record(2, { probability: 0.5 })]
+  const result = calculate(current, null)
+  assert.equal(result.probabilityAvailable, true)
+  assert.equal(result.notice, null)
 })

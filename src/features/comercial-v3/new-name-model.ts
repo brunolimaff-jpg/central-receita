@@ -33,7 +33,7 @@ export type OrderSubstatus =
 
 export type NewNamePeriod = 'semana' | 'mês'
 
-export type NewNameClassification = 'confirmado' | 'a_validar' | 'outro'
+export type NewNameClassification = 'confirmado' | 'pela_fonte' | 'a_validar' | 'outro'
 
 /**
  * De-para padrão para os substatus de pedido.
@@ -92,16 +92,17 @@ export function resolveOrderSubstatus(
 }
 
 /**
- * Classifica pedidos/oportunidades entre "confirmado", "a_validar" ou "outro".
- * Documentação: se o sinal "validar" estiver presente na classificação, separa do total principal.
+ * Classifica pedidos/oportunidades entre "confirmado", "pela_fonte", "a_validar" ou "outro".
+ * "NOVO" puro vem só da exportação, sem confirmação institucional: fica "pela fonte".
+ * Só "NOVO CONFIRMADO" (ou "NEW NAME", sinal de confirmação) é "confirmado".
+ * Se o sinal "validar" estiver presente, separa do total principal.
  */
 export function classifyNewName(rawClassification: string | null | undefined): NewNameClassification {
   if (!rawClassification) return 'outro'
   const norm = normalize(rawClassification)
   if (norm.includes('VALIDAR')) return 'a_validar'
-  if (norm === 'NOVO' || norm === 'NOVO CONFIRMADO' || norm === 'NEW NAME' || norm.startsWith('NOVO')) {
-    return 'confirmado'
-  }
+  if (norm === 'NOVO CONFIRMADO' || norm === 'NEW NAME') return 'confirmado'
+  if (norm === 'NOVO' || norm.startsWith('NOVO')) return 'pela_fonte'
   return 'outro'
 }
 
@@ -201,6 +202,8 @@ export type NewNameIndicators = {
   toValidateCount: number
   toValidateValue: number | null
   toValidateAccounts: number
+  /** Pedidos do período classificados só pela fonte ("NOVO"), sem confirmação institucional. */
+  sourceOnlyCount: number
   /** Pedidos do período sem classificação na fonte; ficam fora do New Name. */
   unclassifiedOrders: number
 }
@@ -396,6 +399,7 @@ export function calculateNewNameModel(
 
   const distinctAccounts = new Set(currentOrders.map(o => o.accountId).filter(Boolean)).size
   const unclassifiedOrders = groupedCurrent.filter(o => !o.classification.trim() && inRange(o.date, start, end)).length
+  const sourceOnlyCount = currentOrders.filter(o => classifyNewName(o.classification) === 'pela_fonte').length
   const ordersCount = currentOrders.length
 
   const maintenanceTotal = currentOrders.some(o => o.maintenance === null)
@@ -521,6 +525,7 @@ export function calculateNewNameModel(
       toValidateCount,
       toValidateValue,
       toValidateAccounts,
+      sourceOnlyCount,
       unclassifiedOrders,
     },
     orders: currentOrders,

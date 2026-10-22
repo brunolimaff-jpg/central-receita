@@ -27,6 +27,8 @@ type ForecastScreenProps = {
   detalhes: Map<string, OpportunityDetail>
   from?: CommercialView
   nav: CommercialNav
+  /** Solução ativa no recorte; o cabeçalho da lista mostra o produto com o nome. */
+  solucao?: string
 }
 
 export function ForecastScreen({
@@ -37,6 +39,7 @@ export function ForecastScreen({
   detalhes,
   from,
   nav,
+  solucao,
 }: ForecastScreenProps) {
   const linhas = movement ? model.porMovimento[movement] : model.oportunidades
 
@@ -62,6 +65,7 @@ export function ForecastScreen({
         detalhes={detalhes}
         movement={movement}
         nav={nav}
+        solucao={solucao}
       />
 
       <BranchTiles

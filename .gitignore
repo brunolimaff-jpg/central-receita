@@ -8,3 +8,5 @@ dist/
 
 *.bak-*
 
+.claude/worktrees/
+tsconfig.tsbuildinfo

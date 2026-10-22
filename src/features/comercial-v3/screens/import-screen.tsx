@@ -1,8 +1,9 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { AlertTriangle, ArrowRight, CheckCircle2, FileSpreadsheet, Settings2, Upload } from 'lucide-react'
+import { avaliarArquivoSoltado, formatarTamanhoArquivo } from '../import-file'
 import { MetricDetail } from '../components/metric-detail'
 import { OpportunitiesForecastChart } from '../components/opportunities-forecast-chart'
 import type { ImportBatch, ImportIssue, ImportKind, ImportWorkspace, ImportedRecord } from '../manual-import'
@@ -14,6 +15,17 @@ const panel = 'rounded-[10px] border border-hairline bg-surface-raised p-5 shado
 const input = 'mt-1.5 min-h-10 w-full rounded-[8px] border border-hairline bg-surface-raised px-3 py-2 text-sm text-ink-strong transition-premium focus-visible:border-brand disabled:opacity-50'
 const button = 'inline-flex min-h-10 items-center justify-center gap-2 rounded-[8px] bg-brand-escuro px-4 py-2 text-sm font-semibold text-white transition-premium hover:bg-verde-escuro disabled:cursor-not-allowed disabled:bg-azul-claro disabled:text-azul-medio'
 const names: Record<ImportKind, string> = { opportunities: 'Oportunidades', orders: 'Pedidos' }
+
+/**
+ * Colunas que a leitura exige, com o nome exato que o CRM exporta.
+ * Espelha `fields` e `required` de `manual-import.ts`: a tela mostra, antes de
+ * subir, o que o validador cobra depois — a Fabi confere com o arquivo fechado.
+ */
+const COLUNAS_OBRIGATORIAS: Record<ImportKind, string[]> = {
+  opportunities: ['Oportunidade ID', 'Conta ID', 'Conta', 'Etapa', 'Previsão de Fechamento', 'Valor Previsto', 'Valor Fechado', 'Representante'],
+  orders: ['NUMERO PEDIDO', 'ID OPORTUNIDADE', 'ID CONTA', 'NOME FANTASIA CONTA', 'STATUS OPORTUNIDADE', 'CLASSIFICACAO DO PEDIDO', 'DATA FECHAMENTO', 'PRODUTO - VALOR MANUTENCAO', 'UNIDADE NEGOCIO OPORTUNIDADE'],
+}
+
 const currency = (value: number | null) => value === null ? 'Indisponível' : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 const displayDate = (date: string | null | undefined) => date ? date.slice(0, 10).split('-').reverse().join('/') : 'Indisponível'
 
@@ -106,23 +118,79 @@ function BatchPreview({ batch }: { batch: ImportBatch }) {
   </div>
 }
 
-/** Campo de seleção de arquivo, com o rótulo como alvo de clique e o estado de bloqueio explícito. */
-function CampoArquivo({ kind, habilitado, busy, onChange }: {
+/**
+ * Área de arquivo com três estados: parado (ícone flutua), arrastando (borda
+ * cônica girando) e lendo (barra com brilho, sem porcentagem inventada). Quem
+ * já teve arquivo lido ganha o estado `pronto`, com a mesma leitura na faixa.
+ *
+ * O `<label>` embrulha o `input` nativo: clique em qualquer ponto e Tab até o
+ * input abrem o seletor; Enter e Espaço valem ali, com o anel visível vindo de
+ * `:focus-within`. Soltar um arquivo passa pelo mesmo `onChange` do seletor.
+ */
+function CampoArquivo({ kind, habilitado, busy, pronto, onChange, onSoltar }: {
   kind: ImportKind
   habilitado: boolean
   busy: boolean
+  pronto: boolean
   onChange: (file?: File) => void
+  onSoltar: (file: File) => void
 }) {
+  const [arrastando, setArrastando] = useState(false)
+  // Profundidade do arrasto: `dragleave` dispara também ao cruzar os filhos da
+  // área, então só encerramos o estado quando o ponteiro sai do elemento inteiro.
+  const profundidade = useRef(0)
+  const ativo = habilitado && !busy
+  const estado = !habilitado ? 'bloqueado' : busy ? 'lendo' : arrastando ? 'arrastando' : pronto ? 'pronto' : 'parado'
+  const descricao = names[kind].toLowerCase()
   return (
-    <label className={`mt-3 flex min-h-24 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-[10px] border border-dashed px-4 py-4 text-center transition-premium ${habilitado ? 'border-hairline bg-surface-base hover:border-brand hover:bg-dado-positivo-suave' : 'cursor-not-allowed border-hairline-suave bg-surface-sunken opacity-60'}`}>
-      <Upload aria-hidden className={`h-5 w-5 ${habilitado ? 'text-brand-escuro' : 'text-ink-subtle'}`} />
-      <span className="text-[13px] font-semibold text-ink-strong">Selecionar CSV ou XLSX de {names[kind].toLowerCase()}</span>
-      <span className="text-[11.5px] text-ink-muted">
-        {habilitado ? 'CSV UTF-8 ou XLSX, até 15 MB' : 'Informe a data de referência acima para liberar a seleção'}
+    <label
+      data-estado={estado}
+      aria-disabled={!ativo}
+      className={`revenue-dropzone mt-3 ${ativo ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+      onDragEnter={event => {
+        if (!ativo) return
+        event.preventDefault()
+        profundidade.current += 1
+        setArrastando(true)
+      }}
+      onDragOver={event => {
+        if (!ativo) return
+        event.preventDefault()
+        event.dataTransfer.dropEffect = 'copy'
+      }}
+      onDragLeave={() => {
+        profundidade.current = Math.max(0, profundidade.current - 1)
+        if (profundidade.current === 0) setArrastando(false)
+      }}
+      onDrop={event => {
+        event.preventDefault()
+        profundidade.current = 0
+        setArrastando(false)
+        if (!ativo) return
+        const file = event.dataTransfer.files?.[0]
+        if (file) onSoltar(file)
+      }}
+    >
+      <span className="revenue-dropzone-icone">
+        {estado === 'pronto' ? <CheckCircle2 aria-hidden className="h-5 w-5" /> : <Upload aria-hidden className="h-5 w-5" />}
       </span>
+      <span className="text-[13px] font-semibold text-ink-strong">
+        {estado === 'lendo' ? 'Lendo o arquivo…'
+          : estado === 'arrastando' ? `Solte o arquivo de ${descricao}`
+          : estado === 'pronto' ? `Arquivo de ${descricao} já lido`
+          : `Selecionar CSV ou XLSX de ${descricao}`}
+      </span>
+      {estado === 'lendo'
+        ? <><span className="revenue-leitura-barra" aria-hidden /><span className="text-[12px] text-ink-muted">Lendo todas as linhas do arquivo. A conferência aparece quando terminar.</span></>
+        : <span className="text-[12px] text-ink-muted">
+          {!habilitado ? 'Informe a data de referência acima para liberar a seleção'
+            : estado === 'arrastando' ? 'Pode soltar: o arquivo é lido assim que chegar.'
+            : estado === 'pronto' ? 'Pode trocar o arquivo ou soltar outro para substituir esta leitura.'
+            : 'Arraste e solte, ou clique para escolher · CSV UTF-8 ou XLSX, até 15 MB'}
+        </span>}
       <input
         type="file"
-        aria-label={`Selecionar CSV ou XLSX de ${names[kind].toLowerCase()}`}
+        aria-label={`Selecionar CSV ou XLSX de ${descricao}`}
         accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         disabled={busy || !habilitado}
         className="sr-only"
@@ -139,6 +207,13 @@ export function ImportScreen({ draft, canImport, onSaved, loading, loadError, na
   const [referenceDate, setReferenceDate] = useState('')
   const [busy, setBusy] = useState(false)
   const [errors, setErrors] = useState<Partial<Record<ImportKind, string>>>({})
+  /**
+   * Recusa de arquivo solto. Separada de `errors`: não bloqueia a confirmação
+   * nem descarta o que já foi lido — o arquivo errado simplesmente não entrou.
+   */
+  const [avisos, setAvisos] = useState<Partial<Record<ImportKind, string>>>({})
+  /** Arquivo escolhido ou solto nesta sessão, para o cartão com nome e tamanho. */
+  const [arquivos, setArquivos] = useState<Partial<Record<ImportKind, { nome: string; tamanho: number }>>>({})
   const [message, setMessage] = useState('')
   const [acknowledged, setAcknowledged] = useState(false)
   const workspace: ImportWorkspace = {
@@ -154,9 +229,35 @@ export function ImportScreen({ draft, canImport, onSaved, loading, loadError, na
     Boolean(errors.orders || errors.opportunities || workspace.opportunities?.errorCount || workspace.orders?.errorCount) ||
     reconciliation.conflictingAccounts > 0 || (warnings > 0 && !acknowledged)
 
+  /**
+   * Soltar arquivo passa pela mesma leitura do seletor, mas recusa extensão e
+   * tamanho antes: o erro do `readImportFile` é genérico e não diz qual arquivo
+   * chegou nem por que não serviu.
+   */
+  function soltarArquivo(kind: ImportKind, file: File) {
+    const avaliacao = avaliarArquivoSoltado(file)
+    if (!avaliacao.aceito) {
+      // Arquivo solto recusado não mexe no que já estava lido: só informa.
+      setAvisos(current => ({ ...current, [kind]: avaliacao.mensagem }))
+      return
+    }
+    void selectFile(kind, file)
+  }
+
+  /** Volta a fonte ao estado vazio: descarta a leitura desta sessão, não a carga salva. */
+  function trocarArquivo(kind: ImportKind) {
+    setStaged(current => ({ ...current, [kind]: null }))
+    setErrors(current => ({ ...current, [kind]: '' }))
+    setAvisos(current => ({ ...current, [kind]: '' }))
+    setArquivos(current => ({ ...current, [kind]: undefined }))
+    setAcknowledged(false)
+  }
+
   async function selectFile(kind: ImportKind, file?: File) {
     if (!file) return
     setBusy(true); setMessage(''); setAcknowledged(false)
+    setAvisos(current => ({ ...current, [kind]: '' }))
+    setArquivos(current => ({ ...current, [kind]: { nome: file.name, tamanho: file.size } }))
     setStaged(current => ({ ...current, [kind]: null }))
     setErrors(current => ({ ...current, [kind]: '' }))
     try {
@@ -177,7 +278,7 @@ export function ImportScreen({ draft, canImport, onSaved, loading, loadError, na
         if (staged[kind]) next[kind] = { ...staged[kind], referenceDate }
       }
       const saved = await saveImportDraft(next, draft, referenceDate)
-      onSaved(saved); setStaged({ opportunities: null, orders: null }); setAcknowledged(false)
+      onSaved(saved); setStaged({ opportunities: null, orders: null }); setArquivos({}); setAcknowledged(false)
       setMessage(sharedImportEnabled ? 'Carga confirmada. Forecast e New Name já podem consultar esta versão.' : 'Prévia salva neste navegador. Forecast e New Name podem ser revisados pelos links abaixo.')
     } catch (error) { setMessage(error instanceof Error ? error.message : 'A prévia não foi salva. Tente novamente.') }
     finally { setBusy(false) }
@@ -215,35 +316,81 @@ export function ImportScreen({ draft, canImport, onSaved, loading, loadError, na
       <label className="block max-w-xs text-[13px] font-semibold text-ink-strong">Data de referência da exportação
         <input type="date" aria-label="Data de referência da exportação" min="1900-01-01" max={localDate()} className={input} value={referenceDate} onChange={event => { setReferenceDate(event.target.value); setAcknowledged(false) }} disabled={busy || loading} />
       </label>
-      <p className="mt-2 text-[12px] text-ink-muted">Escolha a data do retrato do CRM; a data de hoje não é presumida.</p>
+      <p className="mt-2 text-[12px] text-ink-muted">A data do retrato que você exportou do CRM, não a de hoje. É a que os números representam.</p>
     </section>
+
+    {/* Cada fonte guarda seu próprio horário: dá para atualizar uma sem a outra. */}
+    {(workspace.opportunities || workspace.orders) ? (
+      <section className={`${panel} grid gap-2`} aria-label="Horário de cada arquivo">
+        <h2 className="text-[15px] font-bold text-ink-strong">O que já está carregado</h2>
+        <ul className="grid gap-1.5 text-[13px] text-ink-muted">
+          {(['opportunities', 'orders'] as const).map(kind => {
+            const fonte = workspace[kind]
+            if (!fonte) return <li key={kind}><strong className="font-semibold text-ink-strong">{names[kind]}:</strong> nenhum arquivo carregado ainda.</li>
+            const quando = fonte.savedAt ?? fonte.importedAt
+            const horario = quando && Number.isFinite(Date.parse(quando))
+              ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(quando))
+              : 'horário indisponível'
+            return <li key={kind}>
+              <strong className="font-semibold text-ink-strong">{names[kind]}:</strong> atualizado em {horario} · referência {displayDate(fonte.referenceDate)} · {fonte.filename ?? 'arquivo sem nome'}
+            </li>
+          })}
+        </ul>
+        {Boolean(workspace.opportunities) !== Boolean(workspace.orders) && (
+          <p className="rounded-[8px] bg-dado-atencao-suave px-3 py-2 text-[13px] text-dado-atencao">
+            Só uma das planilhas está carregada. Pode confirmar assim mesmo: a seção da outra continua com os números que já tinha.
+          </p>
+        )}
+      </section>
+    ) : null}
 
     <div className="grid items-start gap-4 xl:grid-cols-2">{(['opportunities', 'orders'] as const).map(kind => <section key={kind} className={panel}>
       <h2 className="flex items-center gap-2 text-[15px] font-bold text-ink-strong"><FileSpreadsheet aria-hidden size={19} className="text-brand-escuro" />{names[kind]}</h2>
       <p className="mt-1 text-[12px] text-ink-muted">{kind === 'orders' ? 'Linhas de produtos e serviços, como em Pedidos Outubro 26.xlsx.' : 'Uma linha por oportunidade, como em Opp em andamento.xlsx.'}</p>
-      <CampoArquivo kind={kind} habilitado={dataValida} busy={busy || loading} onChange={file => { void selectFile(kind, file) }} />
-      {errors[kind] && <p role="alert" className="mt-3 flex items-start gap-2 rounded-[8px] bg-dado-negativo-suave px-3 py-2 text-[12.5px] text-dado-negativo"><AlertTriangle aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />{errors[kind]}</p>}
-      {(staged[kind] || errors[kind]) && <button type="button" disabled={busy} className="mt-3 min-h-9 text-[12.5px] font-semibold text-brand-escuro underline"
-        onClick={() => { setStaged(current => ({ ...current, [kind]: null })); setErrors(current => ({ ...current, [kind]: '' })); setAcknowledged(false) }}>Descartar seleção</button>}
-      {workspace[kind] ? <><p className="mt-3 text-[12.5px] font-semibold text-ink-strong">{staged[kind] ? 'Nova seleção · substitui esta fonte na prévia' : `${sharedImportEnabled ? 'Carga compartilhada confirmada' : 'Prévia salva'} · referência ${displayDate(workspace[kind]?.referenceDate)}`}</p>
-        <BatchPreview batch={workspace[kind]!} /></> : <p className="mt-4 text-[12.5px] text-ink-muted">Nenhum arquivo desta fonte na prévia.</p>}
+      <div className="mt-2 rounded-[8px] bg-surface-base px-3 py-2 text-[12px] text-ink-muted">
+        <p className="font-semibold text-ink-strong">Colunas que o arquivo precisa ter ({COLUNAS_OBRIGATORIAS[kind].length})</p>
+        <ul className="mt-1.5 flex flex-wrap gap-1.5" aria-label={`Colunas obrigatórias de ${names[kind].toLowerCase()}`}>
+          {COLUNAS_OBRIGATORIAS[kind].map(coluna => <li key={coluna} className="revenue-chip">{coluna}</li>)}
+        </ul>
+        <p className="mt-2">Se o CRM exportar com outro nome, o painel diz qual coluna está faltando antes de confirmar a carga.</p>
+      </div>
+      <CampoArquivo kind={kind} habilitado={dataValida} busy={busy || loading} pronto={Boolean(workspace[kind] && workspace[kind]!.errorCount === 0)} onChange={file => { void selectFile(kind, file) }} onSoltar={file => soltarArquivo(kind, file)} />
+      {arquivos[kind] && (staged[kind] || errors[kind]) && <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-hairline bg-surface-raised px-3 py-2.5">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] bg-dado-positivo-suave"><FileSpreadsheet aria-hidden className="h-4 w-4 text-brand-escuro" /></span>
+          <div className="min-w-0">
+            <p className="break-all text-[13px] font-semibold text-ink-strong">{arquivos[kind]!.nome}</p>
+            <p className="text-[12px] text-ink-muted">{formatarTamanhoArquivo(arquivos[kind]!.tamanho)}</p>
+          </div>
+        </div>
+        <button type="button" disabled={busy} className="inline-flex min-h-9 items-center rounded-[8px] border border-hairline px-3 text-[13px] font-semibold text-brand-escuro transition-premium hover:bg-dado-positivo-suave disabled:opacity-50"
+          onClick={() => trocarArquivo(kind)}>Trocar arquivo</button>
+      </div>}
+      {errors[kind] && <p role="alert" className="mt-3 flex items-start gap-2 rounded-[8px] bg-dado-negativo-suave px-3 py-2 text-[13px] text-dado-negativo"><AlertTriangle aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />{errors[kind]}</p>}
+      {avisos[kind] && <p role="alert" className="mt-3 flex items-start gap-2 rounded-[8px] bg-dado-atencao-suave px-3 py-2 text-[13px] text-dado-atencao"><AlertTriangle aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />{avisos[kind]}</p>}
+      {workspace[kind] ? <>
+        {workspace[kind]!.errorCount === 0 && !errors[kind] && <p role="status" className="revenue-faixa-pronta mt-3">
+          <CheckCircle2 aria-hidden className="h-4 w-4 shrink-0" />Pronto para conferir · {workspace[kind]!.stats.records.toLocaleString('pt-BR')} {workspace[kind]!.stats.records === 1 ? 'linha lida' : 'linhas lidas'}
+        </p>}
+        <p className="mt-3 text-[13px] font-semibold text-ink-strong">{staged[kind] ? 'Nova seleção · substitui esta fonte na prévia' : `${sharedImportEnabled ? 'Carga compartilhada confirmada' : 'Prévia salva'} · referência ${displayDate(workspace[kind]?.referenceDate)}`}</p>
+        <BatchPreview batch={workspace[kind]!} /></> : <p className="mt-4 text-[13px] text-ink-muted">Nenhum arquivo desta fonte na prévia.</p>}
     </section>)}</div>
 
     <section className={`${panel} grid gap-4`} aria-label="Conferência das fontes">
       <h2 className="text-[15px] font-bold text-ink-strong">Conferência antes de salvar</h2>
       {workspace.opportunities && workspace.orders ? <Metrics entries={[['Pedidos vinculados por ID', reconciliation.matchedOrders], ['Pedidos sem oportunidade nesta carga', reconciliation.unmatchedOrders], ['Divergências de conta', reconciliation.conflictingAccounts]]} />
         : <p className="text-[13px] text-ink-muted">Selecione as duas fontes para conferir pedidos × oportunidades pelo ID.</p>}
-      {reconciliation.conflictingAccounts > 0 && <p role="alert" className="rounded-[8px] bg-dado-negativo-suave px-3 py-2 text-[12.5px] text-dado-negativo">A gravação está bloqueada: revise as divergências de conta entre as fontes.</p>}
-      {differentDates && <p className="rounded-[8px] bg-dado-atencao-suave px-3 py-2 text-[12.5px] text-dado-atencao">As fontes têm datas de referência diferentes. O vínculo por ID não comprova atualização simultânea dos estados.</p>}
+      {reconciliation.conflictingAccounts > 0 && <p role="alert" className="rounded-[8px] bg-dado-negativo-suave px-3 py-2 text-[13px] text-dado-negativo">A gravação está bloqueada: revise as divergências de conta entre as fontes.</p>}
+      {differentDates && <p className="rounded-[8px] bg-dado-atencao-suave px-3 py-2 text-[13px] text-dado-atencao">As fontes têm datas de referência diferentes. O vínculo por ID não comprova atualização simultânea dos estados.</p>}
       <p className="text-[12px] leading-5 text-ink-muted">Cada carga substitui o retrato anterior daquela fonte. Itens de pedido são preservados sem somar manutenção como MRR. Datas ausentes e valores vazios continuam indisponíveis.</p>
-      {changed && warnings > 0 && <label className="flex min-h-10 items-start gap-3 rounded-[8px] border border-dado-atencao bg-dado-atencao-suave px-3 py-2.5 text-[12.5px] text-ink-strong"><input type="checkbox" checked={acknowledged} onChange={event => setAcknowledged(event.target.checked)} className="mt-0.5 h-4 w-4 accent-[var(--verde-escuro)]" />
+      {changed && warnings > 0 && <label className="flex min-h-10 items-start gap-3 rounded-[8px] border border-dado-atencao bg-dado-atencao-suave px-3 py-2.5 text-[13px] text-ink-strong"><input type="checkbox" checked={acknowledged} onChange={event => setAcknowledged(event.target.checked)} className="mt-0.5 h-4 w-4 accent-[var(--verde-escuro)]" />
         <span>Revisei os avisos e as relações sem correspondência. Os campos afetados continuam indisponíveis.</span></label>}
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" onClick={() => void save()} disabled={blocked} className={button}>{busy ? 'Lendo ou salvando…' : loading ? 'Carregando…' : sharedImportEnabled ? 'Confirmar carga compartilhada' : 'Salvar prévia local'}</button>
         {draft?.opportunities && <Link className="inline-flex min-h-10 items-center gap-1.5 text-[13px] font-semibold text-brand-escuro underline" href={nav.href('forecast')}>Revisar Forecast</Link>}
         {draft?.orders && <Link className="inline-flex min-h-10 items-center gap-1.5 text-[13px] font-semibold text-brand-escuro underline" href={nav.href('new-name')}>Revisar New Name</Link>}
       </div>
-      {message && <p role="status" aria-live="polite" className={`flex items-start gap-2 rounded-[8px] px-3 py-2 text-[12.5px] ${/não|recusada|bloqueada/i.test(message) ? 'bg-dado-negativo-suave text-dado-negativo' : 'bg-dado-positivo-suave text-brand-escuro'}`}>
+      {message && <p role="status" aria-live="polite" className={`flex items-start gap-2 rounded-[8px] px-3 py-2 text-[13px] ${/não|recusada|bloqueada/i.test(message) ? 'bg-dado-negativo-suave text-dado-negativo' : 'bg-dado-positivo-suave text-brand-escuro'}`}>
         {/não|recusada|bloqueada/i.test(message) ? <AlertTriangle aria-hidden className="mt-0.5 h-4 w-4 shrink-0" /> : <CheckCircle2 aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />}
         {message}
       </p>}

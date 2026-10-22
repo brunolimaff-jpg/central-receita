@@ -27,9 +27,11 @@ type BranchScreenProps = {
   detalhes: Map<string, OpportunityDetail>
   from?: CommercialView
   nav: CommercialNav
+  /** Solução ativa no recorte; o cabeçalho da lista mostra o produto com o nome. */
+  solucao?: string
 }
 
-export function BranchScreen({ model, branch, filiais, agregadoReal, detalhes, from, nav }: BranchScreenProps) {
+export function BranchScreen({ model, branch, filiais, agregadoReal, detalhes, from, nav, solucao }: BranchScreenProps) {
   const voltar = {
     label: VOLTAR_POR_ORIGEM[from ?? 'home'],
     href: nav.href(from ?? 'home'),
@@ -52,10 +54,11 @@ export function BranchScreen({ model, branch, filiais, agregadoReal, detalhes, f
           rows={model.oportunidades}
           detalhes={detalhes}
           nav={nav}
+          solucao={solucao}
           acao={
             <Link
               href={nav.href('opportunities', { from: 'branch' })}
-              className="rounded-[9px] border border-[#dfe8ef] bg-white px-2.5 py-1.5 text-[11px] font-semibold text-[#2b425e] transition-premium hover:bg-[#f5f9fb] active:translate-y-px"
+              className="rounded-[8px] border border-[#dfe8ef] bg-white px-2.5 py-1.5 text-[11px] font-semibold text-[#2b425e] transition-premium hover:bg-[#f5f9fb] active:translate-y-px"
             >
               Buscar nas oportunidades da filial
             </Link>
@@ -86,7 +89,7 @@ export function BranchScreen({ model, branch, filiais, agregadoReal, detalhes, f
             titulo={FILIAIS_COPY.semFilialTitulo}
             subtitulo={FILIAIS_COPY.subtitulo}
           />
-          <section className="rounded-[14px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
+          <section className="rounded-[10px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
             <p className="max-w-[820px] text-[13px] leading-relaxed text-[#4b5f76]">
               {FILIAIS_COPY.semFilialTexto}
             </p>
@@ -100,11 +103,11 @@ export function BranchScreen({ model, branch, filiais, agregadoReal, detalhes, f
           </section>
         </>
       ) : (
-        <section className="rounded-[20px] border border-[#dfe8ef] bg-white px-5 py-5 shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
+        <section className="rounded-[10px] border border-[#dfe8ef] bg-white px-5 py-5 shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
           <h1 className="text-[22px] font-bold tracking-[-0.035em] text-[#0d2340]">
             {FILIAIS_COPY.desconhecidaTitulo}
           </h1>
-          <p className="mt-2 max-w-[720px] text-[13.5px] leading-relaxed text-[#4b5f76]">
+          <p className="mt-2 max-w-[720px] text-[13px] leading-relaxed text-[#4b5f76]">
             {FILIAIS_COPY.desconhecidaTexto}
           </p>
           <Link

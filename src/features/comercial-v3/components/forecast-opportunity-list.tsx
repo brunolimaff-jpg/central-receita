@@ -20,6 +20,8 @@ type ForecastOpportunityListProps = {
   detalhes: Map<string, OpportunityDetail>
   movement: ForecastMovement | null
   nav: CommercialNav
+  /** Solução ativa no recorte; o cabeçalho da lista mostra o produto com o nome. */
+  solucao?: string
 }
 
 export function ForecastOpportunityList({
@@ -27,6 +29,7 @@ export function ForecastOpportunityList({
   detalhes,
   movement,
   nav,
+  solucao,
 }: ForecastOpportunityListProps) {
   const subtitulo = movement
     ? `Movimento: ${movement} · ${formatarOportunidades(rows.length)}. Clique em uma linha para abrir a oportunidade.`
@@ -39,6 +42,7 @@ export function ForecastOpportunityList({
       nav={nav}
       titulo={FORECAST_COPY.listaTitulo}
       subtitulo={subtitulo}
+      solucao={solucao}
       hrefDe={(linha) => {
         const extra: CommercialHrefExtra = { opportunityId: linha.id, from: 'forecast' }
         if (movement) extra.movement = movement

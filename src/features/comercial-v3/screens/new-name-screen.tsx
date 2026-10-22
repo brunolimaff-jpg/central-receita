@@ -24,15 +24,15 @@ export function NewNameScreen({ rows, detalhes, query, nav }: NewNameScreenProps
       />
 
       <header className="px-1 pb-1">
-        <h1 className="revenue-heading flex items-center gap-3 text-[28px] font-bold leading-tight tracking-[-.035em] text-[#0d2340]">
+        <h1 className="revenue-heading flex items-center gap-3 text-[26px] font-bold leading-tight tracking-[-.035em] text-[#0d2340]">
           New Name <UserRoundPlus aria-hidden className="text-[#00968c]" size={26} />
         </h1>
       </header>
 
-      <section aria-label="Disponibilidade da classificação New Name" className="revenue-panel grid min-w-0 gap-3 rounded-[14px] border border-[#dfe8ef] bg-white/95 p-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <section aria-label="Disponibilidade da classificação New Name" className="revenue-panel grid min-w-0 ga xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div>
           <span className="inline-flex rounded-full bg-[#eef2f6] px-2.5 py-1 text-[12px] font-semibold text-[#52677f]">Classificação indisponível</span>
-          <h2 className="mt-2 text-[16px] font-bold text-[#0d2340]">Fonte independente pendente</h2>
+          <h2 className="mt-2 text-[15px] font-bold text-[#0d2340]">Fonte independente pendente</h2>
           <p className="mt-1 text-[13px] leading-5 text-[#52677f]">
             Os exemplos abaixo ilustram a área e não validam a classificação.
           </p>

@@ -1,0 +1,236 @@
+{
+  "date": "2026-10-21",
+  "classification": "exploratory-lab-observations-not-a-complete-P1-baseline",
+  "source": {
+    "repository": "C:/Users/bruno.ferreira/OneDrive - Senior Sistemas SA/Documentos/Projetos/Central de Receita/central-receita-sites",
+    "branch": "feat/trajetoria-receita",
+    "head": "08869cdb06f76cbf35bd7c3ab6c748ddb2105a8b",
+    "dirty_checkout_built_verbatim": false,
+    "note": "Build and browser observations came from an isolated derivative snapshot with synthetic replacements; they do not validate the exact dirty checkout or final Home build."
+  },
+  "browser": {
+    "tool_context": "Claude Browser pane (mcp__Claude_Browser)",
+    "user_agent_observed": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.7977.149 Safari/537.36",
+    "viewport_css_px": [1440, 900],
+    "device_pixel_ratio": 1.25,
+    "hardware_concurrency_reported": 12,
+    "device_memory_gib_reported": 16,
+    "visibility_state": "visible",
+    "profile_isolation": "NOT VERIFIED",
+    "protocol_conformance": "NONCONFORMANCE: evidence identifies the Claude Browser pane, not a separately confirmed external isolated Chrome profile; do not present as external Chrome validation or a clean cold-cache profile."
+  },
+  "snapshot": {
+    "path": "C:/Users/bruno.ferreira/AppData/Local/CentralReceitaPerf-20261021-1792627294039",
+    "manifest_path": "C:/Users/bruno.ferreira/AppData/Local/CentralReceitaPerf-20261021-1792627294039/snapshot-manifest.json",
+    "manifest_sha256": "05c380b1c237cadd2ba7214b1b2ab30c4d76d996bb770f14c04cb33926560c65",
+    "manifest_file_count": 18996,
+    "synthetic_derivative_changes": [
+      {
+        "path": "src/features/comercial-v3/mock-data.ts",
+        "sha256": "b1f0e289672ecf63db589dff03238281bc0f10686c827f43691a426f0621c1ba",
+        "change": "Replaced source mock fixture in snapshot with synthetic generator for 100 opportunities and 20 deals."
+      },
+      {
+        "path": "src/features/comercial-v3/real-branches.json",
+        "sha256": "701d6d3834a4f172d3be5af959861409a3950dd83ba3ec12d00119c08de24738",
+        "change": "Replaced source fixture in snapshot with four fictional branches and synthetic totals."
+      },
+      {
+        "path": "src/features/comercial-v3/commercial-v3-app.tsx",
+        "sha256": "874f3b5eb80bcaeeb9791f44987136a68ea6f1bf36b7a7d982b177b719fded22",
+        "change": "Replaced demo provenance text that referred to real branch aggregates with synthetic-fixture wording."
+      },
+      {
+        "path": "src/features/comercial-v3/accounts-data.ts",
+        "sha256": "d5cfe9a5233e85a133e34241b438881bc238cbd2bceee632e518c974917797b6",
+        "change": "Copied after source inspection confirmed types and logic only; no records embedded."
+      }
+    ],
+    "generated_opportunities_csv_not_selected_natively": {
+      "path": "C:/Users/bruno.ferreira/AppData/Local/CentralReceitaPerf-20261021-1792627294039/synthetic-opportunities-100.csv",
+      "rows": 100,
+      "bytes": 8603,
+      "sha256": "8c4039126d06722206ff2af39dde4df4a0c7a6b1b7b56a774fd23e4e20a23f12",
+      "valid_import_evidence": false
+    }
+  },
+  "build": {
+    "command": "NEXT_PUBLIC_IMPORT_STORAGE=local NEXT_TELEMETRY_DISABLED=1 npm run build:static",
+    "cwd": "C:/Users/bruno.ferreira/AppData/Local/CentralReceitaPerf-20261021-1792627294039",
+    "versions": {
+      "node": "v24.22.0",
+      "npm": "11.19.1",
+      "next": "16.3.8",
+      "tailwindcss": "4.3.3",
+      "webpack": "Next build --webpack"
+    },
+    "out": {
+      "file_count": 90,
+      "bytes": 2490426,
+      "index_html_bytes": 5674,
+      "index_html_sha256": "204cd4aa41de753f3aa585a4a51d76f16fcfdfbb79286fbc046bed10ec9fc012",
+      "page_chunk": "_next/static/chunks/app/page-b3c40558be101664.js",
+      "page_chunk_bytes": 246912,
+      "page_chunk_sha256": "c04104ab2165c87c4a6bd9a35c1fe7b54471f80e1c4efc85ddd58157d22ec5b7",
+      "css": "_next/static/css/d87613253ff1a202.css",
+      "css_bytes": 77583,
+      "css_sha256": "34d3aa37fb4ccb2200c5dde40ff27db8f911ae5ef77354764ff5b7f45a2a1970"
+    },
+    "raw_output_excerpt_from_tool": [
+      "▲ Next.js 16.3.8 (webpack)",
+      "✓ Running next.config.ts",
+      "✓ Compiled successfully",
+      "✓ Finished TypeScript",
+      "✓ Generating static pages (3/3)",
+      "Route (app): /, /_not-found",
+      "○ (Static) prerendered as static content."
+    ],
+    "interpretation": "PASS for a synthetic derived copy only; not an exact-source build of the dirty checkout and not proof of representativeness for final Home."
+  },
+  "scenario": {
+    "route": "http://127.0.0.1:3012/?view=forecast&period=month&demo=1",
+    "view": "Forecast demonstrativo",
+    "synthetic_opportunities_visible": 100,
+    "home_view": false,
+    "file_import_pipeline": false,
+    "cache_state": "warm for the five counted samples; browser origin/profile cache state was shared and not reset",
+    "instrumentation": {
+      "navigation_timing": true,
+      "resource_timing": true,
+      "paint_timing": true,
+      "largest_contentful_paint_observer_buffered": true,
+      "layout_shift_observer_buffered": true,
+      "observer_window_after_navigation_ms": 2600,
+      "interaction_performed_during_observation": false,
+      "cpu_or_network_throttle": false
+    }
+  },
+  "five_counted_warm_samples": [
+    {
+      "label": "1",
+      "url_suffix": "&warm=2",
+      "navigation_type": "navigate",
+      "response_start_ms": 16.299999982118607,
+      "dom_content_loaded_ms": 57.099999994039536,
+      "load_ms": 59.19999998807907,
+      "document_transfer_bytes": 5974,
+      "resource_count": 42,
+      "resource_transfer_bytes": 3000,
+      "resource_encoded_body_bytes": 1664199,
+      "resource_cache_hits": 31,
+      "fcp_ms": 292,
+      "lcp_observed_ms": 292,
+      "lcp_size": 307756,
+      "cls_observed": 0,
+      "rows": 100,
+      "viewport_css_px": [1440, 900]
+    },
+    {
+      "label": "2",
+      "url_suffix": "&warm=3",
+      "navigation_type": "navigate",
+      "response_start_ms": 9.5,
+      "dom_content_loaded_ms": 42,
+      "load_ms": 44,
+      "document_transfer_bytes": 5974,
+      "resource_count": 42,
+      "resource_transfer_bytes": 3000,
+      "resource_cache_hits": 31,
+      "fcp_ms": 324,
+      "lcp_observed_ms": 324,
+      "lcp_size": 307756,
+      "cls_observed": 0,
+      "rows": 100,
+      "viewport_css_px": [1440, 900]
+    },
+    {
+      "label": "3",
+      "url_suffix": "&warm=4",
+      "navigation_type": "navigate",
+      "response_start_ms": 8.599999994039536,
+      "dom_content_loaded_ms": 32.099999994039536,
+      "load_ms": 33.400000005960464,
+      "document_transfer_bytes": 5974,
+      "resource_count": 42,
+      "resource_transfer_bytes": 3000,
+      "resource_cache_hits": 31,
+      "fcp_ms": 192,
+      "lcp_observed_ms": 192,
+      "lcp_size": 307756,
+      "cls_observed": 0,
+      "rows": 100,
+      "viewport_css_px": [1440, 900]
+    },
+    {
+      "label": "4",
+      "url_suffix": "&warm=5",
+      "navigation_type": "navigate",
+      "response_start_ms": 13.599999994039536,
+      "dom_content_loaded_ms": 42.39999997615814,
+      "load_ms": 44,
+      "document_transfer_bytes": 5974,
+      "resource_count": 42,
+      "resource_transfer_bytes": 3000,
+      "resource_cache_hits": 31,
+      "fcp_ms": 256,
+      "lcp_observed_ms": 256,
+      "lcp_size": 307756,
+      "cls_observed": 0,
+      "rows": 100,
+      "viewport_css_px": [1440, 900]
+    },
+    {
+      "label": "5",
+      "url_suffix": "&warm=6",
+      "navigation_type": "navigate",
+      "response_start_ms": 6.799999982118607,
+      "dom_content_loaded_ms": 31.899999976158142,
+      "load_ms": 33.29999998211861,
+      "document_transfer_bytes": 5974,
+      "resource_count": 42,
+      "resource_transfer_bytes": 3000,
+      "resource_cache_hits": 31,
+      "fcp_ms": 180,
+      "lcp_observed_ms": 180,
+      "lcp_size": 307756,
+      "cls_observed": 0,
+      "rows": 100,
+      "viewport_css_px": [1440, 900]
+    }
+  ],
+  "excluded_observations": [
+    {
+      "url_suffix": "&baseline=100",
+      "reason": "First qualifying-route observation after rebuild with mixed cache; not one of five warm samples.",
+      "response_start_ms": 5.9000000059604645,
+      "dom_content_loaded_ms": 48.19999998807907,
+      "load_ms": 88.40000000596046,
+      "document_transfer_bytes": 5974,
+      "resource_count": 41,
+      "resource_transfer_bytes": 333843,
+      "resource_encoded_body_bytes": 1664199,
+      "resource_cache_hits": 24,
+      "fcp_ms": 492,
+      "lcp_observed_ms": 492,
+      "lcp_size": 307756,
+      "cls_observed": 0,
+      "rows": 100,
+      "viewport_css_px": [1440, 900],
+      "used_for_summary_statistics": false
+    }
+  ],
+  "nonconformities_and_limits": [
+    "No confirmed external isolated Chrome profile; only Claude Browser pane UA was observed, so all browser timings are exploratory and not a conforming P1 acceptance baseline.",
+    "Cold cache was not established; do not infer cold values from the mixed-cache observation.",
+    "The route and rows are synthetic Forecast demo, not Home, not native file import, not IndexedDB-persisted state, and not a complete P1 baseline.",
+    "A programmatic DataTransfer/input.files change was attempted during exploration; this is not native file selection and is explicitly excluded as evidence. No Save action was clicked; subsequent navigation reset transient UI state.",
+    "No causal bottleneck or optimization benefit was proven; no field INP, GPU/FPS, React Profiler, Coverage, heap, or D1/API runtime data exists."
+  ],
+  "raw_artifact_status": {
+    "this_file": "Structured transcription of actual tool-returned timing objects above; values not collected as HAR/CDP trace.",
+    "cdp_har_or_trace_file": null,
+    "persistent_server_log_file": null,
+    "server_log_line_observed": "static export C:\\Users\\bruno.ferreira\\AppData\\Local\\CentralReceitaPerf-20261021-1792627294039\\out on http://127.0.0.1:3012",
+    "source_of_observations": "Conversation tool outputs from Claude Browser and Bash; no separate raw browser log artifact was saved at capture time."
+  }
+}

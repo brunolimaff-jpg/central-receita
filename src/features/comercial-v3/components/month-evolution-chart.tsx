@@ -1,13 +1,13 @@
 import { BLOCOS_HOME } from '../copy'
 import type { Kpi, SemanaRow } from '../model'
-import { suavizar } from './weekly-forecast-scene'
+import { suavizar } from '../chart-math'
 
 /**
  * Bloco analítico `Evolução do mês` (plano Task 5 Step 1, l.469-479).
  *
- * Séries: Meta (ritmo) tracejada, Realizado, Forecast oficial e Forecast atual.
+ * Séries: Meta (ritmo) tracejada, Ganhos no CRM, Forecast oficial e Forecast atual.
  * O mock congelado só oferece série semanal para meta (ritmo) e forecast atual
- * (`weeklyTargetPace` e `weeklyForecast`); Realizado e Forecast oficial entram
+ * (`weeklyTargetPace` e `weeklyForecast`); Ganhos no CRM e Forecast oficial entram
  * como referência de fechamento do mês, tiradas dos próprios KPIs, em vez de
  * inventar uma distribuição diária que o snapshot não tem.
  */
@@ -84,15 +84,15 @@ export function MonthEvolutionChart({ semanas, kpis, mes }: MonthEvolutionChartP
 
   const legenda = [
     { rotulo: 'Meta (ritmo)', cor: '#91a6be', tracejado: true },
-    { rotulo: 'Realizado', cor: '#009b83', tracejado: false },
+    { rotulo: 'Ganhos no CRM', cor: '#009b83', tracejado: false },
     { rotulo: 'Forecast oficial', cor: '#2f78ea', tracejado: false },
     { rotulo: 'Forecast atual', cor: '#ef4c64', tracejado: false },
   ]
 
   return (
-    <section className="h-full rounded-[14px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
+    <section className="h-full rounded-[10px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
       <div className="mb-2 flex flex-wrap items-start justify-between gap-3">
-        <h2 className="text-[16px] font-bold tracking-[-0.02em] text-[#0d2340]">{BLOCOS_HOME.evolucao}</h2>
+        <h2 className="text-[15px] font-bold tracking-[-0.02em] text-[#0d2340]">{BLOCOS_HOME.evolucao}</h2>
         <div className="flex flex-wrap items-center gap-3 text-[11px] text-[#63748a]">
           {legenda.map((item) => (
             <span key={item.rotulo} className="flex items-center gap-1.5">
@@ -114,7 +114,7 @@ export function MonthEvolutionChart({ semanas, kpis, mes }: MonthEvolutionChartP
       <svg
         viewBox="0 0 420 160"
         role="img"
-        aria-label={`Evolução do mês de ${mes}: meta, realizado, forecast oficial e forecast atual`}
+        aria-label={`Evolução do mês de ${mes}: meta, ganhos no CRM, forecast oficial e forecast atual`}
         className="h-[158px] w-full"
       >
         {[escala, (escala * 2) / 3, escala / 3].map((valor) => (
@@ -127,7 +127,7 @@ export function MonthEvolutionChart({ semanas, kpis, mes }: MonthEvolutionChartP
         ))}
         <line x1="38" y1={EIXO_Y0} x2="405" y2={EIXO_Y0} stroke="#cdd8e0" strokeWidth="1" />
 
-        {/* Referências de fechamento do mês: realizado e fotografia oficial. */}
+        {/* Referências de fechamento do mês: ganhos no CRM e fotografia oficial. */}
         <line
           x1={EIXO_X0}
           y1={posicaoY(realizado)}

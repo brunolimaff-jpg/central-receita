@@ -272,12 +272,12 @@ export function CommercialV3App() {
         <Link href={nav.href('config')} className="font-semibold text-[#086b6b] underline">Consultar cargas</Link>
       </div>}
       {view === 'config' && <ImportScreen draft={importDraft} canImport={canImport} onSaved={draft => { importEpoch.current++; setPreviousImportDraft(importDraft); setImportDraft(draft); setImportError('') }} loading={importLoading} loadError={importError} nav={nav} />}
-      {executiveView && <ExecutivePage opportunities={importDraft?.opportunities ?? null} orders={importDraft?.orders ?? null} previous={previousImportDraft} nav={nav} demoWeeks={home.semanas} demoWeek={home.semanaAtual} demoKpis={home.kpis} demoAsOf={COMMERCIAL_SNAPSHOT.asOf} carregando={importLoading && !importDraft} />}
+      {executiveView && <ExecutivePage opportunities={importDraft?.opportunities ?? null} orders={importDraft?.orders ?? null} previous={previousImportDraft} history={importDraft?.history ?? []} nav={nav} carregando={importLoading && !importDraft} />}
 
       {view === 'agent' && <AgentScreen briefing={briefing} from={from} nav={nav} />}
 
       {view === 'journey' && (
-        <JourneyScreen rows={forecast.oportunidades} detalhes={detalhes} query={query} nav={nav} />
+        <JourneyScreen rows={forecast.oportunidades} detalhes={detalhes} query={query} nav={nav} solucao={solution} />
       )}
 
       {view === 'system' && (
@@ -301,6 +301,7 @@ export function CommercialV3App() {
           detalhes={detalhes}
           from={from}
           nav={nav}
+          solucao={solution}
         />
       )}
 
@@ -311,6 +312,7 @@ export function CommercialV3App() {
           busca={busca || query}
           semanas={home.semanas}
           from={from}
+          solucao={solution}
           nav={nav}
         />
       )}
@@ -336,6 +338,7 @@ export function CommercialV3App() {
           detalhes={detalhes}
           from={from}
           nav={nav}
+          solucao={solution}
         />
       )}
 
@@ -348,7 +351,7 @@ export function CommercialV3App() {
         </summary>
         <p className="mt-1 max-w-[1000px]">
           {period === 'month'
-            ? 'Agregados de 22 filiais reais de setembro/2026; realizado representa pedidos integrados. KPIs, oportunidades, gráficos e detalhes por filial usam o cenário demonstrativo local. A carteira mock não representa a distribuição real por filial.'
+            ? 'Agregados de 22 filiais reais de setembro/2026; o realizado de vendas representa pedidos integrados. KPIs, oportunidades, gráficos e detalhes por filial usam o cenário demonstrativo local. A carteira mock não representa a distribuição real por filial.'
             : 'Este período usa dados demonstrativos. Os agregados reais de filial estão disponíveis apenas na Visão Comercial e no Sistema de Receita para setembro/2026.'}
           {' '}Contas e oportunidades usam exemplos demonstrativos; o recorte da carteira acompanha período, solução e filial.
         </p>

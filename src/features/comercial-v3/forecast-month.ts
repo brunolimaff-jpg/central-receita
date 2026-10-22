@@ -7,12 +7,14 @@ export type ForecastMonthResult = {
   predicted: Movement
   realized: Movement
   projected: number | null
-  /** Valor em aberto na régua (Previsto para o mês − Realizado). */
+  /** Valor em aberto na régua (Previsto para o mês − Ganhos no CRM). */
   open: number | null
   /** @deprecated use `open`. */
   missing: number | null
   /** A carga traz a coluna de probabilidade; quando true, o corte de 75% foi aplicado. */
   probabilityAvailable: boolean
+  /** Aviso de tela quando o corte de 75% não pôde ser aplicado; nulo quando foi. */
+  notice: string | null
   entered: Movement | null
   exited: Movement | null
   postponed: Movement | null
@@ -24,6 +26,8 @@ export type ForecastMonthResult = {
 const normalize = (stage: string) => stage.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().replace(/\s+/g, ' ').toLocaleUpperCase('pt-BR')
 /** Book PEX Filiais: Proposta ou Negociação com chance de 75% ou mais e previsão no mês. */
 export const FORECAST_MIN_PROBABILITY = 0.75
+/** Texto único do aviso, usado pelo Forecast e pela Visão Executiva. */
+export const FORECAST_PROBABILITY_NOTICE = 'Previsão sem o corte de 75%: a exportação não trouxe a probabilidade.'
 export const isForecastStage = (stage: string) => ['PROPOSTA', 'NEGOCIACAO'].some(prefix => normalize(stage).startsWith(prefix))
 export const isClosedStage = (stage: string) => ['FECHADA E GANHA', 'FECHADA E PERDIDA'].includes(normalize(stage))
 const inRange = (date: string | null, start: string, end: string) => Boolean(date && date >= start && date <= end)
@@ -79,6 +83,7 @@ export function calculateForecastMonth(current: ImportedRecord[], previous: Impo
   return {
     period: { start, end }, predicted: movement(predictedRecords), realized: movementForClosed(realizedRecords), projected,
     open: predictedValue, missing: predictedValue, probabilityAvailable,
+    notice: probabilityAvailable ? null : FORECAST_PROBABILITY_NOTICE,
     entered: entered ? movement(entered) : null, exited: exited ? movement(exited) : null,
     postponed: postponed ? movement(postponed) : null, otherExited: otherExited ? movement(otherExited) : null,
     won: movementForClosed(won), lost: movementForClosed(lost),

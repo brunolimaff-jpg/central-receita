@@ -115,7 +115,7 @@ export function PipelineSection({ records, previousRecords = null, referenceDate
             {overview.horizon.map(month => {
               const share = horizonValue !== null && horizonValue > 0 && month.value !== null ? formatarPercentualInteiro(month.value / horizonValue) : '—'
               return (
-                <li key={month.month} className="flex items-center justify-between gap-2 rounded-[10px] border border-hairline px-3.5 py-2.5 text-[12.5px]">
+                <li key={month.month} className="flex items-center justify-between gap-2 rounded-[10px] border border-hairline px-3.5 py-2.5 text-[13px]">
                   <span className="font-medium capitalize text-ink-strong">{mesRotulo(month.month)}</span>
                   <span className="num text-ink-muted">{month.count === 0 ? 'sem previsão' : `${formatarRealCompacto(month.value)} · ${share}`}</span>
                 </li>

@@ -17,10 +17,10 @@ type AcquisitionExampleTableProps = {
 
 export function AcquisitionExampleTable({ rows, details, nav, query, view }: AcquisitionExampleTableProps) {
   return (
-    <section aria-labelledby={`${view}-examples-title`} className="revenue-panel min-w-0 overflow-hidden rounded-[14px] bg-white/95">
+    <section aria-labelledby={`${view}-examples-title`} className="revenue-panel min-w-0 overflow-hidden">
       <div className="flex flex-wrap items-start justify-between gap-2 px-4 pt-3.5">
         <div>
-          <h2 id={`${view}-examples-title`} className="text-[16px] font-bold tracking-[-0.02em] text-[#0d2340]">
+          <h2 id={`${view}-examples-title`} className="text-[15px] font-bold tracking-[-0.02em] text-[#0d2340]">
             Exemplos do cenário demonstrativo
           </h2>
           <p className="mt-0.5 pb-2 text-[12px] text-[#63748a]">
@@ -57,7 +57,7 @@ export function AcquisitionExampleTable({ rows, details, nav, query, view }: Acq
             ) : rows.map((row) => (
               <tr key={row.id} className="border-b border-[#eef3f6] text-[#30465f] last:border-0">
                 <td className="whitespace-nowrap px-3 py-2.5 font-semibold text-[#0d2340]">
-                  <Link href={nav.href('opportunity', { opportunityId: row.id, from: view })} className="rounded-[4px] underline decoration-transparent underline-offset-2 hover:decoration-[#009b83] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b]">
+                  <Link href={nav.href('opportunity', { opportunityId: row.id, from: view })} className="rounded-[6px] underline decoration-transparent underline-offset-2 hover:decoration-[#009b83] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b]">
                     {row.account}
                   </Link>
                 </td>

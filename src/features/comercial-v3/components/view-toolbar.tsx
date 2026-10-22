@@ -30,7 +30,7 @@ export function ViewToolbar({ trilha, voltar }: ViewToolbarProps) {
             {item.href ? (
               <Link
                 href={item.href}
-                className="rounded-[4px] font-semibold text-[#0a856f] transition-premium hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b]"
+                className="rounded-[6px] font-semibold text-[#0a856f] transition-premium hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b]"
               >
                 {item.label}
               </Link>
@@ -43,7 +43,7 @@ export function ViewToolbar({ trilha, voltar }: ViewToolbarProps) {
 
       <Link
         href={voltar.href}
-        className="ml-auto inline-flex items-center gap-2 rounded-[9px] border border-[#dfe8ef] bg-white px-3 py-2 text-[12.5px] font-semibold text-[#2b425e] transition-premium hover:bg-[#f5f9fb] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b] active:translate-y-px"
+        className="ml-auto inline-flex items-center gap-2 rounded-[8px] border border-[#dfe8ef] bg-white px-3 py-2 text-[13px] font-semibold text-[#2b425e] transition-premium hover:bg-[#f5f9fb] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b] active:translate-y-px"
       >
         <ArrowLeft aria-hidden className="h-4 w-4" strokeWidth={1.8} />
         {voltar.label}

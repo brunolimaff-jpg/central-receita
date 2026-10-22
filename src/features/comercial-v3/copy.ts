@@ -21,7 +21,7 @@ export const HOME_COPY = {
 
 export const KPI_LABELS: Record<KpiKey, string> = {
   meta: 'Meta do mês',
-  realizado: 'Realizado',
+  realizado: 'Ganhos no CRM',
   forecastOficial: 'Forecast oficial',
   forecastAtual: 'Forecast atual',
   deltaMeta: 'Δ vs. meta',
@@ -149,7 +149,7 @@ export const ASSISTENTE_COPY = {
       '{periodo}: forecast atual de {atual} contra meta de {meta} — faltam {gap} ({pct}) para a meta.',
     gapAcima: '{periodo}: forecast atual de {atual} supera a meta de {meta} em {gap} ({pct}).',
     gapNaMeta: '{periodo}: forecast atual de {atual} está empatado com a meta de {meta}.',
-    realizado: 'Realizado do recorte: {realizado} ({pct} da meta).',
+    realizado: 'Ganhos no CRM do recorte: {realizado} ({pct} da meta).',
     recorteFiltrado: 'Recorte filtrado: {filtros}.',
     recorteSemFiltro: 'Recorte sem filtro: todas as filiais e todas as soluções.',
     exigeVoce:
@@ -176,14 +176,14 @@ export const ASSISTENTE_COPY = {
       'Movimentos comparam a fotografia oficial com a posição atual do mês; não descrevem meses anteriores.',
     mudouProximo: 'Abrir o fluxo do forecast',
     gapConclusaoAbaixo:
-      'Gap de {gap} para a meta ({pct}): forecast atual em {atual} contra meta de {meta}; o realizado do recorte soma {realizado} ({pctRealizado} da meta).',
+      'Gap de {gap} para a meta ({pct}): forecast atual em {atual} contra meta de {meta}; os ganhos no CRM do recorte somam {realizado} ({pctRealizado} da meta).',
     gapConclusaoAcima:
-      'Forecast atual em {atual} supera a meta de {meta} em {gap} ({pct}); o realizado do recorte soma {realizado} ({pctRealizado} da meta).',
+      'Forecast atual em {atual} supera a meta de {meta} em {gap} ({pct}); os ganhos no CRM do recorte somam {realizado} ({pctRealizado} da meta).',
     gapEvidenciaForecast: 'Forecast do mês',
     gapEvidenciaEvolucao: 'Evolução do mês na Central',
     gapEvidenciaCobertura: 'Cobertura de forecast em {filial}',
     gapLimiteComposicao:
-      'Realizado e forecast atual são conjuntos distintos: a leitura não soma os dois sobre a meta.',
+      'Ganhos no CRM e forecast atual são conjuntos distintos: a leitura não soma os dois sobre a meta.',
     gapProximo: 'Abrir o forecast do mês',
     limiteSimulado: 'Posição de cenário simulado; sem histórico de meses anteriores.',
   },
@@ -216,7 +216,7 @@ export const ASSISTENTE_PERGUNTAS: SupportedQuestion[] = [
   {
     id: 'explique-o-gap',
     label: 'Explique o gap',
-    hint: 'Forecast atual contra a meta, com o realizado do recorte.',
+    hint: 'Forecast atual contra a meta, com os ganhos no CRM do recorte.',
   },
 ]
 
@@ -226,7 +226,7 @@ export const FORECAST_COPY = {
   fluxoSubtitulo: 'Clique em um movimento para filtrar as oportunidades.',
   listaTitulo: 'Oportunidades do recorte',
   filiaisTitulo: 'Visão por filial',
-  filiaisSubtitulo: 'Realizado, meta e forecast atual.',
+  filiaisSubtitulo: 'Ganhos no CRM, meta e forecast atual.',
   semMovimento: 'Nenhum movimento selecionado: a lista mostra todas as oportunidades do recorte.',
   limparMovimento: 'Limpar movimento',
 } as const
@@ -239,7 +239,7 @@ export const FILIAIS_COPY = {
   oportunidadesSubtitulo: 'Ordenadas por impacto absoluto no forecast da filial.',
   semFilialTitulo: 'Escolha uma filial para aprofundar',
   semFilialTexto:
-    'O filtro organizacional é Filial: HEAD nunca substitui filial em nenhum nível. Selecione uma filial para ver meta, realizado, forecast atual e as oportunidades que explicam o resultado.',
+    'O filtro organizacional é Filial: HEAD nunca substitui filial em nenhum nível. Selecione uma filial para ver meta, ganhos no CRM, forecast atual e as oportunidades que explicam o resultado.',
   desconhecidaTitulo: 'Filial não encontrada no snapshot',
   desconhecidaTexto:
     'Esta filial não existe na competência selecionada. Nenhuma filial foi escolhida automaticamente — volte e selecione uma filial válida.',

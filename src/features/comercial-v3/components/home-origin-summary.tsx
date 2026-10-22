@@ -31,10 +31,10 @@ export function HomeOriginSummary({ origem, movimentos }: { origem: OrigemRealiz
         </strong>
         <small className="mt-1 text-[11px] leading-4 text-[#687a92]">Forecast atual menos fotografia oficial</small>
       </section>
-      <section className="revenue-panel flex min-h-[132px] min-w-0 items-center gap-3 px-4 py-3">
+      <section className="revenue-panel flex min-h-[132px] min-w-0 items-center ga px-4 py-3">
         <div
           role="img"
-          aria-label={'Distribuição do realizado: New Name ' + formatarPercentualInteiro(newNameRatio) + ', Cross ' + formatarPercentualInteiro(totalOrigem > 0 ? origem.cross / totalOrigem : 0)}
+          aria-label={'Distribuição dos ganhos no CRM: New Name ' + formatarPercentualInteiro(newNameRatio) + ', Cross ' + formatarPercentualInteiro(totalOrigem > 0 ? origem.cross / totalOrigem : 0)}
           className="relative grid h-[78px] w-[78px] shrink-0 place-items-center rounded-full"
           style={{ background: totalOrigem > 0 ? 'conic-gradient(#009b83 0 ' + (newNameRatio * 100) + '%, #3879db ' + (newNameRatio * 100) + '% 100%)' : '#e9eff2' }}
         >
@@ -75,10 +75,10 @@ function OriginCard({
   color: string
 }) {
   return (
-    <section className="revenue-panel flex min-h-[132px] min-w-0 items-center gap-3 px-4 py-3">
+    <section className="revenue-panel flex min-h-[132px] min-w-0 items-center ga px-4 py-3">
       <div
         role="img"
-        aria-label={formatarPercentualInteiro(ratio) + ' do realizado'}
+        aria-label={formatarPercentualInteiro(ratio) + ' dos ganhos no CRM'}
         className="relative grid h-[78px] w-[78px] shrink-0 place-items-center rounded-full"
         style={{ background: 'conic-gradient(' + color + ' 0 ' + (ratio * 100) + '%, #e9eff2 ' + (ratio * 100) + '% 100%)' }}
       >
@@ -88,8 +88,8 @@ function OriginCard({
       <div className="min-w-0">
         <h2 className="truncate text-[12px] font-bold text-[#10294c]">{title}</h2>
         <p className="truncate text-[11px] text-[#687a92]">{detail}</p>
-        <strong className="num mt-1 block truncate text-[17px] font-bold" style={{ color }}>{formatarMilhoes(value)}</strong>
-        <small className="block truncate text-[11px] text-[#687a92]">de {formatarMilhoes(total)} no realizado</small>
+        <strong className="num mt-1 block truncate text-[15px] font-bold" style={{ color }}>{formatarMilhoes(value)}</strong>
+        <small className="block truncate text-[11px] text-[#687a92]">de {formatarMilhoes(total)} nos ganhos no CRM</small>
       </div>
     </section>
   )

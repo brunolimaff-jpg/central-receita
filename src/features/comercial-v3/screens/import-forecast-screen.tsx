@@ -1,9 +1,10 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { ImportBatch, ImportedRecord } from '../manual-import'
 import { calculateForecastMonth, isClosedStage, isForecastStage, type ForecastPeriod } from '../forecast-month'
 import { formatarOportunidades, formatarPercentualInteiro, formatarRealCompacto } from '../format'
+import { forecastFocusFromHash, forecastHashFor, HASH_FORECAST_GANHOU, type ForecastFocusMovement } from '../forecast-focus'
 import { forecastMovementRows, groupMovements, type MovementLabel } from '../movement-rows'
 import { BarraProgresso, ImpactRing, MetricCard, MovementCard, Panel, PanelSection, type RingGroup } from '../components/executive-ui'
 import { MovementTable } from '../components/movement-table'
@@ -38,7 +39,7 @@ export function SeletorPeriodo({ rotulo, valor, opcoes, onChange }: {
   onChange: (valor: string) => void
 }) {
   return (
-    <div role="group" aria-label={rotulo} className="vidro inline-flex rounded-[12px] p-1">
+    <div role="group" aria-label={rotulo} className="vidro inline-flex rounded-[10px] p-1">
       {opcoes.map(opcao => {
         const ativo = valor === opcao.valor
         return (
@@ -47,7 +48,7 @@ export function SeletorPeriodo({ rotulo, valor, opcoes, onChange }: {
             type="button"
             aria-pressed={ativo}
             onClick={() => onChange(opcao.valor)}
-            className={`h-8 rounded-[9px] px-3.5 text-[12.5px] font-semibold transition-premium ${ativo ? 'bg-brand-escuro text-white' : 'text-ink-muted hover:bg-surface-sunken'}`}
+            className={`h-8 rounded-[8px] px-3.5 text-[13px] font-semibold transition-premium ${ativo ? 'bg-brand-escuro text-white' : 'text-ink-muted hover:bg-surface-sunken'}`}
           >
             {opcao.texto}
           </button>
@@ -57,10 +58,54 @@ export function SeletorPeriodo({ rotulo, valor, opcoes, onChange }: {
   )
 }
 
-export function ImportedForecastScreen({ batch, previousBatch, referenceDate }: { batch: ImportBatch; previousBatch: ImportBatch | null; referenceDate: string }) {
+export function ImportedForecastScreen({ batch, previousBatch, referenceDate, focus }: {
+  batch: ImportBatch
+  previousBatch: ImportBatch | null
+  referenceDate: string
+  /** Pedido de foco da Home; `key` reaplica o recorte em cliques repetidos. */
+  focus?: { movement: ForecastFocusMovement | null; key: number } | null
+}) {
   const [period, setPeriod] = useState<ForecastPeriod>('mês')
   const [selecionado, setSelecionado] = useState<string | null>(null)
   const previous = previousBatch?.records ?? null
+
+  useEffect(() => {
+    const aplicar = () => {
+      // Hash vazio significa que "voltar" saiu do Forecast.
+      if (window.location.hash === '') {
+        setPeriod('mês')
+        setSelecionado(null)
+        return
+      }
+      const foco = forecastFocusFromHash(window.location.hash)
+      if (!foco) return
+      setPeriod(foco.period)
+      setSelecionado(foco.movement)
+      // `#forecast-ganhou` não é âncora visível; a seção precisa rolar até aqui.
+      if (window.location.hash === HASH_FORECAST_GANHOU) {
+        document.getElementById('forecast')?.scrollIntoView({ behavior: 'instant', block: 'start' })
+      }
+    }
+    aplicar()
+    window.addEventListener('hashchange', aplicar)
+    return () => window.removeEventListener('hashchange', aplicar)
+  }, [])
+
+  useEffect(() => {
+    if (!focus) return
+    setPeriod('mês')
+    setSelecionado(focus.movement)
+  }, [focus])
+
+  /** Mantém a URL descrevendo a seleção sem criar entrada no histórico. */
+  const marcarHash = (movement: string | null) => {
+    try {
+      // Preserva o estado do Next no histórico.
+      window.history.replaceState(window.history.state, '', forecastHashFor(movement, period))
+    } catch {
+      // Histórico bloqueado: a seleção local continua valendo.
+    }
+  }
   const month = referenceDate.slice(0, 7)
   const monthResult = useMemo(() => calculateForecastMonth(batch.records, previous, month, referenceDate, 'mês'), [batch.records, previous, month, referenceDate])
   const { result, rows, grupos } = useMemo(() => selectForecastMovements(batch.records, previous, referenceDate, period), [batch.records, previous, referenceDate, period])
@@ -85,33 +130,35 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate }: 
     <PanelSection
       id="forecast"
       titulo="Forecast"
-      contexto={`Previsto, realizado e movimentação de ${mesLabel}.`}
+      contexto={`Previsto, ganhos no CRM e movimentação de ${mesLabel}.`}
       acao={
         <SeletorPeriodo
           rotulo="Período do forecast"
           valor={period}
           opcoes={[{ valor: 'semana', texto: 'Semana' }, { valor: 'mês', texto: 'Mês' }]}
-          onChange={valor => { setPeriod(valor as ForecastPeriod); setSelecionado(null) }}
+          onChange={valor => { setPeriod(valor as ForecastPeriod); setSelecionado(null); marcarHash(null) }}
         />
       }
     >
       <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="grid min-w-0 content-start gap-4">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <MetricCard rotulo="Previsto para o mês" valor={formatarRealCompacto(projetado)} nota="Vendido + aberto na régua" tom="marca" />
-            <MetricCard rotulo="Realizado" valor={formatarRealCompacto(realizado)} nota={percentual === null ? 'Vendido no mês' : `${formatarPercentualInteiro(percentual / 100)} do previsto`} tom="positivo" />
-            <MetricCard rotulo="Em aberto" valor={formatarRealCompacto(monthResult.open)} nota="Previsto menos realizado" tom="info" />
+            <MetricCard rotulo="Previsto para o mês" valor={formatarRealCompacto(projetado)} nota="Ganhos no CRM + aberto elegível" tom="marca" />
+            <MetricCard rotulo="Ganhos no CRM" valor={formatarRealCompacto(realizado)} nota={percentual === null ? 'Ganho no mês' : `${formatarPercentualInteiro(percentual / 100)} do previsto`} tom="positivo" />
+            <MetricCard rotulo="Em aberto" valor={formatarRealCompacto(monthResult.open)} nota="Previsto menos ganhos no CRM" tom="info" />
           </div>
 
           <Panel>
             <div className="flex items-center gap-3">
-              <BarraProgresso valor={percentual ?? 0} rotulo="Realizado sobre previsto" />
-              <span className="num shrink-0 text-[12.5px] font-semibold text-ink-strong">
-                {percentual === null ? '—' : `${formatarPercentualInteiro(percentual / 100)} realizado`}
+              <BarraProgresso valor={percentual ?? 0} rotulo="Ganhos no CRM sobre previsto" />
+              <span className="num shrink-0 text-[13px] font-semibold text-ink-strong">
+                {percentual === null ? '—' : `${formatarPercentualInteiro(percentual / 100)} em ganhos no CRM`}
               </span>
             </div>
-            <p className="mt-2.5 text-[11.5px] text-ink-muted">
-              {period === 'semana' ? 'Cartões e lista na semana; previsto e em aberto no mês inteiro. ' : 'Período: mês da data de referência. '}
+            <p className="mt-2.5 text-[12px] text-ink-muted">
+              {period === 'semana'
+                ? 'Semana: cartões e lista da semana; ganhos, previsto e em aberto do mês inteiro. '
+                : 'Mês da data de referência: cartões, lista e indicadores no mês. '}
               Meta indisponível na carga.
             </p>
           </Panel>
@@ -133,7 +180,11 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate }: 
                   nota={nota}
                   disponivel={ok}
                   selecionado={selecionado === key}
-                  onSelecionar={() => setSelecionado(atual => atual === key ? null : key)}
+                  onSelecionar={() => {
+                    const proximo = selecionado === key ? null : key
+                    setSelecionado(proximo)
+                    marcarHash(proximo)
+                  }}
                 />
               )
             })}
@@ -147,7 +198,7 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate }: 
         titulo={selecionado ? `${selecionado} · ${formatarOportunidades(linhas.length)}` : 'Principais movimentos do mês'}
         subtitulo="Maior impacto primeiro. Δ valor é o efeito no forecast do mês."
         acao={selecionado && (
-          <button type="button" onClick={() => setSelecionado(null)} className="rounded-[8px] px-2.5 py-1.5 text-[12px] font-semibold text-brand-escuro transition-premium hover:bg-dado-positivo-suave">
+          <button type="button" onClick={() => { setSelecionado(null); marcarHash(null) }} className="rounded-[8px] px-2.5 py-1.5 text-[12px] font-semibold text-brand-escuro transition-premium hover:bg-dado-positivo-suave">
             Mostrar todos
           </button>
         )}
@@ -159,7 +210,13 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate }: 
         />
       </Panel>
 
-      <p className="px-1 text-[11.5px] leading-5 text-ink-muted">
+      {monthResult.notice && (
+        <p role="note" className="rounded-[10px] bg-dado-atencao-suave px-4 py-3 text-[13px] leading-5 text-dado-atencao">
+          {monthResult.notice}
+        </p>
+      )}
+
+      <p className="px-1 text-[12px] leading-5 text-ink-muted">
         {monthResult.probabilityAvailable
           ? 'Critério: Proposta ou Negociação, chance de 75% ou mais, previsão no mês.'
           : 'Probabilidade ausente na carga: o critério de 75% não foi aplicado.'}

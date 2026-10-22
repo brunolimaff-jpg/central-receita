@@ -13,7 +13,7 @@ type AccountsScreenProps = {
   nav: CommercialNav
 }
 
-const panel = 'revenue-panel min-w-0 rounded-[14px] border border-[#dfe8ef] bg-white/95 p-4'
+const panel = 'revenue-panel min-w-0'
 const action = 'rounded-[8px] border border-[#dfe8ef] bg-white px-2.5 py-1.5 text-[12px] font-semibold text-[#2b425e] transition-premium hover:bg-[#f5f9fb] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b]'
 
 export function AccountsScreen({ rows, detalhes, query, nav }: AccountsScreenProps) {
@@ -24,8 +24,8 @@ export function AccountsScreen({ rows, detalhes, query, nav }: AccountsScreenPro
 
   return (
     <div className="revenue-page grid min-w-0 gap-3">
-      <header className="rounded-[14px] border border-white/80 bg-white/80 px-4 py-3 shadow-[0_4px_14px_rgba(32,73,91,0.04)] backdrop-blur-sm">
-        <h2 className="revenue-heading flex items-center gap-3 text-[30px] font-bold leading-tight tracking-[-.035em] text-[#071648]">
+      <header className="rounded-[10px] border border-white/80 bg-white/80 px-4 py-3 shadow-[0_4px_14px_rgba(32,73,91,0.04)] backdrop-blur-sm">
+        <h2 className="revenue-heading flex items-center gap-3 text-[32px] font-bold leading-tight tracking-[-.035em] text-[#071648]">
           Contas <Building2 aria-hidden className="text-[#00968c]" size={27} />
         </h2>
         <p className="revenue-subtitle mt-1 text-[15px] text-[#253b68]">
@@ -39,7 +39,7 @@ export function AccountsScreen({ rows, detalhes, query, nav }: AccountsScreenPro
       <section aria-label="Clientes com oportunidades" className={panel}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h3 className="flex items-center gap-2 text-[16px] font-bold text-[#071648]">
+            <h3 className="flex items-center gap-2 text-[15px] font-bold text-[#071648]">
               <Users aria-hidden className="text-[#00968c]" size={19} />
               Clientes com oportunidades
             </h3>
@@ -69,7 +69,7 @@ export function AccountsScreen({ rows, detalhes, query, nav }: AccountsScreenPro
               <li key={grupo.key}>
                 <details className="group rounded-[8px] open:bg-[#f8fbfd]">
                   <summary className="flex cursor-pointer list-none items-center gap-3 rounded-[8px] px-2.5 py-3 transition-premium hover:bg-[#f5f9fb] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#086b6b] [&::-webkit-details-marker]:hidden">
-                    <span className="grid size-9 shrink-0 place-items-center rounded-[9px] bg-[#e9faf6] text-[#00856f]">
+                    <span className="grid size-9 shrink-0 place-items-center rounded-[8px] bg-[#e9faf6] text-[#00856f]">
                       <Building2 aria-hidden size={18} />
                     </span>
                     <span className="min-w-0 flex-1">
@@ -116,7 +116,7 @@ export function AccountsScreen({ rows, detalhes, query, nav }: AccountsScreenPro
                             {responsavel} <span aria-hidden>·</span> {filial}
                           </p>
                           <div className="flex items-center justify-between gap-3 lg:justify-end">
-                            <span className="text-[10px] text-[#75869a]">Forecast atual</span>
+                            <span className="text-[11px] text-[#75869a]">Forecast atual</span>
                             <strong className="num text-[12px] font-bold text-[#183b58]">{valor}</strong>
                           </div>
                         </li>

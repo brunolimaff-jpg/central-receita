@@ -30,15 +30,15 @@ export function CrossScreen({ rows, detalhes, query, nav }: CrossScreenProps) {
       />
 
       <header className="px-1 pb-1">
-        <h1 className="revenue-heading flex items-center gap-3 text-[28px] font-bold leading-tight tracking-[-.035em] text-[#0d2340]">
+        <h1 className="revenue-heading flex items-center gap-3 text-[26px] font-bold leading-tight tracking-[-.035em] text-[#0d2340]">
           Cross <GitFork aria-hidden className="text-[#00968c]" size={26} />
         </h1>
       </header>
 
-      <section aria-label="Critérios para classificar Cross" className="revenue-panel min-w-0 rounded-[14px] border border-[#dfe8ef] bg-white/95 p-4">
+      <section aria-label="Critérios para classificar Cross" className="revenue-panel min-w-0 p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-[16px] font-bold text-[#0d2340]">Classificação indisponível</h2>
+            <h2 className="text-[15px] font-bold text-[#0d2340]">Classificação indisponível</h2>
             <p className="mt-1 text-[12px] text-[#63748a]">Fontes de histórico de cliente e contratação por módulo pendentes; os dados abaixo são demonstrativos.</p>
           </div>
         </div>

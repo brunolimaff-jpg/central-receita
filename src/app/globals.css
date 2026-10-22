@@ -98,8 +98,13 @@
    * muted, ainda dentro do cinza oficial. Ícone decorativo pode usar
    * `--azul-medio` direto, porque não carrega informação.
    */
+  /*
+   * `ink-muted` é #77736E (cinza-600), que mede 4,46:1 sobre o branco e
+   * reprova o AA por uma fração — justamente no subtítulo que explica o mês.
+   * Um passo mais escuro no mesmo cinza oficial resolve sem mudar a família.
+   */
   --ink-strong: var(--azul-escuro);
-  --ink-muted: var(--cinza-600);
+  --ink-muted: #6b6763;
   --ink-subtle: #6f6b66;
   --hairline: var(--cinza-300);
   --hairline-suave: var(--cinza-100);
@@ -134,12 +139,41 @@
   --dado-info-suave: #eaf2fb;
 
   /* ---------- Superfície de vidro (glassmorphism) ---------- */
-  --vidro: rgb(255 255 255 / 86%);
-  --vidro-forte: rgb(255 255 255 / 94%);
+  --vidro: rgb(255 255 255 / 88%);
+  --vidro-forte: rgb(255 255 255 / 95%);
   --vidro-borda: rgb(255 255 255 / 82%);
   --vidro-borda-suave: rgb(14 63 88 / 10%);
-  --vidro-sombra: 0 18px 60px -28px rgb(23 79 73 / 26%);
+  /*
+   * Sombra em três camadas, emprestada do pack Aurora do Scout 360.
+   *
+   * Uma sombra só (a anterior) lia como adesivo: contorno chapado, sem
+   * profundidade. Três camadas — contato curto, halo largo, brilho interno —
+   * dão a sensação de vidro apoiado sobre vidro, que é o que a linguagem pede.
+   * A camada de contato é escura e curta; o halo é verde e longo; o brilho é
+   * branco puro no topo, de 1px.
+   */
+  --vidro-sombra:
+    0 2px 6px rgb(8 107 107 / 5%),
+    0 14px 40px rgb(8 107 107 / 9%);
+  --vidro-sombra-hover:
+    0 4px 10px rgb(8 107 107 / 7%),
+    0 22px 56px rgb(8 107 107 / 14%);
   --vidro-brilho: inset 0 1px 0 rgb(255 255 255 / 90%);
+
+  /*
+   * ---------- Aurora ----------
+   *
+   * O fundo deixou de ser a foto por baixo de tudo: a fotografia da sede ocupa
+   * só a faixa superior (atrás do cabeçalho) e se dissolve num esmeralda claro.
+   * O corpo da página é gradiente, não imagem — texto de 11px sobre foto
+   * dessaturada nunca fica confortável, e a foto em tela cheia competia com os
+   * números. A referência aprovada usa exatamente esta divisão.
+   */
+  --aurora-base: #edf8f5;
+  --aurora-glow-a: rgb(0 150 140 / 16%);
+  --aurora-glow-b: rgb(111 211 198 / 20%);
+  --aurora-glow-c: rgb(0 175 155 / 8%);
+  --aurora-faixa: clamp(180px, 24vh, 300px);
 
   --sombra-painel: 0 1px 2px rgb(51 70 108 / 6%), 0 1px 3px rgb(51 70 108 / 4%);
 
@@ -252,21 +286,191 @@
     gap: 22px;
     padding: 18px;
     overflow-x: clip;
+    /*
+     * A largura da coluna é animada no container, não na sidebar: ela é item de
+     * grid, e `width` ali é ignorada. Curva, não mola — são dois valores
+     * conhecidos (208px ↔ 72px), e mola produziria oscilação visível na coluna.
+     * Navegador sem suporte anima `grid-template-columns` troca na hora:
+     * degradação aceitável, não erro. `prefers-reduced-motion` zera a duração.
+     */
+    transition: grid-template-columns 220ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   /*
-   * Fundo institucional: foto da sede sob véu claro, dessaturada.
-   * O véu é forte o bastante para o texto de 11px manter contraste AA sobre
-   * qualquer região da foto; a foto permanece como textura, não como imagem.
+   * Estado recolhido — atributo, não breakpoint. A escolha do usuário vence a
+   * largura em qualquer tela, inclusive estreita.
+   */
+  .revenue-app[data-nav='recolhida'] {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .revenue-app[data-nav='recolhida'] .revenue-sidebar .revenue-nav-rotulo,
+  .revenue-app[data-nav='recolhida'] .revenue-sidebar .revenue-marca-texto {
+    display: none;
+  }
+
+  /* Recolhida, a marca é só o símbolo: o wordmark não cabe em 72px. */
+  .revenue-app[data-nav='recolhida'] .revenue-marca-logo {
+    display: none;
+  }
+
+  .revenue-app[data-nav='recolhida'] .revenue-marca-simbolo {
+    display: block;
+  }
+
+  .revenue-app[data-nav='recolhida'] .revenue-nav-item {
+    justify-content: center;
+    padding: 0;
+  }
+
+  /*
+   * A sidebar rola no eixo vertical e recortaria o cartão de rótulo, que sai
+   * para a direita. Recolhida, ela deixa de recortar: o conteúdo cabe bem
+   * abaixo da altura mínima em telas usuais, e o benefício (rótulo legível) é
+   * o ponto do estado recolhido.
+   */
+  .revenue-app[data-nav='recolhida'] .revenue-sidebar {
+    overflow: visible;
+  }
+
+  /*
+   * Fundo em duas camadas.
+   *
+   * `.revenue-bg-faixa` é a foto da sede, presa ao topo e limitada à altura do
+   * cabeçalho; ela se dissolve para o esmeralda antes de chegar ao conteúdo.
+   * `.revenue-bg` é a base: gradientes radiais de baixa frequência, sem imagem,
+   * cobrindo a página inteira.
+   *
+   * Antes era uma foto em tela cheia sob véu de 93–96%. Funcionava como textura,
+   * mas o véu quase apagava a foto e, ainda assim, o ruído dela atravessava
+   * tabelas e números pequenos. Separar as duas camadas dá a foto de volta (sem
+   * véu pesado, porque ela não tem texto em cima) e entrega ao corpo um fundo
+   * liso o suficiente para AA em texto de 11px.
    */
   .revenue-bg {
     position: fixed;
     inset: 0;
     z-index: 0;
+    overflow: hidden;
     background:
-      linear-gradient(90deg, rgb(242 250 248 / 96%), rgb(246 251 250 / 93%) 42%, rgb(242 250 248 / 95%)),
-      url('/revenue/senior-hq.jpeg') center / cover no-repeat;
-    filter: saturate(0.8);
+      radial-gradient(1200px 620px at 12% -8%, var(--aurora-glow-b), transparent 58%),
+      radial-gradient(1000px 540px at 88% -4%, var(--aurora-glow-a), transparent 62%),
+      radial-gradient(900px 900px at 50% 118%, var(--aurora-glow-c), transparent 68%),
+      var(--aurora-base);
+  }
+
+  /*
+   * Blobs em deriva — pack Aurora do Scout 360, adaptado.
+   *
+   * O gradiente estático lia como papel de parede. Quatro massas de luz que
+   * atravessam o fundo em 46–72s dão a sensação de campo vivo que a referência
+   * aprovada tem, sem que o olho consiga acompanhar o movimento: é deriva,
+   * não animação. `will-change: transform` mantém a composição na GPU.
+   *
+   * O grão por cima existe por um motivo técnico: degradê radial de baixa
+   * frequência em tela grande faz banding (faixas visíveis de cor). Um ruído
+   * de 3,5% de alfa quebra as faixas sem ser percebido como textura.
+   */
+  .revenue-bg ::selection { background: transparent; }
+
+  .revenue-blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(64px);
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+    pointer-events: none;
+  }
+
+  .revenue-blob-1 {
+    width: 680px; height: 680px;
+    top: -240px; left: -160px;
+    background: radial-gradient(circle at 30% 30%, rgb(0 175 155 / 40%), rgb(0 175 155 / 0) 70%);
+    animation: revenue-drift-1 46s ease-in-out infinite alternate;
+  }
+
+  .revenue-blob-2 {
+    width: 780px; height: 780px;
+    top: -180px; right: -240px;
+    background: radial-gradient(circle at 60% 40%, rgb(18 247 209 / 22%), rgb(18 247 209 / 0) 68%);
+    animation: revenue-drift-2 58s ease-in-out infinite alternate;
+  }
+
+  .revenue-blob-3 {
+    width: 620px; height: 620px;
+    bottom: -280px; left: 30%;
+    background: radial-gradient(circle at 50% 50%, rgb(0 150 140 / 22%), rgb(0 150 140 / 0) 70%);
+    animation: revenue-drift-3 64s ease-in-out infinite alternate;
+  }
+
+  .revenue-blob-4 {
+    width: 460px; height: 460px;
+    bottom: 6%; right: -120px;
+    background: radial-gradient(circle at 50% 50%, rgb(42 196 170 / 12%), rgb(42 196 170 / 0) 70%);
+    animation: revenue-drift-2 72s ease-in-out infinite alternate-reverse;
+  }
+
+  .revenue-grain {
+    position: absolute;
+    inset: 0;
+    opacity: 0.5;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.035'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  @keyframes revenue-drift-1 {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(90px, 60px, 0) scale(1.12); }
+    100% { transform: translate3d(30px, 130px, 0) scale(0.96); }
+  }
+
+  @keyframes revenue-drift-2 {
+    0% { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); }
+    100% { transform: translate3d(-110px, 90px, 0) scale(1.15) rotate(8deg); }
+  }
+
+  @keyframes revenue-drift-3 {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    100% { transform: translate3d(-60px, -90px, 0) scale(1.1); }
+  }
+
+  /*
+   * Faixa do topo: a foto da sede vira atmosfera, não paisagem.
+   *
+   * Desfocar a foto é o que resolve os três problemas de uma vez:
+   *   1. o texto do header fica sobre cor uniforme, não sobre grades e galhos;
+   *   2. o vidro tem o que refratar — é o contraste atrás dele que faz o blur
+   *      existir, não a opacidade do painel;
+   *   3. o verde da fachada entra como tom da marca em vez de competir.
+   *
+   * `inset` negativo existe só para o blur não vazar borda clara nas laterais.
+   */
+  .revenue-bg-faixa {
+    position: fixed;
+    inset: -40px -40px auto;
+    z-index: 0;
+    height: calc(var(--aurora-faixa) + 40px);
+    will-change: filter;
+    /*
+     * Véu claro por cima do desfoque. O degradê anterior deixava o topo escuro
+     * e o título azul-escuro sumia sobre a fachada — o design system pede texto
+     * `azul-escuro` sobre superfície clara, nunca sobre meio-tom. O véu chega a
+     * 86% no topo (onde fica a saudação) e só então dissolve para a base.
+     */
+    background:
+      linear-gradient(
+        180deg,
+        rgb(248 252 251 / 86%) 0%,
+        rgb(243 250 248 / 78%) 30%,
+        rgb(237 248 245 / 72%) 58%,
+        rgb(237 248 245 / 90%) 84%,
+        var(--aurora-base) 100%
+      ),
+      url('/revenue/senior-hq.jpeg') center 58% / cover no-repeat;
+    filter: blur(30px) saturate(1.25);
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 72%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 72%, transparent 100%);
   }
 
 
@@ -283,7 +487,23 @@
     background: var(--vidro-forte);
   }
 
+  /* ---------- Marca na coluna ---------- */
+  /*
+   * Dois arquivos, um por estado. O wordmark aparece quando há largura para
+   * lê-lo; o símbolo "S" assume quando a coluna recolhe. Nunca os dois juntos.
+   */
+  .revenue-app .revenue-marca-simbolo {
+    display: none;
+  }
+
   /* ---------- Sidebar ---------- */
+  /*
+   * A coluna é de vidro de verdade: no topo ela é quase transparente, para a
+   * foto da sede aparecer atrás da marca, e vai fechando para branco conforme
+   * desce — lá embaixo o texto de navegação precisa de fundo limpo para o AA.
+   * Antes era `vidro-forte` (95% branco) de ponta a ponta: a foto existia no
+   * DOM, mas não se via nada dela nesta coluna.
+   */
   .revenue-app .revenue-sidebar {
     position: sticky;
     top: 18px;
@@ -293,34 +513,139 @@
     min-height: 440px;
     flex-direction: column;
     overflow: hidden auto;
-    border-radius: 22px;
+    border-radius: 10px;
     padding: 18px 12px;
+    background: linear-gradient(
+      180deg,
+      rgb(255 255 255 / 62%) 0%,
+      rgb(255 255 255 / 66%) 26%,
+      rgb(255 255 255 / 80%) 50%,
+      rgb(255 255 255 / 91%) 72%,
+      var(--vidro-forte) 100%
+    );
+    -webkit-backdrop-filter: blur(2px) saturate(112%);
+    backdrop-filter: blur(2px) saturate(112%);
   }
 
+  /*
+   * Navegação sem a barra verde à esquerda.
+   *
+   * Aquele traço de 3px é o carimbo visual de "dashboard gerado": aparece em
+   * qualquer template, não diz nada sobre a Central e some quando o item é
+   * ícone-só. O estado ativo aqui é o ladrilho do ícone — o mesmo raio e a
+   * mesma superfície dos cartões — preenchido com o verde da marca. O texto
+   * reforça com peso 600. Um sinal, dois canais (forma e cor), nenhuma barra.
+   */
   .revenue-app .revenue-nav-item {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 11px;
-    min-height: 42px;
-    padding: 0 12px;
-    border-radius: 12px;
+    gap: 10px;
+    min-height: 40px;
+    padding: 0 10px;
+    border-radius: 8px;
     color: var(--azul-escuro);
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 500;
     text-decoration: none;
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s, color 0.25s;
+    transition: color 0.2s cubic-bezier(0.2, 0.7, 0.2, 1), background-color 0.2s;
   }
 
   .revenue-app .revenue-nav-item:hover {
-    background: rgb(0 150 140 / 7%);
-    transform: translateX(2px);
+    background: rgb(0 150 140 / 6%);
+    color: var(--verde-escuro);
+  }
+
+  .revenue-app .revenue-nav-icon {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 auto;
+    border-radius: 8px;
+    transition: background-color 0.2s cubic-bezier(0.2, 0.7, 0.2, 1), color 0.2s;
+  }
+
+  .revenue-app .revenue-nav-item:hover .revenue-nav-icon {
+    background: rgb(0 150 140 / 9%);
   }
 
   .revenue-app .revenue-nav-item[aria-current] {
     color: var(--verde-escuro);
-    background: rgb(0 150 140 / 11%);
-    font-weight: 700;
-    box-shadow: inset 3px 0 0 var(--verde-institucional);
+    font-weight: 600;
+  }
+
+  .revenue-app .revenue-nav-item[aria-current] .revenue-nav-icon {
+    background: var(--verde-institucional);
+    color: var(--branco);
+    box-shadow: 0 2px 8px -2px rgb(0 150 140 / 55%);
+  }
+
+  /*
+   * Controle de largura da coluna: é um item de navegação como os outros, mas
+   * sempre habilitado e com alvo de pelo menos 40px de altura (herdado do item).
+   */
+  .revenue-app .revenue-nav-toggle {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  /*
+   * Rótulo da coluna recolhida.
+   *
+   * Duas vias, como no ticket: hover (120ms de atraso, para não piscar ao varrer
+   * a coluna) e foco de teclado (sem atraso). Cartão sólido à direita do item,
+   * contraste AA com o texto `ink-strong`. Um `title` nativo continua no item
+   * como fallback quando o CSS não alcança.
+   */
+  .revenue-app .revenue-nav-dica {
+    display: none;
+  }
+
+  .revenue-app[data-nav='recolhida'] .revenue-nav-item {
+    overflow: visible;
+  }
+
+  .revenue-app[data-nav='recolhida'] .revenue-nav-dica {
+    position: absolute;
+    left: calc(100% + 10px);
+    top: 50%;
+    z-index: 40;
+    display: block;
+    width: max-content;
+    max-width: 220px;
+    padding: 6px 10px;
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    background: var(--surface-raised);
+    box-shadow: 0 6px 18px -6px rgb(16 41 76 / 28%);
+    color: var(--ink-strong);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-4px, -50%);
+    transition: opacity 120ms cubic-bezier(0.2, 0, 0, 1), transform 120ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  /* O atraso fica só na entrada do hover; o foco é imediato. */
+  .revenue-app[data-nav='recolhida'] .revenue-nav-item:hover .revenue-nav-dica,
+  .revenue-app[data-nav='recolhida'] .revenue-nav-item:focus-visible .revenue-nav-dica {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+
+  .revenue-app[data-nav='recolhida'] .revenue-nav-item:hover .revenue-nav-dica {
+    transition-delay: 120ms;
+  }
+
+  .revenue-app[data-nav='recolhida'] .revenue-nav-item:focus-visible .revenue-nav-dica {
+    transition-delay: 0ms;
   }
 
   /* ---------- Cabeçalho ---------- */
@@ -333,10 +658,11 @@
   }
 
   /* ---------- Painel ---------- */
+  /* Padding unico de painel. Antes havia 16/18 e 12/14 competindo. */
   .revenue-app .revenue-panel {
     min-width: 0;
-    border-radius: 18px;
-    padding: 16px 18px;
+    border-radius: 10px;
+    padding: 16px;
   }
 
   /* ---------- Cabeçalho de página das telas internas ---------- */
@@ -400,7 +726,7 @@
     min-width: 0;
     align-items: center;
     gap: 8px;
-    border-radius: 16px;
+    border-radius: 10px;
     padding: 10px;
   }
 
@@ -433,7 +759,7 @@
     gap: 10px;
     min-height: 96px;
     border-radius: 10px;
-    padding: 12px 14px;
+    padding: 12px;
   }
 
   .revenue-app .revenue-metric-dot {
@@ -445,21 +771,35 @@
 
   .revenue-app .revenue-metric-value {
     display: block;
-    margin: 5px 0 4px;
-    font-size: 23px;
+    margin: 6px 0 5px;
+    color: var(--ink-strong);
+    font-size: 24px;
     font-weight: 700;
-    letter-spacing: -0.035em;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
   }
 
   .revenue-app .revenue-metric-label {
-    color: var(--azul-escuro);
-    font-size: 13px;
+    color: var(--ink-muted);
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
   }
 
+  /*
+   * A nota do cartão usa o tom do cartão, escurecido até passar AA.
+   *
+   * `tone-marca` aponta para `verde-institucional` (#00968C), que mede 3,66:1
+   * sobre branco — reprovado para texto de 12px, mesmo em negrito. Misturar 22%
+   * de `cinza-900` no tom leva o marca a 4,8:1 sem mudar a matiz; os tons de
+   * dado (positivo, negativo, atenção, informação) já passam e ficam como estão.
+   */
   .revenue-app .revenue-metric-note {
-    color: var(--tom, var(--verde-institucional));
-    font-size: 11.5px;
+    color: color-mix(in srgb, var(--tom, var(--verde-escuro)) 68%, var(--cinza-900));
+    font-size: 12px;
     font-weight: 700;
+    line-height: 1.35;
   }
 
 
@@ -483,7 +823,7 @@
     min-height: 66px;
     padding: 9px 10px;
     border: 1px solid var(--vidro-borda-suave);
-    border-radius: 14px;
+    border-radius: 10px;
     background: rgb(255 255 255 / 65%);
     text-align: left;
   }
@@ -510,7 +850,7 @@
 
   .revenue-app .revenue-table th {
     padding: 8px 10px;
-    border-radius: 9px;
+    border-radius: 8px;
     background: rgb(229 239 245 / 72%);
     color: var(--azul-escuro);
     font-size: 10.5px;
@@ -596,6 +936,170 @@
     position: relative;
     text-align: center;
   }
+
+  /* ---------- Campo de arquivo da importação ---------- */
+  /*
+   * Três estados num só alvo: parado (ícone flutua 6px), arrastando (borda
+   * cônica girando) e lendo (barra com brilho correndo). O brilho não reporta
+   * porcentagem porque a leitura não expõe progresso — seria número inventado.
+   */
+  .revenue-dropzone {
+    position: relative;
+    display: flex;
+    min-height: 9rem;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px dashed var(--hairline);
+    border-radius: 10px;
+    background: var(--surface-base);
+    padding: 1rem;
+    text-align: center;
+    transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .revenue-dropzone[data-estado='parado']:hover {
+    border-color: var(--verde-institucional);
+    background: var(--dado-positivo-suave);
+  }
+
+  .revenue-dropzone[data-estado='arrastando'] {
+    border-color: transparent;
+    background: var(--dado-positivo-suave);
+  }
+
+  .revenue-dropzone[data-estado='bloqueado'] {
+    cursor: not-allowed;
+    border-color: var(--hairline-suave);
+    background: var(--surface-sunken);
+    opacity: 0.6;
+  }
+
+  .revenue-dropzone[data-estado='lendo'] {
+    cursor: progress;
+    opacity: 0.9;
+  }
+
+  /*
+   * O input de arquivo é `sr-only` (1×1 px): o foco vive nele, não no label.
+   * Por isso o anel precisa vir do foco dentro da área — `:focus-visible` no
+   * label nunca casaria e o input não tem tamanho para desenhar contorno.
+   */
+  .revenue-dropzone:focus-within {
+    outline: 2px solid var(--verde-institucional);
+    outline-offset: 2px;
+  }
+
+  /* Borda cônica girando — só no arrastar. Fallback: borda verde estática abaixo. */
+  .revenue-dropzone[data-estado='arrastando']::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 2px;
+    background: conic-gradient(from var(--revenue-ang, 0deg), var(--verde-institucional), var(--verde-neon), var(--verde-claro), var(--verde-institucional));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    animation: revenue-girar-borda 1.4s linear infinite;
+    pointer-events: none;
+  }
+
+  /* Sem conic-gradient ou sem mask-compostável, a borda cônica não aparece:
+     volta a borda verde estática para o estado de arrastar continuar visível. */
+  @supports not ((background: conic-gradient(from 0deg, red, blue)) and (mask-composite: exclude)) {
+    .revenue-dropzone[data-estado='arrastando'] {
+      border-color: var(--verde-institucional);
+    }
+
+    .revenue-dropzone[data-estado='arrastando']::before {
+      content: none;
+    }
+  }
+
+  .revenue-dropzone-icone {
+    display: flex;
+    height: 2.75rem;
+    width: 2.75rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--surface-raised);
+    color: var(--verde-escuro);
+    box-shadow: 0 0 0 1px var(--hairline-suave);
+  }
+
+  .revenue-dropzone[data-estado='parado'] .revenue-dropzone-icone {
+    animation: revenue-flutuar 3.4s ease-in-out infinite;
+  }
+
+  /* Barra de leitura: brilho atravessa, sem porcentagem. */
+  .revenue-leitura-barra {
+    position: relative;
+    overflow: hidden;
+    height: 4px;
+    width: 12rem;
+    max-width: 100%;
+    border-radius: 999px;
+    background: var(--dado-positivo-suave);
+  }
+
+  .revenue-leitura-barra::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, var(--verde-claro) 50%, transparent);
+    animation: revenue-shimmer 1.6s ease-in-out infinite;
+  }
+
+  .revenue-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid var(--hairline);
+    background: var(--surface-raised);
+    padding: 0.125rem 0.5rem;
+    font-size: 12px;
+    line-height: 1.25rem;
+    color: var(--ink-muted);
+  }
+
+  .revenue-faixa-pronta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--verde-claro);
+    background: var(--dado-positivo-suave);
+    padding: 0.5rem 0.75rem;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--verde-escuro);
+  }
+}
+
+@property --revenue-ang {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes revenue-girar-borda {
+  to { --revenue-ang: 360deg; }
+}
+
+@keyframes revenue-flutuar {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes revenue-shimmer {
+  to { transform: translateX(100%); }
 }
 
 @media (prefers-reduced-transparency: reduce) {
@@ -609,15 +1113,55 @@
     backdrop-filter: none;
   }
 
-  .revenue-bg {
+  .revenue-bg,
+  .revenue-bg-faixa {
     background: var(--surface-base);
     filter: none;
   }
+
+  .revenue-blob,
+  .revenue-grain {
+    display: none;
+  }
 }
 
+/*
+ * Deriva para quem pediu menos movimento. O fundo continua esmeralda, mas
+ * parado — a informação não depende do movimento dele.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .revenue-blob {
+    animation: none !important;
+  }
+
+  /* Campo de arquivo: nenhuma das três animações novas roda. O estado continua
+     legível pelo ícone, pela borda e pelo texto. */
+  .revenue-dropzone[data-estado='parado'] .revenue-dropzone-icone,
+  .revenue-dropzone[data-estado='arrastando']::before,
+  .revenue-leitura-barra::after {
+    animation: none !important;
+  }
+
+  .revenue-dropzone {
+    transition: none !important;
+  }
+}
+
+/*
+ * Abaixo de 1180px o breakpoint deixa de ser fonte de verdade: ele só é o valor
+ * inicial da primeira visita (ver `collapseInicial`). O estado recolhido agora
+ * vem do atributo `data-nav`, e a escolha do usuário vence a largura — por isso
+ * aqui sobra apenas o ajuste de respiro entre coluna e conteúdo.
+ */
 @media (max-width: 1180px) {
+  /*
+   * Nada de largura de coluna aqui. `collapseInicial(largura)` já decide o
+   * estado da primeira visita, e o atributo `data-nav` é quem manda na largura.
+   * Manter um `grid-template-columns: 84px` neste breakpoint era o defeito: em
+   * tela de 900px a coluna virava 84px **e** o estado continuava `expandida`,
+   * então os rótulos apareciam espremidos por cima do conteúdo.
+   */
   .revenue-app {
-    grid-template-columns: 84px minmax(0, 1fr);
     gap: 12px;
   }
 
@@ -625,15 +1169,6 @@
     padding-inline: 9px;
   }
 
-  .revenue-app .revenue-sidebar .revenue-nav-rotulo,
-  .revenue-app .revenue-sidebar .revenue-marca-texto {
-    display: none;
-  }
-
-  .revenue-app .revenue-nav-item {
-    justify-content: center;
-    padding: 0;
-  }
 }
 
 @media (max-width: 780px) {
@@ -653,17 +1188,39 @@
     padding: 6px 8px;
   }
 
+  /*
+   * Barra inferior: 4 destinos + Configurações, todos com a mesma largura.
+   * Antes, a navegação tomava 100% e o atalho de Configurações sobrava num canto
+   * com 19px de largura — o ícone aparecia espremido e cortado.
+   */
   .revenue-app .revenue-sidebar nav {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    width: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
     gap: 4px;
     overflow: visible;
+  }
+
+  .revenue-app .revenue-sidebar > div {
+    flex: 0 0 auto;
+    padding: 0;
+  }
+
+  .revenue-app .revenue-sidebar > div .revenue-nav-item {
+    width: 48px;
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .revenue-app .revenue-sidebar > div p {
+    display: none;
   }
 
   .revenue-app .revenue-nav-item {
     justify-content: center;
     min-height: 48px;
+    padding: 0;
   }
 
   .revenue-app .revenue-sidebar > a:first-child,
@@ -671,8 +1228,33 @@
     display: none;
   }
 
-  .revenue-app .revenue-nav-item:nth-child(n + 5) {
+  .revenue-app .revenue-sidebar nav > .revenue-nav-item:nth-child(n + 5) {
     display: none;
+  }
+
+  /*
+   * Abaixo de 780px não há coluna: a sidebar é barra inferior de 62px, e a
+   * largura não existe nesse modo. A barra sempre foi ícone-só, então os
+   * rótulos continuam ocultos aqui mesmo com a coluna "expandida" — e o
+   * controle de expandir/recolher não se aplica, por isso some. O cartão de
+   * rótulo também não faz sentido numa barra horizontal.
+   */
+  /*
+   * Fora do estado recolhido o cartão de rótulo não existe (a regra base já o
+   * esconde), mas a barra inferior abaixo de 780px pode herdar `recolhida` de
+   * uma preferência gravada em tela larga — e aí o cartão apareceria numa barra
+   * horizontal. Por isso ele é ocultado aqui sem condição.
+   */
+  .revenue-app .revenue-sidebar .revenue-nav-rotulo,
+  .revenue-app .revenue-sidebar .revenue-marca-texto,
+  .revenue-app .revenue-sidebar .revenue-nav-dica,
+  .revenue-app .revenue-nav-toggle {
+    display: none !important;
+  }
+
+  /* O estado recolhido não deve mexer no recorte de rolagem da barra. */
+  .revenue-app[data-nav='recolhida'] .revenue-sidebar {
+    overflow: hidden auto;
   }
 }
 

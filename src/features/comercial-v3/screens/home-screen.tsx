@@ -1,4 +1,3 @@
-import { AgentHero } from '../components/agent-hero'
 import { BranchRail } from '../components/branch-rail'
 import { KpiStrip } from '../components/kpi-strip'
 import { HeroBriefingCard } from '../components/hero-briefing-card'
@@ -34,13 +33,6 @@ export function HomeScreen({ model, briefing, asOf, mes, nav, realBranchesEnable
           </header>
           <KpiStrip kpis={model.kpis} overview />
           <HeroBriefingCard briefing={briefing} top10Count={model.top10.length} nav={nav} />
-          <div data-home-nav="forecast" className="min-w-0">
-            {model.semanas.length > 0 ? (
-              <AgentHero semanas={model.semanas} semanaAtual={model.semanaAtual} kpis={model.kpis} asOf={asOf} />
-            ) : (
-              <p className="revenue-panel px-4 py-3 text-[13px] leading-5 text-[#50647d]">Trajetória semanal indisponível neste recorte. A amostra não fornece histórico por filial e solução.</p>
-            )}
-          </div>
         </div>
       </section>
 
@@ -53,7 +45,7 @@ export function HomeScreen({ model, briefing, asOf, mes, nav, realBranchesEnable
           <Link
             key={view}
             href={nav.href(view, { from: 'home' })}
-            className="revenue-panel group flex min-h-11 min-w-0 items-center justify-between gap-2 rounded-[12px] px-3 py-2.5 text-[12px] font-semibold text-[#2b425e] transition-premium hover:-translate-y-px hover:bg-white focus-visible:outline-2 focus-visible:outline-[#086b6b]"
+            className="revenue-panel group flex min-h-11 min-w-0 items-center justify-between gap-2 px-3 py-2.5 text-[12px] font-semibold text-[#2b425e] transition-premium hover:-translate-y-px hover:bg-white focus-visible:outline-2 focus-visible:outline-[#086b6b]"
           >
             <span className="truncate">{label}</span>
             <ArrowRight aria-hidden className="h-4 w-4 shrink-0 text-[#009b83] transition-transform group-hover:translate-x-0.5" />

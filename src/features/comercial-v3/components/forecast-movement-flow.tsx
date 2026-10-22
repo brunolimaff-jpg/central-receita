@@ -9,12 +9,12 @@ import { FORECAST_MOVEMENTS } from '../types'
 export function ForecastMovementFlow({ movimentos, nav }: { movimentos: Movimentos; nav: CommercialNav }) {
   const maior = Math.max(...FORECAST_MOVEMENTS.map((item) => Math.abs(movimentos.byMovement[item].value)), 0.1)
   return (
-    <section className="h-full min-w-0 rounded-[14px] border border-[#dfe8ef] bg-white p-5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
-      <h2 className="text-[16px] font-bold tracking-tight text-[#0d2340]">{BLOCOS_HOME.movimentos}</h2>
+    <section className="h-full min-w-0 rounded-[10px] border border-[#dfe8ef] bg-white p-5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
+      <h2 className="text-[15px] font-bold tracking-tight text-[#0d2340]">{BLOCOS_HOME.movimentos}</h2>
       <div className="mt-3 flex items-center justify-between gap-3 rounded-[10px] bg-[#f6f9fe] px-3 py-2.5">
-        <div><p className="text-[11px] text-[#50647d]">Foto oficial</p><p className="num whitespace-nowrap text-[19px] font-bold text-[#33466c]">{formatarMilhoes(movimentos.oficial)}</p></div>
+        <div><p className="text-[11px] text-[#50647d]">Foto oficial</p><p className="num whitespace-nowrap text-[20px] font-bold text-[#33466c]">{formatarMilhoes(movimentos.oficial)}</p></div>
         <ArrowRight aria-hidden className="h-4 w-4 shrink-0 text-[#8ea0c5]" />
-        <div className="text-right"><p className="text-[11px] text-[#50647d]">Forecast atual</p><p className="num whitespace-nowrap text-[19px] font-bold text-[#086b6b]">{formatarMilhoes(movimentos.atual)}</p></div>
+        <div className="text-right"><p className="text-[11px] text-[#50647d]">Forecast atual</p><p className="num whitespace-nowrap text-[20px] font-bold text-[#086b6b]">{formatarMilhoes(movimentos.atual)}</p></div>
       </div>
       <ul className="mt-2 divide-y divide-[#edf2f6]">
         {FORECAST_MOVEMENTS.map((movimento) => {

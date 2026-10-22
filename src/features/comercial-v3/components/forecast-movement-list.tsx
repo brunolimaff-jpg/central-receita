@@ -28,10 +28,10 @@ export function ForecastMovementList({ movimentos, selecionado, nav }: ForecastM
   }))
 
   return (
-    <section className="rounded-[14px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
+    <section className="rounded-[10px] border border-[#dfe8ef] bg-white px-4 py-3.5 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h2 className="text-[16px] font-bold tracking-[-0.02em] text-[#0d2340]">
+          <h2 className="text-[15px] font-bold tracking-[-0.02em] text-[#0d2340]">
             {FORECAST_COPY.fluxoTitulo}
           </h2>
           <p className="mt-0.5 text-[12px] text-[#63748a]">{FORECAST_COPY.fluxoSubtitulo}</p>
@@ -39,7 +39,7 @@ export function ForecastMovementList({ movimentos, selecionado, nav }: ForecastM
         {selecionado && (
           <Link
             href={nav.href('forecast', { movement: null })}
-            className="rounded-[9px] border border-[#dfe8ef] bg-white px-2.5 py-1.5 text-[11px] font-semibold text-[#2b425e] transition-premium hover:bg-[#f5f9fb] active:translate-y-px"
+            className="rounded-[8px] border border-[#dfe8ef] bg-white px-2.5 py-1.5 text-[11px] font-semibold text-[#2b425e] transition-premium hover:bg-[#f5f9fb] active:translate-y-px"
           >
             {FORECAST_COPY.limparMovimento}
           </Link>
@@ -54,7 +54,7 @@ export function ForecastMovementList({ movimentos, selecionado, nav }: ForecastM
               key={movimento}
               href={href}
               aria-current={ativo ? 'true' : undefined}
-              className={`flex items-center justify-between gap-3 rounded-[11px] border px-3 py-2.5 transition-premium hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b] active:translate-y-px ${
+              className={`flex items-center justify-between gap-3 rounded-[10px] border px-3 py-2.5 transition-premium hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b] active:translate-y-px ${
                 ativo
                   ? 'border-[#009b83] bg-[#e8f8f3] shadow-[inset_0_0_0_1px_rgba(0,155,131,0.08)]'
                   : 'border-[#edf2f6] bg-white hover:bg-[#f7fbfa]'

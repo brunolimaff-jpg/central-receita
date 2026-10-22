@@ -10,6 +10,8 @@ export const importVersions = sqliteTable('import_versions', {
   actorId: text('actor_id').notNull(),
   sourcesJson: text('sources_json').notNull(),
   workspaceJson: text('workspace_json').notNull(),
+  /** Resumo numérico da carga para a trajetória; nulo nas versões anteriores à migração. */
+  snapshotJson: text('snapshot_json'),
   opportunitiesChunkCount: integer('opportunities_chunk_count').notNull(),
   ordersChunkCount: integer('orders_chunk_count').notNull(),
 }, table => [

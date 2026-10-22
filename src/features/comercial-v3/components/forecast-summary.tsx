@@ -58,7 +58,7 @@ export function ForecastSummary({ model, meta, mes }: ForecastSummaryProps) {
   ]
 
   return (
-    <section className="rounded-[20px] border border-[#dfe8ef] bg-white px-5 py-4 shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
+    <section className="rounded-[10px] border border-[#dfe8ef] bg-white px-5 py-4 shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
       <div className="mb-3">
         <h1 className="text-[24px] font-bold tracking-[-0.035em] text-[#0d2340]">
           Forecast de {mes}
@@ -70,7 +70,7 @@ export function ForecastSummary({ model, meta, mes }: ForecastSummaryProps) {
         {celulas.map((celula) => (
           <article
             key={celula.chave}
-            className={`rounded-[12px] border px-3.5 py-3.5 ${
+            className={`rounded-[10px] border px-3.5 py-3.5 ${
               celula.negativo ? 'border-[#f3d9de] bg-[linear-gradient(180deg,#ffffff,#fff7f8)]' : 'border-[#dfe8ef] bg-[#fbfdfe]'
             }`}
           >

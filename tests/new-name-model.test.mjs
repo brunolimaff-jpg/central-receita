@@ -273,6 +273,33 @@ test('data de conferência preenchida marca o pedido como conferido (sinal do CR
   assert.equal(modelo.indicators.realizedCount, 1)
 })
 
+test('classificação "NOVO" da fonte não é confirmado e não muda os totais', () => {
+  // "NOVO" vem da exportação, sem confirmação institucional: não pode ser "confirmado".
+  assert.equal(classifyNewName('NOVO'), 'pela_fonte')
+  assert.equal(classifyNewName('Novo'), 'pela_fonte')
+  assert.notEqual(classifyNewName('NOVO'), 'confirmado')
+
+  // Confirmação institucional continua sendo confirmado.
+  assert.equal(classifyNewName('NOVO CONFIRMADO'), 'confirmado')
+  assert.equal(classifyNewName('Novo confirmado'), 'confirmado')
+
+  // Pedidos "NOVO" seguem no total principal e são rotulados como "pela fonte".
+  const fonte = [makeOrderRecord(1, { classification: 'Novo', maintenance: 500 })]
+  const confirmado = [makeOrderRecord(1, { classification: 'Novo Confirmado', maintenance: 500 })]
+  const modeloFonte = calculateNewNameModel(fonte, referenceDate)
+  const modeloConfirmado = calculateNewNameModel(confirmado, referenceDate)
+
+  assert.equal(modeloFonte.indicators.orders, modeloConfirmado.indicators.orders)
+  assert.equal(modeloFonte.indicators.maintenanceTotal, modeloConfirmado.indicators.maintenanceTotal)
+  assert.equal(modeloFonte.indicators.newAccounts, modeloConfirmado.indicators.newAccounts)
+  assert.equal(modeloFonte.orders[0].orderId, '1')
+  assert.equal(modeloFonte.indicators.sourceOnlyCount, 1)
+  assert.equal(modeloConfirmado.indicators.sourceOnlyCount, 0)
+
+  // "Novo a validar" continua no grupo separado.
+  assert.equal(classifyNewName('Novo a validar'), 'a_validar')
+})
+
 test('devolvido ou cancelado com data de conferência continua fora do realizado', () => {
   const devolvido = makeOrderRecord('13', { status: 'Devolvido', conferenceDate: '2026-10-02' })
   const cancelado = makeOrderRecord('14', { status: 'Cancelado', conferenceDate: '2026-10-03' })

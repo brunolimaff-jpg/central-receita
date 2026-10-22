@@ -1,10 +1,17 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { readFile } from 'node:fs/promises'
+import { readdir, readFile } from 'node:fs/promises'
 import { DatabaseSync } from 'node:sqlite'
 import { handleRequest } from '../backend/worker.js'
+import { calculateForecastMonth } from '../src/features/comercial-v3/forecast-month.ts'
+import { trajectorySnapshotFrom } from '../src/features/comercial-v3/trajectory-snapshot.ts'
 
-const schema = await readFile(new URL('../drizzle/0000_shared_import.sql', import.meta.url), 'utf8')
+// Aplica as migrações na ordem em que o Sites aplica (numérica), não só a inicial.
+const migrations = new URL('../drizzle/', import.meta.url)
+const schema = (await Promise.all(
+  (await readdir(migrations)).filter(file => file.endsWith('.sql')).sort()
+    .map(file => readFile(new URL(file, migrations), 'utf8')),
+)).join('\n')
 const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Cuiaba', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
 
 class SqliteD1 {
@@ -301,6 +308,163 @@ test('previous returns the first import while current returns the second, withou
   assert.deepEqual(dbSnapshot(env), before)
 })
 
+// --- Ticket 03: snapshot numérico no histórico de cargas ---
+
+test('a carga confirmada grava o snapshot numérico e o devolve no histórico', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  const saved = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: workspace(), previousRevision: null, referenceDate: today,
+  }), env)).json()
+  assert.deepEqual(saved.history[0].snapshot, {
+    forecastTotal: 1000, entered: null, exited: null, changed: null, realized: 0,
+  })
+  const stored = env.DB.sqlite.prepare('SELECT snapshot_json FROM import_versions WHERE revision = ?').get(saved.revision)
+  assert.deepEqual(JSON.parse(stored.snapshot_json), saved.history[0].snapshot)
+
+  const draft = await getDraft(env, 'giovanne-site-user')
+  assert.deepEqual(draft.history[0].snapshot, saved.history[0].snapshot)
+})
+
+test('duas cargas guardam snapshots distintos, com o movimento da segunda', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  const first = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: workspace(), previousRevision: null, referenceDate: today,
+  }), env)).json()
+  const next = workspace({ opportunityHash: 'c' })
+  next.opportunities.records[0].predictedValue = 2500
+  const second = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: next, previousRevision: first.revision, referenceDate: today,
+  }), env)).json()
+  // Com carga anterior, movimento vazio é zero legítimo — a ponte precisa do
+  // número para a conta fechar; `null` fica reservado a valor desconhecido.
+  assert.deepEqual(second.history[0].snapshot, {
+    forecastTotal: 2500, entered: 0, exited: 0, changed: 1500, realized: 0,
+  })
+  assert.deepEqual(second.history[1].snapshot, first.history[0].snapshot)
+  assert.notDeepEqual(second.history[0].snapshot, second.history[1].snapshot)
+  const rows = env.DB.sqlite.prepare('SELECT snapshot_json FROM import_versions ORDER BY sequence').all()
+  assert.equal(rows.length, 2)
+  assert.notEqual(rows[0].snapshot_json, rows[1].snapshot_json)
+})
+
+test('carga anterior à migração tem snapshot_json nulo e a leitura não lança', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  const saved = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: workspace(), previousRevision: null, referenceDate: today,
+  }), env)).json()
+  env.DB.sqlite.prepare('UPDATE import_versions SET snapshot_json = NULL WHERE revision = ?').run(saved.revision)
+  const draft = await getDraft(env, 'giovanne-site-user')
+  assert.equal(draft.revision, saved.revision)
+  assert.equal(draft.history[0].snapshot, undefined)
+  assert.equal(draft.history[0].at, saved.history[0].at)
+  assert.deepEqual(draft.history[0].sources, saved.history[0].sources)
+})
+
+test('snapshot_json corrompido é omitido da leitura, sem derrubar o histórico', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  const saved = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: workspace(), previousRevision: null, referenceDate: today,
+  }), env)).json()
+  env.DB.sqlite.prepare('UPDATE import_versions SET snapshot_json = ? WHERE revision = ?').run('{"truncado', saved.revision)
+  const draft = await getDraft(env, 'giovanne-site-user')
+  assert.equal(draft.history.length, 1)
+  assert.equal(draft.history[0].snapshot, undefined)
+  assert.match(draft.history[0].at, /^\d{4}-\d\d-\d\dT.*Z$/)
+})
+
+test('o histórico continua truncado em 20 cargas, com snapshots da mais nova à mais antiga', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  const hex = index => index.toString(16).padStart(64, '0')
+  let revision = null
+  for (let index = 0; index < 25; index++) {
+    const next = workspace()
+    next.opportunities.hash = hex(index)
+    next.opportunities.records[0].predictedValue = 1000 + index
+    const body = { workspace: next, previousRevision: revision, referenceDate: today }
+    const response = await handleRequest(req('PUT', 'fabi-site-user', body), env)
+    assert.equal(response.status, 200, env.DB.lastError?.message)
+    revision = (await response.json()).revision
+  }
+  const draft = await getDraft(env, 'giovanne-site-user')
+  assert.equal(draft.history.length, 20)
+  assert.equal(draft.history[0].snapshot.forecastTotal, 1024)
+  assert.equal(draft.history.at(-1).snapshot.forecastTotal, 1005)
+  assert.equal(env.DB.sqlite.prepare('SELECT COUNT(*) AS n FROM import_versions').get().n, 25)
+})
+
+test('o snapshot do worker coincide com o do módulo do cliente para a mesma carga', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  const month = today.slice(0, 7)
+  const chance = (index, stage, probability, predictedValue) => record('opportunities', index, {
+    stage, probability, predictedValue, forecastDate: today,
+  })
+  const firstWorkspace = workspace({
+    opportunityRecords: [chance(1, 'Negociação', 0.8, 15000), chance(2, 'Proposta', 0.5, 9000)],
+  })
+  const first = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: firstWorkspace, previousRevision: null, referenceDate: today,
+  }), env)).json()
+  const current = workspace({
+    opportunityHash: 'c',
+    opportunityRecords: [chance(1, 'Negociação', 0.5, 12000), chance(2, 'Proposta', 0.9, 4000)],
+  })
+  const second = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: current, previousRevision: first.revision, referenceDate: today,
+  }), env)).json()
+
+  const expected = trajectorySnapshotFrom(
+    calculateForecastMonth(current.opportunities.records, firstWorkspace.opportunities.records, month, today, 'mês'),
+    calculateForecastMonth(firstWorkspace.opportunities.records, null, month, today, 'mês'),
+  )
+  assert.deepEqual(second.history[0].snapshot, expected)
+  // E o corte de 75% do worker também é o mesmo: só a de 90% fica no previsto.
+  assert.equal(second.history[0].snapshot.forecastTotal, 4000)
+})
+
+test('valor desconhecido na carga anterior contamina a variação do snapshot, sem virar zero', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  const withoutValue = record('opportunities', 1, { predictedValue: null })
+  const first = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: workspace({ opportunityRecords: [withoutValue] }), previousRevision: null, referenceDate: today,
+  }), env)).json()
+  const second = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: workspace({ opportunityHash: 'c' }), previousRevision: first.revision, referenceDate: today,
+  }), env)).json()
+  assert.equal(second.history[0].snapshot.changed, null)
+  assert.equal(second.history[0].snapshot.forecastTotal, 1000)
+})
+
+test('carga só de pedidos não grava snapshot, em vez de gravar zero falso', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  const ordersOnly = { opportunities: null, orders: workspace().orders }
+  const saved = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: ordersOnly, previousRevision: null, referenceDate: today,
+  }), env)).json()
+  assert.equal(saved.history[0].snapshot, undefined)
+  assert.equal(env.DB.sqlite.prepare('SELECT snapshot_json FROM import_versions').get().snapshot_json, null)
+})
+
+test('chave extra no corpo do PUT continua sendo rejeitada, inclusive um snapshot enviado pelo cliente', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  const payload = {
+    workspace: workspace(), previousRevision: null, referenceDate: today,
+    snapshot: { forecastTotal: 1, entered: 0, exited: 0, changed: 0, realized: 0 },
+  }
+  const response = await handleRequest(req('PUT', 'fabi-site-user', payload), env)
+  assert.equal(response.status, 422)
+  assert.deepEqual(await response.json(), { error: 'invalid_request' })
+  assert.equal(env.DB.sqlite.prepare('SELECT COUNT(*) AS n FROM import_versions').get().n, 0)
+})
+
 test('previous applies the same authentication and authorization as current', async t => {
   const env = makeEnv()
   t.after(() => env.DB.close())
@@ -312,4 +476,137 @@ test('previous applies the same authentication and authorization as current', as
   }
   const wrongOrigin = new Request('https://other.example/api/imports/previous', { headers: { 'oai-authenticated-user-id': 'fabi-site-user' } })
   assert.equal((await handleRequest(wrongOrigin, env)).status, 403)
+})
+
+/* ---------- COR02: o worker compara cargas pelo mês de referência de cada uma ---------- */
+
+test('COR02: carga anterior de outro mês grava movimento nulo, nunca zero', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  // Setembro carregado em 30/09 e outubro em 01/10: a virada de mês é permitida.
+  const setembro = workspace({ opportunityRecords: [record('opportunities', 1, { forecastDate: '2026-09-20', predictedValue: 900 })] })
+  setembro.opportunities.referenceDate = '2026-09-30'
+  setembro.orders.referenceDate = '2026-09-30'
+  const first = await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: setembro, previousRevision: null, referenceDate: '2026-09-30',
+  }), env)
+  assert.equal(first.status, 200, env.DB.lastError?.message)
+  const primeira = await first.json()
+
+  const outubro = workspace({ opportunityHash: 'c', opportunityRecords: [record('opportunities', 1, { forecastDate: '2026-10-01', predictedValue: 1000 })] })
+  outubro.opportunities.referenceDate = '2026-10-01'
+  outubro.orders.referenceDate = '2026-10-01'
+  const second = await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: outubro, previousRevision: primeira.revision, referenceDate: '2026-10-01',
+  }), env)
+  assert.equal(second.status, 200, env.DB.lastError?.message)
+  const snapshot = (await second.json()).history[0].snapshot
+  assert.equal(snapshot.forecastTotal, 1000)
+  assert.equal(snapshot.entered, null, 'não inventa entrada ao trocar de mês')
+  assert.equal(snapshot.exited, null, 'não inventa saída ao trocar de mês')
+  assert.equal(snapshot.changed, null)
+})
+
+/* ---------- P2: snapshot só quando a foto de oportunidades muda ---------- */
+
+test('P2: pedidos-only com opp de outubro e pedido de setembro não cria snapshot', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  const outubro = workspace({ opportunityRecords: [record('opportunities', 1, { forecastDate: '2026-10-20' })] })
+  outubro.opportunities.referenceDate = '2026-10-20'
+  outubro.orders.referenceDate = '2026-10-20'
+  const first = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: outubro, previousRevision: null, referenceDate: '2026-10-20',
+  }), env)).json()
+
+  const setembro = workspace({ opportunityHash: 'a', orderHash: 'c' })
+  setembro.opportunities = structuredClone(outubro.opportunities)
+  setembro.orders.referenceDate = '2026-09-30'
+  setembro.orders.records[0].closingDate = '2026-09-30'
+  const second = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: setembro, previousRevision: first.revision, referenceDate: '2026-09-30',
+  }), env))
+  const secondBody = await second.json()
+  assert.equal(second.status, 200, JSON.stringify(secondBody))
+
+  assert.equal(secondBody.history[0].snapshot, undefined)
+  assert.deepEqual(secondBody.history[0].sources, ['Pedidos Outubro 26.xlsx'])
+  assert.equal(secondBody.history[0].referenceDate, '2026-09-30')
+  assert.deepEqual(secondBody.history[1].snapshot, first.history[0].snapshot)
+})
+
+test('P2: opp novo conteúdo cria snapshot; hash igual com nova referência de opps também', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  const primeiro = workspace({ opportunityRecords: [record('opportunities', 1, { forecastDate: '2026-10-20', predictedValue: 1000 })] })
+  primeiro.opportunities.referenceDate = '2026-10-20'
+  primeiro.orders.referenceDate = '2026-10-20'
+  const first = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: primeiro, previousRevision: null, referenceDate: '2026-10-20',
+  }), env)).json()
+
+  const novo = workspace({ opportunityHash: 'c', opportunityRecords: [record('opportunities', 1, { forecastDate: '2026-10-20', predictedValue: 1500 })] })
+  novo.opportunities.referenceDate = '2026-10-21'
+  novo.orders.referenceDate = '2026-10-21'
+  const second = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: novo, previousRevision: first.revision, referenceDate: '2026-10-21',
+  }), env)).json()
+  assert.equal(second.history[0].snapshot.forecastTotal, 1500)
+  assert.equal(second.history[0].snapshot.changed, 500)
+
+  const mesmaHash = workspace({ opportunityHash: 'c', opportunityRecords: [record('opportunities', 1, { forecastDate: '2026-10-20', predictedValue: 1500 })] })
+  mesmaHash.opportunities.referenceDate = '2026-10-22'
+  mesmaHash.orders.referenceDate = '2026-10-22'
+  const third = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: mesmaHash, previousRevision: second.revision, referenceDate: '2026-10-22',
+  }), env)).json()
+  assert.equal(third.history[0].snapshot.forecastTotal, 1500)
+})
+
+test('P2: mesma hash e mesma referência em pedidos-only não duplica o ponto de opp', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  const base = workspace({ opportunityRecords: [record('opportunities', 1, { forecastDate: '2026-10-20' })] })
+  base.opportunities.referenceDate = '2026-10-20'
+  base.orders.referenceDate = '2026-10-20'
+  const first = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: base, previousRevision: null, referenceDate: '2026-10-20',
+  }), env)).json()
+
+  const pedidos = workspace({ opportunityHash: 'a', orderHash: 'd' })
+  pedidos.opportunities = structuredClone(base.opportunities)
+  pedidos.orders.referenceDate = '2026-10-20'
+  pedidos.orders.records[0].predictedValue = null
+  const second = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: pedidos, previousRevision: first.revision, referenceDate: '2026-10-20',
+  }), env))
+  const secondBody = await second.json()
+  assert.equal(second.status, 200, JSON.stringify(secondBody))
+  assert.equal(secondBody.history[0].snapshot, undefined)
+  const snapshots = secondBody.history.filter(entrada => entrada.snapshot)
+  assert.equal(snapshots.length, 1)
+  assert.equal(snapshots[0].snapshot.forecastTotal, 1000)
+})
+
+test('COR02: cargas do mesmo mês em dias diferentes continuam comparando (20/10 → 21/10)', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  const primeiro = workspace({ opportunityRecords: [record('opportunities', 1, { forecastDate: '2026-10-20', predictedValue: 1000 })] })
+  primeiro.opportunities.referenceDate = '2026-10-20'
+  primeiro.orders.referenceDate = '2026-10-20'
+  const first = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: primeiro, previousRevision: null, referenceDate: '2026-10-20',
+  }), env)).json()
+  const segundo = workspace({ opportunityHash: 'c', opportunityRecords: [record('opportunities', 1, { forecastDate: '2026-10-20', predictedValue: 1200 })] })
+  segundo.opportunities.referenceDate = '2026-10-21'
+  segundo.orders.referenceDate = '2026-10-21'
+  const response = await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: segundo, previousRevision: first.revision, referenceDate: '2026-10-21',
+  }), env)
+  assert.equal(response.status, 200, env.DB.lastError?.message)
+  const snapshot = (await response.json()).history[0].snapshot
+  assert.equal(snapshot.forecastTotal, 1200)
+  assert.equal(snapshot.entered, 0)
+  assert.equal(snapshot.exited, 0)
+  assert.equal(snapshot.changed, 200)
 })

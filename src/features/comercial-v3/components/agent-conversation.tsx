@@ -44,9 +44,9 @@ export function AgentConversation({ briefing }: { briefing: AgentBriefingModel }
   }
 
   return (
-    <section className="overflow-hidden rounded-[18px] border border-[#dfe8ef] bg-white shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
+    <section className="overflow-hidden rounded-[10px] border border-[#dfe8ef] bg-white shadow-[0_4px_14px_rgba(32,73,91,0.06)]">
       <div className="border-b border-[#edf2f6] px-4 py-3.5">
-        <h2 className="text-[17px] font-bold text-[#0d2340]">{AGENTE_COPY.conversaTitulo}</h2>
+        <h2 className="text-[15px] font-bold text-[#0d2340]">{AGENTE_COPY.conversaTitulo}</h2>
         <p className="mt-0.5 text-[12px] text-[#63748a]">{AGENTE_COPY.conversaSubtitulo}</p>
       </div>
 
@@ -59,7 +59,7 @@ export function AgentConversation({ briefing }: { briefing: AgentBriefingModel }
         {mensagens.map((mensagem) => (
           <p
             key={mensagem.id}
-            className={`drill-enter max-w-[88%] rounded-[13px] px-3.5 py-2.5 text-[13px] leading-relaxed ${
+            className={`drill-enter max-w-[88%] rounded-[10px] px-3.5 py-2.5 text-[13px] leading-relaxed ${
               mensagem.autor === 'agente'
                 ? 'justify-self-start rounded-bl-[5px] border border-[#d8eeea] bg-[#eff8f6] text-[#173a35]'
                 : 'justify-self-end rounded-br-[5px] bg-[#16334e] text-white'

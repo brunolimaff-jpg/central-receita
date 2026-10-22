@@ -207,6 +207,78 @@ function splitRecords(records) {
   return chunks
 }
 
+/*
+ * Resumo numérico da carga para o histórico da trajetória. A régua é a mesma de
+ * `src/features/comercial-v3/forecast-month.ts` (Proposta/Negociação, corte de
+ * 75% quando a carga traz probabilidade, mês da referência); o Worker é copiado
+ * sozinho para o deploy, então não importa código de `src/`.
+ * Valores em reais; nulo contamina a soma, nunca vira zero.
+ */
+const FORECAST_MIN_PROBABILITY = 0.75
+const normalizeStage = stage => String(stage ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().replace(/\s+/g, ' ').toUpperCase()
+const isForecastStage = stage => {
+  const normalized = normalizeStage(stage)
+  return normalized.startsWith('PROPOSTA') || normalized.startsWith('NEGOCIACAO')
+}
+const sumKnown = (records, value) => records.some(record => value(record) === null)
+  ? null : records.reduce((sum, record) => sum + (value(record) ?? 0), 0)
+
+function trajectorySnapshot(workspace, previousWorkspace, referenceDate) {
+  const month = referenceDate.slice(0, 7)
+  /*
+   * A ponte só compara cargas do mesmo mês. A carga anterior é lida no mês
+   * dela, não no mês atual; se o mês mudou, o movimento fica nulo — nunca zero.
+   */
+  const previousReferenceDate = previousWorkspace?.opportunities?.referenceDate
+  const monthPrevious = previousReferenceDate === undefined ? month : (validDate(previousReferenceDate, localDate()) ? previousReferenceDate.slice(0, 7) : null)
+  const comparavel = monthPrevious === month
+  const monthStart = `${month}-01`
+  const monthEnd = new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0)).toISOString().slice(0, 10)
+  const eligible = records => {
+    const appliesChance = records.some(record => typeof record.probability === 'number')
+    return records.filter(record => isForecastStage(record.stage) && record.forecastDate?.startsWith(month) &&
+      (!appliesChance || (typeof record.probability === 'number' && record.probability >= FORECAST_MIN_PROBABILITY)))
+  }
+  const currentRecords = workspace.opportunities?.records ?? []
+  const current = eligible(currentRecords)
+  const realized = currentRecords.filter(record => normalizeStage(record.stage) === 'FECHADA E GANHA' &&
+    record.closingDate && record.closingDate >= monthStart && record.closingDate <= monthEnd)
+  const snapshot = {
+    forecastTotal: sumKnown(current, record => record.predictedValue),
+    entered: null, exited: null, changed: null,
+    realized: sumKnown(realized, record => record.closedValue),
+  }
+  if (!previousWorkspace?.opportunities) return snapshot
+  if (!comparavel) return snapshot
+  const previous = eligible(previousWorkspace.opportunities.records ?? [])
+  // A régua anterior usa o mês dela; `monthPrevious` já foi validado como igual.
+
+  const previousById = new Map(previous.map(record => [record.opportunityId, record]))
+  const currentIds = new Set(current.map(record => record.opportunityId))
+  const entered = current.filter(record => !previousById.has(record.opportunityId))
+  const exited = previous.filter(record => !currentIds.has(record.opportunityId))
+  const stayed = current.filter(record => previousById.has(record.opportunityId))
+  snapshot.entered = sumKnown(entered, record => record.predictedValue)
+  snapshot.exited = sumKnown(exited, record => record.predictedValue)
+  if (snapshot.exited !== null) snapshot.exited = 0 - snapshot.exited
+  // Nulo em qualquer lado contamina a variação; nunca vira zero.
+  const known = stayed.every(record => record.predictedValue !== null && previousById.get(record.opportunityId).predictedValue !== null)
+  snapshot.changed = known
+    ? stayed.reduce((sum, record) => sum + record.predictedValue - previousById.get(record.opportunityId).predictedValue, 0)
+    : null
+  return snapshot
+}
+
+function readSnapshot(value) {
+  if (!value) return undefined
+  try {
+    const snapshot = JSON.parse(value)
+    return isObject(snapshot) ? snapshot : undefined
+  } catch {
+    return undefined
+  }
+}
+
 function metadataOnly(workspace) {
   return Object.fromEntries(KINDS.map(kind => {
     if (!workspace[kind]) return [kind, null]
@@ -265,12 +337,16 @@ async function readVersion(db, row) {
     records[jobs[index].kind].push(...chunk)
   }
   const historyResult = await db.prepare(`
-    SELECT saved_at, reference_date, sources_json FROM import_versions
+    SELECT saved_at, reference_date, sources_json, snapshot_json FROM import_versions
     WHERE sequence <= ? ORDER BY sequence DESC LIMIT ?
   `).bind(row.sequence, MAX_HISTORY).all()
-  const history = d1Rows(historyResult).map(entry => ({
-    at: entry.saved_at, referenceDate: entry.reference_date, sources: JSON.parse(entry.sources_json),
-  }))
+  const history = d1Rows(historyResult).map(entry => {
+    const snapshot = readSnapshot(entry.snapshot_json)
+    return {
+      at: entry.saved_at, referenceDate: entry.reference_date, sources: JSON.parse(entry.sources_json),
+      ...(snapshot === undefined ? {} : { snapshot }),
+    }
+  })
   return {
     ...Object.fromEntries(KINDS.map(kind => [kind, workspace[kind] ? { ...workspace[kind], records: records[kind] } : null])),
     revision: row.revision, history,
@@ -315,7 +391,7 @@ function requireSiteOrigin(request, env) {
   if (new URL(request.url).origin !== configured.origin) throw new HttpError(403, 'site_origin_required')
 }
 
-async function persist(db, workspace, previousRevision, referenceDate, savedAt, actorId, sources, priorHistory) {
+async function persist(db, workspace, previousRevision, referenceDate, savedAt, actorId, sources, priorHistory, snapshot) {
   const revision = crypto.randomUUID()
   const recordsByKind = Object.fromEntries(KINDS.map(kind => [kind, workspace[kind]?.records ?? []]))
   const chunksByKind = Object.fromEntries(KINDS.map(kind => [kind, splitRecords(recordsByKind[kind])]))
@@ -324,13 +400,13 @@ async function persist(db, workspace, previousRevision, referenceDate, savedAt, 
   const statements = [db.prepare(`
     INSERT INTO import_versions (
       revision, previous_revision, reference_date, saved_at, actor_id, sources_json, workspace_json,
-      opportunities_chunk_count, orders_chunk_count
-    ) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?
+      opportunities_chunk_count, orders_chunk_count, snapshot_json
+    ) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
     WHERE (? IS NULL AND NOT EXISTS (SELECT 1 FROM import_current WHERE singleton_id = 1))
        OR EXISTS (SELECT 1 FROM import_current WHERE singleton_id = 1 AND revision = ?)
   `).bind(revision, previousRevision, referenceDate, savedAt, actorId, JSON.stringify(sources),
     JSON.stringify(metadataOnly(workspace)), chunksByKind.opportunities.length, chunksByKind.orders.length,
-    previousRevision, previousRevision)]
+    snapshot ? JSON.stringify(snapshot) : null, previousRevision, previousRevision)]
   for (const kind of KINDS) chunksByKind[kind].forEach((recordsJson, index) => {
     const records = JSON.parse(recordsJson)
     statements.push(db.prepare(`
@@ -353,7 +429,10 @@ async function persist(db, workspace, previousRevision, referenceDate, savedAt, 
   if (Number(activation.meta?.changes ?? 0) !== 1) throw new HttpError(409, 'revision_conflict')
   return {
     ...workspace, revision,
-    history: [{ at: savedAt, referenceDate, sources }, ...(priorHistory ?? [])].slice(0, MAX_HISTORY),
+    history: [
+      { at: savedAt, referenceDate, sources, ...(snapshot ? { snapshot } : {}) },
+      ...(priorHistory ?? []),
+    ].slice(0, MAX_HISTORY),
   }
 }
 
@@ -370,6 +449,7 @@ async function update(request, env, actorId) {
   if ((previous?.revision ?? null) !== body.previousRevision) throw new HttpError(409, 'revision_conflict')
   const savedAt = new Date().toISOString()
   const sources = []
+  let opportunitiesChanged = false
   for (const kind of KINDS) {
     const batch = workspace[kind]
     const priorBatch = previous?.[kind]
@@ -383,10 +463,21 @@ async function update(request, env, actorId) {
       if (batch.referenceDate !== body.referenceDate) fail('source_reference_mismatch')
       batch.savedAt = savedAt
       sources.push(batch.filename)
+      if (kind === 'opportunities') opportunitiesChanged = true
     }
   }
   if (!sources.length) fail('no_source_changed')
-  const saved = await persist(env.DB, workspace, body.previousRevision, body.referenceDate, savedAt, actorId, sources, previous?.history)
+  /*
+   * O snapshot resume a foto de oportunidades e só existe quando ela mudou
+   * (hash + referência): carga só de pedidos, ou que preserva a mesma foto,
+   * não abre ponto novo — em vez de gravar zero falso ou duplicar a curva.
+   * A competência é a da própria planilha de oportunidades, nunca a do corpo,
+   * que em carga de pedidos pertence a outro recorte.
+   */
+  const snapshot = opportunitiesChanged
+    ? trajectorySnapshot(workspace, { opportunities: previous?.opportunities ?? null }, workspace.opportunities.referenceDate)
+    : null
+  const saved = await persist(env.DB, workspace, body.previousRevision, body.referenceDate, savedAt, actorId, sources, previous?.history, snapshot)
   return json(saved)
 }
 
