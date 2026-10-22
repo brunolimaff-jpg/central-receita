@@ -107,7 +107,16 @@ export function formatarValorExato(valor: number | null): string {
   if (valor === null) return '—'
   if (valor === 0) return formatarRealCompacto(0)
   const sinal = valor > 0 ? '+' : '−'
-  const bruto = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(Math.abs(valor))
+  /*
+   * "Exato" não pode arredondar: 12.500,25 tem de mostrar os centavos, e
+   * 1.234,5 tem de mostrar dois dígitos, não um. Valor redondo segue inteiro.
+   */
+  const temCentavos = Math.round(Math.abs(valor) * 100) % 100 !== 0
+  const bruto = new Intl.NumberFormat('pt-BR', {
+    style: 'currency', currency: 'BRL',
+    minimumFractionDigits: temCentavos ? 2 : 0,
+    maximumFractionDigits: temCentavos ? 2 : 0,
+  }).format(Math.abs(valor))
   return `${sinal}${bruto.split(ESPACO_NAO_SEPARAVEL).join(ESPACO_COMUM)}`
 }
 

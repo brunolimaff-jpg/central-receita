@@ -157,12 +157,21 @@ export function calculateForecastMonth(current: ImportedRecord[], previous: Impo
     alterou: comparavel ? variacaoDaCarteira(predictedRecords, previousById) : null,
     comparavel,
   } satisfies ForecastBridge
+  /*
+   * Entre competências diferentes, o movimento não existe — só os totais de
+   * cada mês. Devolver `entered`/`exited` mesmo assim deixava a tabela listar
+   * entradas e saídas que o cartão já marcava como indisponíveis. Ganhou e
+   * Perdeu continuam: são desfecho da carga atual, não comparação.
+   */
+  const movimentoComparavel = comparavel
   return {
     period: { start, end }, predicted: movement(predictedRecords), realized: movementForClosed(realizedRecords), projected,
     open: predictedValue, missing: predictedValue, probabilityAvailable,
     notice: probabilityAvailable ? null : FORECAST_PROBABILITY_NOTICE,
-    entered: entered ? movement(entered) : null, exited: exited ? movement(exited) : null,
-    postponed: postponed ? movement(postponed) : null, otherExited: otherExited ? movement(otherExited) : null,
+    entered: movimentoComparavel && entered ? movement(entered) : null,
+    exited: movimentoComparavel && exited ? movement(exited) : null,
+    postponed: movimentoComparavel && postponed ? movement(postponed) : null,
+    otherExited: movimentoComparavel && otherExited ? movement(otherExited) : null,
     won: movementForClosed(won), lost: movementForClosed(lost), bridge,
   }
 }

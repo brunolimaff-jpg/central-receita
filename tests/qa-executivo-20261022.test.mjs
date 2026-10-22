@@ -246,3 +246,44 @@ test('S2: a variação exata não arredonda acima de R$ 10 mil', () => {
   // o compacto continua compacto para os demais indicadores
   assert.equal(formatarRealCompacto(12_500), 'R$ 13 mil')
 })
+
+// ---------- Segundo ciclo da revisão: tabela e centavos ----------
+
+test('S1b: entre competências, a tabela não recebe Entrou/Saiu (só Ganhou/Perdeu)', () => {
+  const setembro = [rec({ opportunityId: 'SET', stage: 'Negociação', forecastDate: '2026-09-20', predictedValue: 10000 })]
+  const outubro = [
+    rec({ opportunityId: 'OUT', stage: 'Proposta', forecastDate: '2026-10-20', predictedValue: 5000 }),
+    rec({ opportunityId: 'GANHA', stage: 'Fechada e Ganha', closingDate: '2026-10-15', predictedValue: 1000, closedValue: 1200 }),
+  ]
+  const r = calculateForecastMonth(outubro, setembro, '2026-10', '2026-10-22', 'mês', '2026-09-30')
+  assert.equal(r.entered, null)
+  assert.equal(r.exited, null)
+  assert.equal(r.postponed, null)
+  assert.equal(r.otherExited, null)
+  // o desfecho da carga atual continua disponível
+  assert.equal(r.won.count, 1)
+  assert.equal(r.won.value, 1200)
+  // e a tabela não inventa movimento
+  const linhas = forecastMovementRows(r, outubro)
+  assert.deepEqual(linhas.map(linha => linha.movement), ['Ganhou'])
+})
+
+test('S1b: no mesmo mês, a tabela continua recebendo os movimentos', () => {
+  const anterior = [rec({ opportunityId: 'A', stage: 'Negociação', forecastDate: '2026-10-10', predictedValue: 10000 })]
+  const atual = [
+    rec({ opportunityId: 'A', stage: 'Negociação', forecastDate: '2026-10-10', predictedValue: 9000 }),
+    rec({ opportunityId: 'N', stage: 'Proposta', forecastDate: '2026-10-12', predictedValue: 3000 }),
+  ]
+  const r = calculateForecastMonth(atual, anterior, '2026-10', '2026-10-22', 'mês', '2026-10-10')
+  assert.equal(r.entered.count, 1)
+  assert.equal(r.bridge.comparavel, true)
+  assert.deepEqual(forecastMovementRows(r, atual).map(linha => linha.movement).sort(), ['Entrou'])
+})
+
+test('S2b: a variação exata preserva centavos', () => {
+  assert.equal(formatarValorExato(12_500.25), '+R$ 12.500,25')
+  assert.equal(formatarValorExato(-12_500.25), '−R$ 12.500,25')
+  assert.equal(formatarValorExato(1_234.5), '+R$ 1.234,50')
+  // inteiro continua sem centavos
+  assert.equal(formatarValorExato(12_500), '+R$ 12.500')
+})

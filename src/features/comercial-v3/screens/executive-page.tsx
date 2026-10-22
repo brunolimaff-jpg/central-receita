@@ -355,13 +355,17 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
                     icone={TrendingUp}
                     tom={saldo !== null && saldo < 0 ? 'negativo' : 'positivo'}
                     titulo={saldo === null
-                      ? 'Movimento indisponível'
+                      ? (ponte && !ponte.comparavel ? 'Carga anterior de outro mês' : 'Movimento indisponível')
                       : saldo === 0
                         ? 'Previsto sem alteração'
                         : saldo < 0
                           ? `Previsto caiu ${formatarValorExato(Math.abs(saldo)).replace(/^[+−]/, '')}`
                           : `Previsto subiu ${formatarValorExato(saldo).replace(/^\+/, '')}`}
-                    detalhe={saldo === null ? 'A comparação começa na próxima importação' : `Entrou ${formatarRealCompacto(ponte?.entrou ?? null)} · Saiu ${formatarRealCompacto(ponte?.saiu ?? null)}`}
+                    detalhe={saldo !== null
+                      ? `Entrou ${formatarRealCompacto(ponte?.entrou ?? null)} · Saiu ${formatarRealCompacto(ponte?.saiu ?? null)}`
+                      : ponte && !ponte.comparavel
+                        ? `A carga anterior é de ${formatarDataCurta(previous?.opportunities?.referenceDate ?? null)}; meses diferentes não se comparam`
+                        : 'A comparação começa na próxima importação'}
                     href="#forecast"
                   />
                   <Sinal
