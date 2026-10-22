@@ -69,6 +69,13 @@ Fora do commit: `.scratch/` (evidências e backup), `.claude/`, `.agents/`, `nex
 
 Nada foi commitado, enviado, mesclado ou publicado. O commit e a publicação dependem de autorização de Bruno; o merge exige o pedido explícito "MERGE", separado.
 
+## Publicação e merge
+
+- Commit `275fc9b` publicado em `feat/trajetoria-receita`; `git ls-remote` confirmou o mesmo SHA no remoto. Escopo: 13 arquivos rastreados mais `docs/reviews/`, `forecast-focus.ts`, `executive-reading.test.mjs` e dois CSVs sintéticos em `tests/fixtures/`. `.scratch/`, `.claude/`, `.agents/` e `next-env.d.ts` ficaram fora.
+- PR #15 marcada como pronta e mesclada: `state MERGED`, merge commit `ef2c8dd04af3eb3e68d8243ddbba4b7b02000374`, em 2026-10-22T16:32:42Z. `origin/main` confirmada por fetch e log.
+- Pós-merge, worktree destacado e isolado sobre `origin/main` (`ef2c8dd`): **215/215 testes PASS**, saída zero. Typecheck e build não foram repetidos nesse worktree.
+- Sem deploy, sem D1, sem permissões e sem dados comerciais reais.
+
 ## Cobertura e decisão
 
 Revisão estática dirigida aos caminhos ativos de importação, histórico/snapshot, trajetória, Worker/schema/migração e navegação, com duas leituras independentes e reprodução sintética supervisionada. Isso não equivale a auditoria individual dos 247 arquivos, binários ou runtime D1.

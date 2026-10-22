@@ -1,6 +1,14 @@
 # Handoff — Central de Receita
 
-Atualizado: 2026-10-22. Estado publicado em checkpoint; PR em revisão, sem merge.
+Atualizado: 2026-10-22. PR #15 publicada e **mesclada** na `main` (`ef2c8dd`); sem deploy.
+
+- Publicação: commit `275fc9b` enviado para `feat/trajetoria-receita` e confirmado por `git ls-remote` (mesmo SHA local e remoto).
+- Merge: PR #15 marcada como pronta e mesclada em `2026-10-22T16:32:42Z`; `origin/main` = `ef2c8dd04af3eb3e68d8243ddbba4b7b02000374`. Autorização de merge veio do Bruno na conversa do planejador; o planejador despachou a sequência publicar → conferir SHA → mesclar.
+- Checks no head publicado: GitGuardian PASS. Não há suíte de CI funcional hospedada além desse check.
+- Sem deploy, sem alteração em D1, sem mudança de permissões e sem uso de dados comerciais reais.
+- Validação pós-merge: worktree destacado e isolado sobre `origin/main` = `ef2c8dd`, com `npm test`: **215/215 PASS, zero FAIL/skip**, saída zero. Typecheck e build não foram reexecutados nesse worktree; valem os do artefato `275fc9b`.
+- Planejador confirmou o fechamento pós-merge lendo o GitHub: PR #15 MERGED, `main` `ef2c8dd`, commit `275fc9b`, 215/215 testes; nenhum defeito novo com arquivo e linha. Recomendação dele: encerrar a frente de engenharia desta PR e não abrir outra rodada de correções sem defeito concreto.
+- Pendências mantidas: runtime D1, fluxo Fabi→Giovanni, autenticação efetiva do Sites, gates comerciais #4/#7/#8 e aceite visual pessoal de Bruno.
 
 ## Trabalho local de 22/10 — sem commit/push
 
