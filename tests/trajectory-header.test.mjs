@@ -38,3 +38,12 @@ test('nenhum regime diz "Demonstrativo"', () => {
     assert.doesNotMatch(`${contexto} ${selo?.texto ?? ''}`, /Demonstrativo/)
   }
 })
+
+test('histórico com snapshot fora do mês avisa no contexto, sem inventar número', () => {
+  const comDescarte = { ...modelo('B', ['05/10']), historicoDescartado: 2 }
+  const { contexto } = cabecalhoTrajetoria(comDescarte, null)
+  assert.match(contexto, /2 cargas do histórico ficaram fora/)
+  assert.match(contexto, /referência comprovável/)
+  assert.equal(cabecalhoTrajetoria({ ...modelo('B'), historicoDescartado: 1 }, null).contexto,
+    'Comparado à carga anterior. 1 carga do histórico ficou fora por não ter referência comprovável neste mês.')
+})

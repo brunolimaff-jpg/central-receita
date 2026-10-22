@@ -1,14 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { ArrowRight, CheckCircle2, Lightbulb, Target, TrendingUp, TriangleAlert, Users } from 'lucide-react'
 import { calculateNewNameModel } from '../new-name-model'
 import { buildPipelineOverview } from '../pipeline-model'
 import { formatarOportunidades, formatarPercentualInteiro, formatarRealCompacto } from '../format'
 import { TrajectoryChart, TrajectoryLegend } from '../components/trajectory-chart'
 import { FadeUp, Stagger, StaggerItem } from '../components/motion-primitives'
-import { BarraProgressoAnimada, Donut, ImpactRing, MetricCard, MovementCard, PAINEL, Panel, PanelSection, Selo, formatarDataCurta, type RingGroup, type Tom } from '../components/executive-ui'
+import { BarraProgressoAnimada, ImpactRing, MetricCard, MovementCard, PAINEL, Panel, PanelSection, Selo, formatarDataCurta, type RingGroup, type Tom } from '../components/executive-ui'
 import { NewNameSection } from '../components/new-name-section'
 import { PipelineSection } from '../components/pipeline-section'
 import type { CommercialNav } from '../nav'
@@ -16,6 +16,7 @@ import type { ImportDraft, ImportHistoryEntry } from '../manual-import-client'
 import type { MovementLabel } from '../movement-rows'
 import { buildTrajectory, cabecalhoTrajetoria } from '../trajectory-model'
 import { resumoViraPonto } from '../trajectory-snapshot'
+import { HASH_FORECAST, HASH_FORECAST_GANHOU } from '../forecast-focus'
 import { CARTOES_FORECAST, ImportedForecastScreen, selectForecastMovements } from './import-forecast-screen'
 
 /**
@@ -114,7 +115,7 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
       // O histórico guarda `number | null`; o gate é o mesmo do módulo de
       // snapshot. Só previsto e realizado conhecidos bastam para o ponto.
       history: history.flatMap(entry => resumoViraPonto(entry.snapshot)
-        ? [{ at: entry.at, snapshot: entry.snapshot }]
+        ? [{ at: entry.at, referenceDate: entry.referenceDate, snapshot: entry.snapshot }]
         : []),
     }),
     [opportunities, previousOpportunities, referenceDate, history],
@@ -129,6 +130,14 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
   const pipelineValor = pipeline && !pipeline.horizon.some(month => month.value === null)
     ? pipeline.horizon.reduce((soma, month) => soma + (month.value ?? 0), 0)
     : null
+  const [pedidoFoco, setPedidoFoco] = useState<{ movement: 'Ganhou' | null; key: number } | null>(null)
+  const abrirForecast = (movement: 'Ganhou' | null) => {
+    setPedidoFoco(atual => ({ movement, key: (atual?.key ?? 0) + 1 }))
+    // Clique repetido no mesmo cartão não muda o hash: rola mesmo assim.
+    const reduzir = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    requestAnimationFrame(() => document.getElementById('forecast')?.scrollIntoView({ behavior: reduzir ? 'auto' : 'smooth', block: 'start' }))
+  }
+
   const mesExtenso = referenceDate ? new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${referenceDate.slice(0, 7)}-01T12:00:00Z`)) : ''
   const mesCapitalizado = mesExtenso ? mesExtenso.charAt(0).toUpperCase() + mesExtenso.slice(1) : 'Mês da referência'
   const mesCurto = mesExtenso.split(' de ')[0]
@@ -148,9 +157,9 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
     ? forecast.grupos.reduce((soma, item) => soma + (item.value ?? 0), 0)
     : null
 
-  const faixa: Array<{ rotulo: string; valor: string; nota?: string; tom: Tom; href: string }> = [
-    { rotulo: 'Previsto para o mês', valor: formatarRealCompacto(esperado), nota: 'Vendido + aberto na régua', tom: 'marca', href: '#forecast' },
-    { rotulo: 'Ganhos no CRM', valor: formatarRealCompacto(realizado), nota: progresso === null ? 'Ganho no mês' : `${formatarPercentualInteiro(progresso / 100)} do previsto`, tom: 'positivo', href: '#forecast' },
+  const faixa: Array<{ rotulo: string; valor: string; nota?: string; tom: Tom; href: string; onActivate?: () => void }> = [
+    { rotulo: 'Previsto para o mês', valor: formatarRealCompacto(esperado), nota: 'Ganhos no CRM + aberto elegível', tom: 'marca', href: HASH_FORECAST, onActivate: () => abrirForecast(null) },
+    { rotulo: 'Ganhos no CRM', valor: formatarRealCompacto(realizado), nota: progresso === null ? 'Ganho no mês' : `${formatarPercentualInteiro(progresso / 100)} do previsto`, tom: 'positivo', href: HASH_FORECAST_GANHOU, onActivate: () => abrirForecast('Ganhou') },
     { rotulo: 'Em aberto', valor: formatarRealCompacto(emAberto), nota: 'Previsto menos ganhos no CRM', tom: 'info', href: '#forecast' },
     { rotulo: 'New Name', valor: newName ? `${newName.indicators.newAccounts} ${newName.indicators.newAccounts === 1 ? 'conta' : 'contas'}` : '—', nota: newName ? newNameDetalhe(newName.indicators.newAccounts, newName.indicators.orders, newName.unclassifiedOrders) : 'Sem carga de pedidos', tom: 'marca', href: '#new-name' },
     { rotulo: 'Pipeline aberto', valor: formatarRealCompacto(pipelineValor), nota: 'Mês atual + 3', tom: 'info', href: '#opportunities' },
@@ -170,9 +179,6 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
   ] : []
 
   const nome = 'Giovanni'
-  const participacaoNN = realizado !== null && realizado > 0 && newName?.indicators.realizedValue !== null && newName?.indicators.realizedValue !== undefined
-    ? newName.indicators.realizedValue / realizado * 100
-    : null
 
   return (
     <div className="grid min-w-0 gap-5">
@@ -194,6 +200,12 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
                   ? `Aqui está o panorama da sua receita em ${mesCurto} de ${referenceDate.slice(0, 4)}.`
                   : 'Importe as planilhas de Forecast e New Name para ver os números do mês.'}
               </p>
+              {/* O filtro global da URL não recorta a carga, que é mensal. */}
+              {temCarga && (
+                <p className="mt-1 text-[12px] leading-5 text-ink-muted">
+                  Recorte mensal da carga; sem filtro de filial ou solução.
+                </p>
+              )}
               {referenceMismatch && <p className="mt-1 text-[12px] text-dado-atencao">Pedidos de {formatarDataCurta(ordersReferenceDate)} · data diferente do forecast.</p>}
             </div>
             {temCarga && (
@@ -230,7 +242,7 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
               {trajectory.regime !== 'vazio' && (
                 <header className="mb-1 flex flex-wrap items-center justify-between gap-2 px-1">
                   <p className="text-[12px] text-ink-muted">
-                    Valores em reais, acumulados até cada data da carga.
+                    {trajectory.historicoDescartado ? cabecalho.contexto : 'Valores em reais, acumulados até cada data da carga.'}
                     {cabecalho.selo && <span className={`revenue-pill ml-2 tone-${cabecalho.selo.tom}`}>{cabecalho.selo.texto}</span>}
                   </p>
                   <TrajectoryLegend model={trajectory} />
@@ -244,7 +256,7 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
               <Stagger className="grid grid-cols-2 gap-3 lg:grid-cols-3">
                 {faixa.map(item => (
                   <StaggerItem key={item.rotulo} className="h-full">
-                    <MetricCard rotulo={item.rotulo} valor={item.valor} nota={item.nota} tom={item.tom} href={item.href} />
+                    <MetricCard rotulo={item.rotulo} valor={item.valor} nota={item.nota} tom={item.tom} href={item.href} onActivate={item.onActivate} />
                   </StaggerItem>
                 ))}
               </Stagger>
@@ -303,18 +315,23 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
                     </p>
                   </Panel>
 
+                  {/* Base de pedidos: valor absoluto, não fatia dos ganhos no CRM. */}
                   <Panel className="grid content-center gap-3">
-                    <span className="text-[13px] font-semibold text-ink-strong">New Name nos ganhos no CRM</span>
-                    <div className="flex items-center gap-3">
-                      <Donut valor={participacaoNN ?? 0} rotulo="dos ganhos no CRM" tom="marca" />
-                      <div className="min-w-0">
-                        <strong className="num block text-[20px] font-bold leading-none tracking-[-0.03em] text-ink-strong">
-                          {newName ? formatarRealCompacto(newName.indicators.realizedValue) : '—'}
-                        </strong>
-                        <small className="mt-1 block text-[12px] text-ink-muted">
-                          {newName ? `${newName.indicators.newAccounts} ${newName.indicators.newAccounts === 1 ? 'conta nova' : 'contas novas'} no período` : 'Sem carga de pedidos'}
+                    <span className="text-[13px] font-semibold text-ink-strong">New Name · pedidos conferidos</span>
+                    <div className="min-w-0">
+                      <strong className="num block text-[26px] font-bold leading-none tracking-[-0.035em] text-ink-strong">
+                        {newName ? formatarRealCompacto(newName.indicators.realizedValue) : '—'}
+                      </strong>
+                      <small className="mt-1.5 block text-[12px] text-ink-muted">
+                        {newName
+                          ? `${umOuVarios(newName.indicators.realizedCount, 'pedido conferido', 'pedidos conferidos')} · ${umOuVarios(newName.indicators.realizedAccounts, 'conta', 'contas')}`
+                          : 'Sem carga de pedidos'}
+                      </small>
+                      {newName && (
+                        <small className="mt-1 block text-[11px] text-ink-muted">
+                          {newName.indicators.realizedValue === null ? 'Há pedido conferido sem manutenção informada' : 'Manutenção informada'}
                         </small>
-                      </div>
+                      )}
                     </div>
                   </Panel>
                 </div>
@@ -368,7 +385,7 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
       </section>
 
       {opportunities
-        ? <ImportedForecastScreen batch={opportunities} previousBatch={previous?.opportunities ?? null} referenceDate={referenceDate} />
+        ? <ImportedForecastScreen batch={opportunities} previousBatch={previous?.opportunities ?? null} referenceDate={referenceDate} focus={pedidoFoco} />
         : <EmptySection id="forecast" titulo="Forecast" contexto="Previsto, ganhos no CRM e o que mudou desde a carga anterior." nav={nav} carregando={carregando} />}
 
       {orders

@@ -45,6 +45,12 @@ export type TrajectoryModel = {
   semData: number
   /** Decomposição entre a carga anterior e a atual; `null` sem carga anterior. */
   ponte: TrajectoryBridge | null
+  /**
+   * Snapshots do histórico que não puderam entrar na série: competência de outro
+   * mês ou referência ausente/inválida. A leitura avisa que o histórico está
+   * incompleto em vez de comparar meses diferentes.
+   */
+  historicoDescartado?: number
 }
 
 export type BridgeStep = { movimento: 'Entrou' | 'Saiu' | 'Alterou valor'; valor: number }
@@ -65,14 +71,32 @@ const TOLERANCIA_RECONCILIACAO = 0.01
 
 const label = (date: string) => `${date.slice(8, 10)}/${date.slice(5, 7)}`
 
+/**
+ * Dia e hora de uma gravação no mesmo fuso do histórico de importação. O
+ * histórico mostra Cuiabá; fatiar o ISO cru usaria UTC e mudaria a data das
+ * gravações do fim da tarde em diante.
+ */
+const FUSO_HISTORICO = 'America/Cuiaba'
+const formatadorDia = new Intl.DateTimeFormat('en-CA', { timeZone: FUSO_HISTORICO, year: 'numeric', month: '2-digit', day: '2-digit' })
+const formatadorHora = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO_HISTORICO, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+
+/** `null` quando o instante não é uma data válida; o chamador decide o que fazer. */
+function diaEHoraLocal(at: string): { dia: string; hora: string } | null {
+  const instante = new Date(at)
+  if (!Number.isFinite(instante.getTime())) return null
+  return { dia: formatadorDia.format(instante), hora: formatadorHora.format(instante) }
+}
+
 /** Duas cargas no mesmo dia ganham a hora no rótulo; sem isso seriam dois X iguais e indistinguíveis. */
 function rotulosDeCarga(times: string[]): string[] {
   const porDia = new Map<string, number>()
-  for (const at of times) porDia.set(at.slice(0, 10), (porDia.get(at.slice(0, 10)) ?? 0) + 1)
+  for (const at of times) {
+    const local = diaEHoraLocal(at)
+    if (local) porDia.set(local.dia, (porDia.get(local.dia) ?? 0) + 1)
+  }
   return times.map(at => {
-    const day = at.slice(0, 10)
-    const hora = at.slice(11, 16)
-    return porDia.get(day)! > 1 && hora ? `${label(day)} ${hora}` : label(day)
+    const local = diaEHoraLocal(at)
+    return local && porDia.get(local.dia)! > 1 ? `${label(local.dia)} ${local.hora}` : label(local?.dia ?? at)
   })
 }
 
@@ -89,8 +113,8 @@ const somaConhecida = (values: Array<number | null>): number | null =>
 const soma = (accumulated: number | null, value: number | null) => accumulated === null || value === null ? null : accumulated + value
 
 /** `2026-10-21` → `2026-10`; `null` se a data não for ISO válida. */
-function mesDaReferencia(referenceDate: string): string | null {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(referenceDate)) return null
+export function mesDaReferencia(referenceDate: string | null | undefined): string | null {
+  if (!referenceDate || !/^\d{4}-\d{2}-\d{2}$/.test(referenceDate)) return null
   const date = new Date(`${referenceDate}T12:00:00Z`)
   return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === referenceDate ? referenceDate.slice(0, 7) : null
 }
@@ -122,7 +146,8 @@ export function buildTrajectory(args: {
   referenceDate: string
   /** Mês da carga anterior; sem ele, assume o mesmo mês da atual. */
   previousReferenceDate?: string
-  history: Array<{ at: string; snapshot?: TrajectorySnapshot }>
+  /** `referenceDate` é a competência da carga; legado sem ela não entra no regime C. */
+  history: Array<{ at: string; referenceDate?: string; snapshot?: TrajectorySnapshot }>
 }): TrajectoryModel {
   if (args.opportunities.length === 0) {
     return { regime: 'vazio', series: [], ticks: [], previsto: null, realizado: null, datado: null, semData: 0, ponte: null }
@@ -130,8 +155,17 @@ export function buildTrajectory(args: {
   const month = args.referenceDate.slice(0, 7)
   const forecast = calculateForecastMonth(args.opportunities, args.previous, month, args.referenceDate, 'mês')
   const withSnapshot = args.history.filter(entry => entry.snapshot != null)
+  /*
+   * A série é do mês da carga atual. Snapshots de outro mês ou sem referência
+   * comprovável não podem formar a curva junto com ela: entram como aviso no
+   * contexto, nunca como ponto.
+   */
+  const competenciaAtual = mesDaReferencia(args.referenceDate)
+  const snapshotsDoMes = withSnapshot.filter(entry =>
+    competenciaAtual !== null && mesDaReferencia(entry.referenceDate) === competenciaAtual && diaEHoraLocal(entry.at) !== null)
+  const historicoDescartado = withSnapshot.length - snapshotsDoMes.length
   // Regime C exige três pontos válidos; com menos, a comparação entre duas cargas basta.
-  const regime: TrajectoryModel['regime'] = args.previous === null ? 'A' : withSnapshot.length >= 3 ? 'C' : 'B'
+  const regime: TrajectoryModel['regime'] = args.previous === null ? 'A' : snapshotsDoMes.length >= 3 ? 'C' : 'B'
 
   /*
    * A régua vem de `calculateForecastMonth` (Proposta/Negociação, chance ≥75% e mês).
@@ -147,17 +181,17 @@ export function buildTrajectory(args: {
   const totals = { previsto, realizado, datado, semData: semDataRecords.length, ponte: ponteDaCarga(forecast, args.previous, month, args.referenceDate, args.previousReferenceDate) }
 
   if (regime === 'C') {
-    const snapshots = [...withSnapshot].sort((a, b) => a.at.localeCompare(b.at))
+    const snapshots = [...snapshotsDoMes].sort((a, b) => a.at.localeCompare(b.at))
     const labels = rotulosDeCarga(snapshots.map(entry => entry.at))
     const points = (field: 'forecast' | 'realized', pick: (snapshot: TrajectorySnapshot) => number | null) =>
       snapshots.map((entry, index) => ({
-        date: entry.at.slice(0, 10),
+        date: diaEHoraLocal(entry.at)!.dia,
         label: labels[index],
         forecast: field === 'forecast' ? pick(entry.snapshot!) : null,
         realized: field === 'realized' ? pick(entry.snapshot!) : null,
       }))
     return {
-      regime, ...totals,
+      regime, ...totals, historicoDescartado,
       series: [
         { kind: 'previsto', rotulo: 'Previsto', tracejado: false, points: points('forecast', snapshot => snapshot.forecastTotal) },
         { kind: 'realizado', rotulo: 'Ganhos no CRM', tracejado: false, points: points('realized', snapshot => snapshot.realized) },
@@ -190,7 +224,7 @@ export function buildTrajectory(args: {
       { date: args.referenceDate, label: label(args.referenceDate), forecast: previsto, realized: null },
     ] })
   }
-  return { regime, ...totals, series, ticks: dates.map(label) }
+  return { regime, ...totals, historicoDescartado, series, ticks: dates.map(label) }
 }
 
 /**
@@ -246,17 +280,24 @@ export function cabecalhoTrajetoria(model: TrajectoryModel, anteriorEm: string |
   selo: { texto: string; tom: 'marca' | 'info' } | null
 } {
   if (model.regime === 'vazio') return { contexto: 'Importe a planilha de oportunidades para acompanhar o mês.', selo: null }
-  if (model.regime === 'A') return { contexto: 'Acumulado do mês pela previsão e pela efetivação do fechamento.', selo: { texto: '1 carga', tom: 'marca' } }
+  /*
+   * Snapshots de outro mês, ou sem referência comprovável, ficam fora da curva.
+   * O aviso é textual e não inventa número; aparece no mesmo contexto da seção.
+   */
+  const descartado = model.historicoDescartado
+    ? ` ${model.historicoDescartado} ${model.historicoDescartado === 1 ? 'carga do histórico ficou' : 'cargas do histórico ficaram'} fora por não ter referência comprovável neste mês.`
+    : ''
+  if (model.regime === 'A') return { contexto: `Acumulado do mês pela previsão e pela efetivação do fechamento.${descartado}`, selo: { texto: '1 carga', tom: 'marca' } }
   if (model.regime === 'B') {
     return {
-      contexto: anteriorEm ? `Comparado à carga de ${label(anteriorEm.slice(0, 10))}.` : 'Comparado à carga anterior.',
+      contexto: `${anteriorEm ? `Comparado à carga de ${label(anteriorEm.slice(0, 10))}.` : 'Comparado à carga anterior.'}${descartado}`,
       selo: { texto: '2 cargas', tom: 'marca' },
     }
   }
   // Em C, cada ponto do previsto é uma carga.
   const labels = model.series.find(serie => serie.kind === 'previsto')?.points.map(point => point.label) ?? []
   return {
-    contexto: `Evolução em ${labels.length} cargas, de ${labels[0]} a ${labels.at(-1)}.`,
+    contexto: `Evolução em ${labels.length} cargas, de ${labels[0]} a ${labels.at(-1)}.${descartado}`,
     selo: { texto: `${labels.length} cargas`, tom: 'info' },
   }
 }

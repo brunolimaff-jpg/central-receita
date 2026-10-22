@@ -1,0 +1,6 @@
+Oportunidade ID,Conta ID,Conta,Etapa,Previsão de Fechamento,Efetivação do Fechamento,Valor Previsto,Valor Fechado,Representante,Pedido,Prob.
+101,11,Conta Alfa,Fechada e Ganha,,14/10/2026,,4000,Unidade Sul,9001,
+102,12,Conta Beta,Fechada e Ganha,,20/10/2026,,2500,Unidade Sul,9002,
+103,13,Conta Gama,Fechada e Perdida,,13/10/2026,,900,Unidade Sul,,
+104,14,Conta Delta,Negociação,30/10/2026,,6000,,Unidade Sul,,80
+105,15,Conta Épsilon,Proposta,21/10/2026,,1500,,Unidade Sul,,90

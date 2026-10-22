@@ -1,7 +1,6 @@
 import type { ImportBatch, ImportKind, ImportWorkspace } from './manual-import'
 import { isValidImportReference, currentImportDate, isDuplicateImport, importRejectionMessage } from './manual-import'
-import { calculateForecastMonth } from './forecast-month'
-import { historyEntry, trajectorySnapshotFrom } from './trajectory-snapshot'
+import { historyEntry, trajectorySnapshotForWorkspace } from './trajectory-snapshot'
 
 /**
  * Resumo numérico de uma carga no histórico, para a trajetória comparar cargas
@@ -117,18 +116,8 @@ export async function saveImportDraft(workspace: ImportWorkspace, previous: Impo
   for (const kind of ['opportunities', 'orders'] as const) {
     if (workspace[kind] && !isDuplicateImport(workspace[kind]!, previous?.[kind])) savedWorkspace[kind] = { ...workspace[kind]!, savedAt: at }
   }
-  const month = referenceDate.slice(0, 7)
-  const previousRecords = previous?.opportunities?.records ?? null
-  // A carga anterior é avaliada no mês dela; a atual, no mês desta importação.
-  const previousReferenceDate = previous?.opportunities?.referenceDate
-  const previousMonth = previousReferenceDate?.slice(0, 7) ?? month
-  const snapshot = workspace.opportunities
-    ? trajectorySnapshotFrom(
-      calculateForecastMonth(workspace.opportunities.records, previousRecords, month, referenceDate, 'mês'),
-      previousRecords && calculateForecastMonth(previousRecords, null, previousMonth, previousReferenceDate ?? referenceDate, 'mês'),
-      previousReferenceDate,
-    )
-    : null
+  // Mesma regra do worker: só a foto de oportunidades que mudou gera ponto.
+  const snapshot = trajectorySnapshotForWorkspace(workspace, previous)
   const draft: ImportDraft = { ...savedWorkspace, revision: crypto.randomUUID(), history: [
     historyEntry({
       at, referenceDate, snapshot,

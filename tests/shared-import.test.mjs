@@ -507,6 +507,87 @@ test('COR02: carga anterior de outro mês grava movimento nulo, nunca zero', asy
   assert.equal(snapshot.changed, null)
 })
 
+/* ---------- P2: snapshot só quando a foto de oportunidades muda ---------- */
+
+test('P2: pedidos-only com opp de outubro e pedido de setembro não cria snapshot', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  const outubro = workspace({ opportunityRecords: [record('opportunities', 1, { forecastDate: '2026-10-20' })] })
+  outubro.opportunities.referenceDate = '2026-10-20'
+  outubro.orders.referenceDate = '2026-10-20'
+  const first = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: outubro, previousRevision: null, referenceDate: '2026-10-20',
+  }), env)).json()
+
+  const setembro = workspace({ opportunityHash: 'a', orderHash: 'c' })
+  setembro.opportunities = structuredClone(outubro.opportunities)
+  setembro.orders.referenceDate = '2026-09-30'
+  setembro.orders.records[0].closingDate = '2026-09-30'
+  const second = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: setembro, previousRevision: first.revision, referenceDate: '2026-09-30',
+  }), env))
+  const secondBody = await second.json()
+  assert.equal(second.status, 200, JSON.stringify(secondBody))
+
+  assert.equal(secondBody.history[0].snapshot, undefined)
+  assert.deepEqual(secondBody.history[0].sources, ['Pedidos Outubro 26.xlsx'])
+  assert.equal(secondBody.history[0].referenceDate, '2026-09-30')
+  assert.deepEqual(secondBody.history[1].snapshot, first.history[0].snapshot)
+})
+
+test('P2: opp novo conteúdo cria snapshot; hash igual com nova referência de opps também', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  const primeiro = workspace({ opportunityRecords: [record('opportunities', 1, { forecastDate: '2026-10-20', predictedValue: 1000 })] })
+  primeiro.opportunities.referenceDate = '2026-10-20'
+  primeiro.orders.referenceDate = '2026-10-20'
+  const first = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: primeiro, previousRevision: null, referenceDate: '2026-10-20',
+  }), env)).json()
+
+  const novo = workspace({ opportunityHash: 'c', opportunityRecords: [record('opportunities', 1, { forecastDate: '2026-10-20', predictedValue: 1500 })] })
+  novo.opportunities.referenceDate = '2026-10-21'
+  novo.orders.referenceDate = '2026-10-21'
+  const second = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: novo, previousRevision: first.revision, referenceDate: '2026-10-21',
+  }), env)).json()
+  assert.equal(second.history[0].snapshot.forecastTotal, 1500)
+  assert.equal(second.history[0].snapshot.changed, 500)
+
+  const mesmaHash = workspace({ opportunityHash: 'c', opportunityRecords: [record('opportunities', 1, { forecastDate: '2026-10-20', predictedValue: 1500 })] })
+  mesmaHash.opportunities.referenceDate = '2026-10-22'
+  mesmaHash.orders.referenceDate = '2026-10-22'
+  const third = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: mesmaHash, previousRevision: second.revision, referenceDate: '2026-10-22',
+  }), env)).json()
+  assert.equal(third.history[0].snapshot.forecastTotal, 1500)
+})
+
+test('P2: mesma hash e mesma referência em pedidos-only não duplica o ponto de opp', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  const base = workspace({ opportunityRecords: [record('opportunities', 1, { forecastDate: '2026-10-20' })] })
+  base.opportunities.referenceDate = '2026-10-20'
+  base.orders.referenceDate = '2026-10-20'
+  const first = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: base, previousRevision: null, referenceDate: '2026-10-20',
+  }), env)).json()
+
+  const pedidos = workspace({ opportunityHash: 'a', orderHash: 'd' })
+  pedidos.opportunities = structuredClone(base.opportunities)
+  pedidos.orders.referenceDate = '2026-10-20'
+  pedidos.orders.records[0].predictedValue = null
+  const second = await (await handleRequest(req('PUT', 'fabi-site-user', {
+    workspace: pedidos, previousRevision: first.revision, referenceDate: '2026-10-20',
+  }), env))
+  const secondBody = await second.json()
+  assert.equal(second.status, 200, JSON.stringify(secondBody))
+  assert.equal(secondBody.history[0].snapshot, undefined)
+  const snapshots = secondBody.history.filter(entrada => entrada.snapshot)
+  assert.equal(snapshots.length, 1)
+  assert.equal(snapshots[0].snapshot.forecastTotal, 1000)
+})
+
 test('COR02: cargas do mesmo mês em dias diferentes continuam comparando (20/10 → 21/10)', async t => {
   const env = makeEnv()
   t.after(() => env.DB.close())

@@ -109,9 +109,9 @@ test('ponte com um componente nulo não reconcilia: nulo nunca vira zero', () =>
 test('três cargas com snapshot: regime C e um ponto por carga', () => {
   const previous = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 100 })]
   const history = [
-    { at: '2026-10-18T10:00:00Z', snapshot: { forecastTotal: 120, entered: 0, exited: 0, changed: 0, realized: 0 } },
-    { at: '2026-10-12T10:00:00Z', snapshot: { forecastTotal: 110, entered: 0, exited: 0, changed: 0, realized: 0 } },
-    { at: '2026-10-05T10:00:00Z', snapshot: { forecastTotal: 100, entered: 0, exited: 0, changed: 0, realized: 0 } },
+    { at: '2026-10-18T10:00:00Z', referenceDate: '2026-10-18', snapshot: { forecastTotal: 120, entered: 0, exited: 0, changed: 0, realized: 0 } },
+    { at: '2026-10-12T10:00:00Z', referenceDate: '2026-10-12', snapshot: { forecastTotal: 110, entered: 0, exited: 0, changed: 0, realized: 0 } },
+    { at: '2026-10-05T10:00:00Z', referenceDate: '2026-10-05', snapshot: { forecastTotal: 100, entered: 0, exited: 0, changed: 0, realized: 0 } },
   ]
   const model = build([rec()], { previous, history })
   assert.equal(model.regime, 'C')
@@ -126,11 +126,11 @@ const snapshot = (forecastTotal, realized = 0) => ({ forecastTotal, entered: 0, 
 test('cinco cargas com duas sem snapshot: três pontos válidos, regime C', () => {
   const previous = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 100 })]
   const history = [
-    { at: '2026-10-09T10:00:00Z', snapshot: snapshot(300, 30) },
-    { at: '2026-10-07T10:00:00Z' },
-    { at: '2026-10-05T10:00:00Z', snapshot: snapshot(200, 20) },
-    { at: '2026-10-03T10:00:00Z' },
-    { at: '2026-10-01T10:00:00Z', snapshot: snapshot(100, 10) },
+    { at: '2026-10-09T10:00:00Z', referenceDate: '2026-10-09', snapshot: snapshot(300, 30) },
+    { at: '2026-10-07T10:00:00Z', referenceDate: '2026-10-07' },
+    { at: '2026-10-05T10:00:00Z', referenceDate: '2026-10-05', snapshot: snapshot(200, 20) },
+    { at: '2026-10-03T10:00:00Z', referenceDate: '2026-10-03' },
+    { at: '2026-10-01T10:00:00Z', referenceDate: '2026-10-01', snapshot: snapshot(100, 10) },
   ]
   const model = build([rec()], { previous, history })
   assert.equal(model.regime, 'C')
@@ -145,9 +145,9 @@ test('cinco cargas com duas sem snapshot: três pontos válidos, regime C', () =
 test('três cargas com duas sem snapshot: cai para o regime B', () => {
   const previous = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 100 })]
   const history = [
-    { at: '2026-10-09T10:00:00Z', snapshot: snapshot(300) },
-    { at: '2026-10-07T10:00:00Z' },
-    { at: '2026-10-05T10:00:00Z' },
+    { at: '2026-10-09T10:00:00Z', referenceDate: '2026-10-09', snapshot: snapshot(300) },
+    { at: '2026-10-07T10:00:00Z', referenceDate: '2026-10-07' },
+    { at: '2026-10-05T10:00:00Z', referenceDate: '2026-10-05' },
   ]
   const model = build([rec()], { previous, history })
   assert.equal(model.regime, 'B')
@@ -156,10 +156,10 @@ test('três cargas com duas sem snapshot: cai para o regime B', () => {
 test('quatro cargas com duas sem snapshot: dois pontos válidos ainda não bastam para o regime C', () => {
   const previous = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 100 })]
   const history = [
-    { at: '2026-10-09T10:00:00Z', snapshot: snapshot(300) },
-    { at: '2026-10-07T10:00:00Z' },
-    { at: '2026-10-05T10:00:00Z', snapshot: snapshot(200) },
-    { at: '2026-10-03T10:00:00Z' },
+    { at: '2026-10-09T10:00:00Z', referenceDate: '2026-10-09', snapshot: snapshot(300) },
+    { at: '2026-10-07T10:00:00Z', referenceDate: '2026-10-07' },
+    { at: '2026-10-05T10:00:00Z', referenceDate: '2026-10-05', snapshot: snapshot(200) },
+    { at: '2026-10-03T10:00:00Z', referenceDate: '2026-10-03' },
   ]
   const model = build([rec()], { previous, history })
   assert.equal(model.regime, 'B')
@@ -168,24 +168,86 @@ test('quatro cargas com duas sem snapshot: dois pontos válidos ainda não basta
 test('duas cargas no mesmo dia: dois pontos distintos no mesmo X, com a hora no rótulo', () => {
   const previous = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 100 })]
   const history = [
-    { at: '2026-10-05T16:40:00Z', snapshot: snapshot(120, 12) },
-    { at: '2026-10-01T09:00:00Z', snapshot: snapshot(80, 8) },
-    { at: '2026-10-05T09:10:00Z', snapshot: snapshot(100, 10) },
+    { at: '2026-10-05T16:40:00Z', referenceDate: '2026-10-05', snapshot: snapshot(120, 12) },
+    { at: '2026-10-01T09:00:00Z', referenceDate: '2026-10-01', snapshot: snapshot(80, 8) },
+    { at: '2026-10-05T09:10:00Z', referenceDate: '2026-10-05', snapshot: snapshot(100, 10) },
   ]
   const model = build([rec()], { previous, history })
   assert.equal(model.regime, 'C')
   const previsto = pontos(model, 'previsto')
   assert.equal(previsto.length, 3)
   assert.deepEqual(previsto.map(ponto => ponto.date), ['2026-10-01', '2026-10-05', '2026-10-05'])
-  assert.deepEqual(previsto.map(ponto => ponto.label), ['01/10', '05/10 09:10', '05/10 16:40'])
+  // Hora no mesmo fuso do histórico (Cuiabá, UTC−4), não do ISO em UTC.
+  assert.deepEqual(previsto.map(ponto => ponto.label), ['01/10', '05/10 05:10', '05/10 12:40'])
   assert.deepEqual(previsto.map(ponto => ponto.forecast), [80, 100, 120])
-  assert.deepEqual(model.ticks, ['01/10', '05/10 09:10', '05/10 16:40'])
+  assert.deepEqual(model.ticks, ['01/10', '05/10 05:10', '05/10 12:40'])
+})
+
+test('gravação tarde da noite em Cuiabá não muda de dia na curva', () => {
+  const previous = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 100 })]
+  const history = [
+    { at: '2026-10-18T10:00:00Z', referenceDate: '2026-10-18', snapshot: snapshot(200) },
+    { at: '2026-10-12T10:00:00Z', referenceDate: '2026-10-12', snapshot: snapshot(150) },
+    // 23h10 de 22/10 em Cuiabá; o ISO correspondente já é 23/10 em UTC.
+    { at: '2026-10-23T03:10:00Z', referenceDate: '2026-10-22', snapshot: snapshot(100) },
+  ]
+  const model = buildTrajectory({ opportunities: [rec()], previous, referenceDate: '2026-10-22', history })
+  assert.equal(model.regime, 'C')
+  const previsto = pontos(model, 'previsto')
+  // Sem outra carga no mesmo dia local, o rótulo fica só com a data — mas é 22/10,
+  // o dia de Cuiabá, e não o 23/10 que a fatia do ISO em UTC mostraria.
+  assert.equal(previsto.at(-1).date, '2026-10-22')
+  assert.equal(previsto.at(-1).label, '22/10')
+  assert.equal(model.ticks.at(-1), '22/10')
+})
+
+test('virada de mês em Cuiabá não troca a competência da carga', () => {
+  const previous = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 100 })]
+  const history = [
+    { at: '2026-10-18T10:00:00Z', referenceDate: '2026-10-18', snapshot: snapshot(200) },
+    { at: '2026-10-12T10:00:00Z', referenceDate: '2026-10-12', snapshot: snapshot(150) },
+    { at: '2026-11-01T03:10:00Z', referenceDate: '2026-10-31', snapshot: snapshot(100) },
+  ]
+  const model = buildTrajectory({ opportunities: [rec()], previous, referenceDate: '2026-10-31', history })
+  assert.equal(model.regime, 'C')
+  assert.equal(pontos(model, 'previsto').at(-1).date, '2026-10-31')
+  assert.equal(model.historicoDescartado, 0)
+})
+
+test('cargas em dias locais distintos ordenam pelo instante, com hora quando dividem o dia local', () => {
+  const previous = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 100 })]
+  const history = [
+    // 23/10 20:00 e 23/10 22:00 em Cuiabá, embora o ISO já esteja no dia 24.
+    { at: '2026-10-24T02:00:00Z', referenceDate: '2026-10-23', snapshot: snapshot(120) },
+    { at: '2026-10-23T12:00:00Z', referenceDate: '2026-10-23', snapshot: snapshot(110) },
+    { at: '2026-10-10T10:00:00Z', referenceDate: '2026-10-10', snapshot: snapshot(100) },
+  ]
+  const model = buildTrajectory({ opportunities: [rec()], previous, referenceDate: '2026-10-23', history })
+  assert.equal(model.regime, 'C')
+  const previsto = pontos(model, 'previsto')
+  assert.deepEqual(previsto.map(ponto => ponto.date), ['2026-10-10', '2026-10-23', '2026-10-23'])
+  assert.deepEqual(previsto.map(ponto => ponto.label), ['10/10', '23/10 08:00', '23/10 22:00'])
+})
+
+test('snapshot com horário inválido fica fora da curva e entra no aviso', () => {
+  const previous = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 100 })]
+  const history = [
+    { at: '2026-10-18T10:00:00Z', referenceDate: '2026-10-18', snapshot: snapshot(200) },
+    { at: '2026-10-12T10:00:00Z', referenceDate: '2026-10-12', snapshot: snapshot(150) },
+    { at: '2026-10-10T10:00:00Z', referenceDate: '2026-10-10', snapshot: snapshot(100) },
+    { at: 'horário-inválido', referenceDate: '2026-10-09', snapshot: snapshot(90) },
+  ]
+  const model = buildTrajectory({ opportunities: [rec()], previous, referenceDate: '2026-10-18', history })
+  assert.equal(model.regime, 'C')
+  assert.equal(pontos(model, 'previsto').length, 3)
+  assert.equal(model.historicoDescartado, 1)
 })
 
 test('dez cargas: no máximo seis marcas no eixo, primeira e última sempre presentes', () => {
   const previous = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 100 })]
   const history = Array.from({ length: 10 }, (_, index) => ({
     at: `2026-10-${String(index + 1).padStart(2, '0')}T10:00:00Z`,
+    referenceDate: `2026-10-${String(index + 1).padStart(2, '0')}`,
     snapshot: snapshot(100 + index),
   }))
   const model = build([rec()], { previous, history })
@@ -288,9 +350,9 @@ const carga3 = [rec({ opportunityId: '1', forecastDate: '2026-10-19', predictedV
   rec({ opportunityId: '9', stage: 'Fechada e Ganha', forecastDate: null, predictedValue: null, closedValue: 30, closingDate: '2026-10-19' })]
 
 const historicoReal = () => [
-  { at: '2026-10-18T10:00:00Z', snapshot: producerSnapshot(carga3, carga2) },
-  { at: '2026-10-12T10:00:00Z', snapshot: producerSnapshot(carga2, carga1) },
-  { at: '2026-10-05T10:00:00Z', snapshot: producerSnapshot(carga1) },
+  { at: '2026-10-18T10:00:00Z', referenceDate: '2026-10-18', snapshot: producerSnapshot(carga3, carga2) },
+  { at: '2026-10-12T10:00:00Z', referenceDate: '2026-10-12', snapshot: producerSnapshot(carga2, carga1) },
+  { at: '2026-10-05T10:00:00Z', referenceDate: '2026-10-05', snapshot: producerSnapshot(carga1) },
 ]
 
 test('COR01: três cargas reais com a primeira sem movimento chegam ao gate da página como C com três pontos', () => {
@@ -310,9 +372,9 @@ test('COR01: três cargas reais com a primeira sem movimento chegam ao gate da p
 test('COR01: carga sem previsto conhecido não vira ponto nem zero; cai para B', () => {
   const semPrevisto = [rec({ opportunityId: '1', forecastDate: '2026-10-12', predictedValue: null })]
   const history = [
-    { at: '2026-10-18T10:00:00Z', snapshot: producerSnapshot(carga3, carga2) },
-    { at: '2026-10-12T10:00:00Z', snapshot: producerSnapshot(semPrevisto) },
-    { at: '2026-10-05T10:00:00Z', snapshot: producerSnapshot(carga1) },
+    { at: '2026-10-18T10:00:00Z', referenceDate: '2026-10-18', snapshot: producerSnapshot(carga3, carga2) },
+    { at: '2026-10-12T10:00:00Z', referenceDate: '2026-10-12', snapshot: producerSnapshot(semPrevisto) },
+    { at: '2026-10-05T10:00:00Z', referenceDate: '2026-10-05', snapshot: producerSnapshot(carga1) },
   ]
   assert.equal(history[1].snapshot.forecastTotal, null)
   const validos = history.filter(entrada => resumoViraPonto(entrada.snapshot))
@@ -369,4 +431,59 @@ test('COR02: mês de referência ausente ou inválido não presume comparação'
     const model = buildTrajectory({ opportunities: current, previous, previousReferenceDate: invalido, referenceDate: REFERENCE_DATE, history: [] })
     assert.equal(model.ponte.publicada, false, `referência anterior "${invalido}" não compara`)
   }
+})
+
+/* ---------- P2: o regime C só mistura snapshots da competência da carga atual ---------- */
+
+const setembro = [rec({ opportunityId: '1', forecastDate: '2026-09-20', predictedValue: 400 })]
+const outubro = [rec({ opportunityId: '1', forecastDate: '2026-10-05', predictedValue: 100 })]
+const historicoMisto = [
+  { at: '2026-10-03T10:00:00Z', referenceDate: '2026-10-03', snapshot: snapshot(100) },
+  { at: '2026-09-20T10:00:00Z', referenceDate: '2026-09-20', snapshot: snapshot(400) },
+  { at: '2026-09-10T10:00:00Z', referenceDate: '2026-09-10', snapshot: snapshot(500) },
+]
+
+test('P2: setembro 400/500 e outubro 100 não formam a mesma série C', () => {
+  const model = buildTrajectory({ opportunities: outubro, previous: setembro, referenceDate: '2026-10-22', history: historicoMisto })
+  assert.equal(model.regime, 'B')
+  assert.equal(model.historicoDescartado, 2)
+})
+
+test('P2: legado sem referência não eleva o regime para C', () => {
+  const history = [
+    { at: '2026-10-09T10:00:00Z', snapshot: snapshot(100) },
+    { at: '2026-10-05T10:00:00Z', snapshot: snapshot(200) },
+    { at: '2026-10-01T10:00:00Z', snapshot: snapshot(300) },
+  ]
+  const model = buildTrajectory({ opportunities: outubro, previous: setembro, referenceDate: '2026-10-22', history })
+  assert.equal(model.regime, 'B')
+  assert.equal(model.historicoDescartado, 3)
+})
+
+test('P2: três referências do mesmo mês com snapshots válidos formam C de outubro', () => {
+  const outDez = (dia, valor) => ({ at: `2026-10-${dia}T10:00:00Z`, referenceDate: `2026-10-${dia}`, snapshot: snapshot(valor) })
+  const model = buildTrajectory({
+    opportunities: outubro, previous: setembro, referenceDate: '2026-10-22',
+    history: [outDez('18', 100), outDez('12', 150), outDez('05', 200)],
+  })
+  assert.equal(model.regime, 'C')
+  assert.deepEqual(pontos(model, 'previsto').map(ponto => ponto.forecast), [200, 150, 100])
+  assert.equal(model.historicoDescartado, 0)
+})
+
+test('P2: regime C mantém só competência válida e preserva o histórico recebido', () => {
+  const history = [
+    { at: '2026-10-05T10:00:00Z', referenceDate: '2026-10-05', snapshot: snapshot(100) },
+    { at: '2026-10-12T10:00:00Z', referenceDate: '2026-10-12', snapshot: snapshot(150) },
+    { at: '2026-10-18T10:00:00Z', referenceDate: '2026-10-18', snapshot: snapshot(200) },
+    { at: '2026-10-19T10:00:00Z', referenceDate: '2026-09-30', snapshot: snapshot(900) },
+    { at: '2026-10-20T10:00:00Z', referenceDate: '2026-10-32', snapshot: snapshot(800) },
+    { at: '2026-10-21T10:00:00Z', snapshot: snapshot(700) },
+  ]
+  const original = structuredClone(history)
+  const model = buildTrajectory({ opportunities: outubro, previous: setembro, referenceDate: '2026-10-22', history })
+  assert.equal(model.regime, 'C')
+  assert.deepEqual(pontos(model, 'previsto').map(ponto => ponto.forecast), [100, 150, 200])
+  assert.equal(model.historicoDescartado, 3)
+  assert.deepEqual(history, original)
 })

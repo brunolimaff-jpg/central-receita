@@ -324,6 +324,17 @@ export function TrajectoryChart({ model, altura = ALTURA }: { model: TrajectoryM
       return true
     })
   })()
+  const ultimaMarca = marcas[marcas.length - 1]
+  /*
+   * Quando duas cargas dividem o X, a marca fica com a primeira. Só a última
+   * posição do eixo precisa seguir a carga mais recente: ali o valor lido é o
+   * dela, e um rótulo antigo ("08:00") contradiria o ponto desenhado ("23:10").
+   */
+  const rotuloDaMarca = (indice: number) => {
+    if (indice !== ultimaMarca) return colunas[indice].label
+    const mesmaPosicao = colunas.filter((_, i) => xPorColuna[i] === xPorColuna[indice])
+    return mesmaPosicao.at(-1)?.label ?? colunas[indice].label
+  }
   const semDataSufixo = model.semData === 1 ? '1 registro sem data' : `${model.semData} registros sem data`
 
   return (
@@ -433,12 +444,12 @@ export function TrajectoryChart({ model, altura = ALTURA }: { model: TrajectoryM
               key={`marca-${indice}-${colunas[indice].label}`}
               x={xPorColuna[indice]}
               y={altura - 10}
-              textAnchor={colunas.length === 1 ? 'middle' : indice === 0 ? 'start' : indice === colunas.length - 1 ? 'end' : 'middle'}
+              textAnchor={colunas.length === 1 ? 'middle' : indice === 0 ? 'start' : indice === ultimaMarca ? 'end' : 'middle'}
               fill="var(--ink-muted)"
               fontSize="11"
               fontWeight="600"
             >
-              {colunas[indice].label}
+              {rotuloDaMarca(indice)}
             </text>
           ))}
         </svg>

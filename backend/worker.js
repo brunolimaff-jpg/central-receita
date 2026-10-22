@@ -449,6 +449,7 @@ async function update(request, env, actorId) {
   if ((previous?.revision ?? null) !== body.previousRevision) throw new HttpError(409, 'revision_conflict')
   const savedAt = new Date().toISOString()
   const sources = []
+  let opportunitiesChanged = false
   for (const kind of KINDS) {
     const batch = workspace[kind]
     const priorBatch = previous?.[kind]
@@ -462,17 +463,19 @@ async function update(request, env, actorId) {
       if (batch.referenceDate !== body.referenceDate) fail('source_reference_mismatch')
       batch.savedAt = savedAt
       sources.push(batch.filename)
+      if (kind === 'opportunities') opportunitiesChanged = true
     }
   }
   if (!sources.length) fail('no_source_changed')
   /*
-   * O snapshot é calculado aqui, a partir do workspace já validado: o corpo do
-   * PUT continua com chave exata, sem campo vindo do cliente. Carga só de
-   * pedidos não gera snapshot (não há previsto de oportunidades para resumir),
-   * em vez de gravar zero falso.
+   * O snapshot resume a foto de oportunidades e só existe quando ela mudou
+   * (hash + referência): carga só de pedidos, ou que preserva a mesma foto,
+   * não abre ponto novo — em vez de gravar zero falso ou duplicar a curva.
+   * A competência é a da própria planilha de oportunidades, nunca a do corpo,
+   * que em carga de pedidos pertence a outro recorte.
    */
-  const snapshot = workspace.opportunities
-    ? trajectorySnapshot(workspace, { opportunities: previous?.opportunities ?? null }, body.referenceDate)
+  const snapshot = opportunitiesChanged
+    ? trajectorySnapshot(workspace, { opportunities: previous?.opportunities ?? null }, workspace.opportunities.referenceDate)
     : null
   const saved = await persist(env.DB, workspace, body.previousRevision, body.referenceDate, savedAt, actorId, sources, previous?.history, snapshot)
   return json(saved)

@@ -20,12 +20,17 @@ export type Tom = 'marca' | 'positivo' | 'info' | 'atencao' | 'negativo'
 export const PAINEL = 'revenue-panel vidro min-w-0'
 
 /** Cartão de indicador com rótulo, valor, nota e mini-gráfico decorativo. */
-export function MetricCard({ rotulo, valor, nota, tom = 'marca', href }: {
+export function MetricCard({ rotulo, valor, nota, tom = 'marca', href, onActivate }: {
   rotulo: string
   valor: string
   nota?: string
   tom?: Tom
   href?: string
+  /**
+   * Ação local do clique (ex.: abrir o Forecast já com um movimento). Mantém o
+   * link para teclado e menu de contexto; só o clique simples é interceptado.
+   */
+  onActivate?: () => void
 }) {
   const conteudo = (
     <>
@@ -39,7 +44,19 @@ export function MetricCard({ rotulo, valor, nota, tom = 'marca', href }: {
   )
   const base = `revenue-metric vidro tone-${tom}`
   if (href) {
-    return <Link href={href} className={`${base} transition-premium hover:-translate-y-px`}>{conteudo}</Link>
+    return (
+      <Link
+        href={href}
+        onClick={(evento) => {
+          // Clique simples aplica o recorte; abrir em nova aba e o menu de
+          // contexto seguem o link, sem estado local a carregar.
+          if (evento.button === 0 && !evento.metaKey && !evento.ctrlKey && !evento.shiftKey && !evento.altKey) onActivate?.()
+        }}
+        className={`${base} transition-premium hover:-translate-y-px`}
+      >
+        {conteudo}
+      </Link>
+    )
   }
   return <article className={base}>{conteudo}</article>
 }

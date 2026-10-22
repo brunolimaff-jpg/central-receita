@@ -1,5 +1,8 @@
 import type { ForecastMonthResult } from './forecast-month'
 import type { ImportHistoryEntry, TrajectorySnapshot } from './manual-import-client'
+import { calculateForecastMonth } from './forecast-month.ts'
+import { isDuplicateImport } from './manual-import.ts'
+import type { ImportBatch } from './manual-import'
 
 /**
  * Resumo numérico de uma carga, guardado no histórico para a trajetória comparar
@@ -61,6 +64,36 @@ export function resumoViraPonto(
   snapshot: ImportHistoryEntry['snapshot'],
 ): snapshot is TrajectorySnapshot {
   return snapshot !== undefined && snapshot.forecastTotal !== null && snapshot.realized !== null
+}
+
+/**
+ * Snapshot da carga de oportunidades, ou `null` quando essa foto não mudou.
+ *
+ * Carga só de pedidos, ou que preserva a mesma planilha (hash + referência),
+ * não abre ponto novo no histórico: em vez de gravar zero, omite o snapshot.
+ * A competência usada é a da própria planilha de oportunidades — nunca a data
+ * de referência do corpo, que em carga de pedidos pertence a outro recorte.
+ * Repetir hash + referência não cria ponto; hash igual com nova referência de
+ * oportunidades é uma foto nova confirmada pela fonte.
+ */
+export function trajectorySnapshotForWorkspace(
+  workspace: { opportunities: ImportBatch | null },
+  previous: { opportunities: ImportBatch | null } | null,
+): TrajectorySnapshot | null {
+  const current = workspace.opportunities
+  if (!current || isDuplicateImport(current, previous?.opportunities)) return null
+  const referenceDate = current.referenceDate ?? ''
+  const previousBatch = previous?.opportunities ?? null
+  const previousRecords = previousBatch?.records ?? null
+  const previousReferenceDate = previousBatch?.referenceDate
+  const month = referenceDate.slice(0, 7)
+  return trajectorySnapshotFrom(
+    calculateForecastMonth(current.records, previousRecords, month, referenceDate, 'mês'),
+    previousRecords && calculateForecastMonth(
+      previousRecords, null, previousReferenceDate?.slice(0, 7) ?? month, previousReferenceDate ?? referenceDate, 'mês',
+    ),
+    previousReferenceDate,
+  )
 }
 
 /** Entrada nova do histórico local: o snapshot entra só quando existe, para cargas antigas seguirem iguais. */
