@@ -22,8 +22,8 @@ export const CARTOES_FORECAST: ReadonlyArray<{ key: string; labels: MovementLabe
  * Único cálculo do Forecast, reutilizado pela Visão Executiva para que os números batam.
  * Usa as funções de `forecast-month.ts` sem alterar a regra.
  */
-export function selectForecastMovements(current: ImportedRecord[], previous: ImportedRecord[] | null, referenceDate: string, period: ForecastPeriod) {
-  const result = calculateForecastMonth(current, previous, referenceDate.slice(0, 7), referenceDate, period)
+export function selectForecastMovements(current: ImportedRecord[], previous: ImportedRecord[] | null, referenceDate: string, period: ForecastPeriod, previousReferenceDate?: string | null) {
+  const result = calculateForecastMonth(current, previous, referenceDate.slice(0, 7), referenceDate, period, previousReferenceDate)
   const rows = forecastMovementRows(result, current)
   const grupos = groupMovements(rows, CARTOES_FORECAST)
   return { result, rows, grupos }
@@ -108,12 +108,16 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
     }
   }
   const month = referenceDate.slice(0, 7)
-  const monthResult = useMemo(() => calculateForecastMonth(batch.records, previous, month, referenceDate, 'mês'), [batch.records, previous, month, referenceDate])
-  const { result, rows, grupos } = useMemo(() => selectForecastMovements(batch.records, previous, referenceDate, period), [batch.records, previous, referenceDate, period])
+  // Competência da carga anterior: a ponte só compara cargas do mesmo mês.
+  const competenciaAnterior = previousBatch?.referenceDate ?? null
+  const monthResult = useMemo(() => calculateForecastMonth(batch.records, previous, month, referenceDate, 'mês', competenciaAnterior), [batch.records, previous, month, referenceDate, competenciaAnterior])
+  const { result, rows, grupos } = useMemo(() => selectForecastMovements(batch.records, previous, referenceDate, period, competenciaAnterior), [batch.records, previous, referenceDate, period, competenciaAnterior])
 
   const linhas = selecionado ? rows.filter(row => CARTOES_FORECAST.find(cartao => cartao.key === selecionado)?.labels.includes(row.movement)) : rows
   const grupo = (key: string) => grupos.find(item => item.key === key)!
-  const disponivel = { Entrou: result.entered !== null, Saiu: result.exited !== null, Ganhou: true, Perdeu: true }
+  /* Cargas de meses diferentes não se comparam: Entrou/Saiu ficam indisponíveis. */
+  const comparavel = result.bridge?.comparavel ?? true
+  const disponivel = { Entrou: comparavel && result.entered !== null, Saiu: comparavel && result.exited !== null, Ganhou: true, Perdeu: true }
   const outsideRule = batch.records.filter(record => !isClosedStage(record.stage) && !isForecastStage(record.stage) && record.forecastDate?.startsWith(month)).length
   const projetado = monthResult.projected
   const realizado = monthResult.realized.value
@@ -124,7 +128,7 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
    * parcelas contaria a mesma oportunidade duas vezes. A ponte já reconcilia
    * (Entrou + Saiu + Alterou) com a diferença dos totais.
    */
-  const saldo = result.bridge
+  const saldo = result.bridge?.comparavel
     ? ponteReconcilia({
         totalAnterior: result.bridge.totalAnterior,
         totalAtual: result.bridge.totalAtual,
@@ -207,6 +211,9 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
                   contagem={formatarOportunidades(item.count)}
                   nota={nota}
                   disponivel={ok}
+                  motivoIndisponivel={!comparavel
+                    ? { contagem: `Carga anterior de ${dataCurta(competenciaAnterior)}`, nota: 'Cargas de meses diferentes não se comparam' }
+                    : undefined}
                   selecionado={selecionado === key}
                   onSelecionar={() => {
                     const proximo = selecionado === key ? null : key
@@ -224,7 +231,9 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
 
       <Panel
         titulo={selecionado ? `${selecionado} · ${formatarOportunidades(linhas.length)}` : period === 'semana' ? 'Principais movimentos da semana' : 'Principais movimentos do mês'}
-        subtitulo="Maior impacto primeiro. Δ valor é o efeito no forecast do mês."
+        subtitulo={period === 'semana'
+          ? 'Maior impacto primeiro. Δ valor é a variação de valor na janela; Ganhou e Perdeu são desfecho, fora do saldo.'
+          : 'Maior impacto primeiro. Δ valor é a variação de valor no mês; Ganhou e Perdeu são desfecho, fora do saldo.'}
         acao={selecionado && (
           <button type="button" onClick={() => { setSelecionado(null); marcarHash(null) }} className="rounded-[8px] px-2.5 py-1.5 text-[12px] font-semibold text-brand-escuro transition-premium hover:bg-dado-positivo-suave">
             Mostrar todos

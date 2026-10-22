@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react'
 import { ArrowRight, CheckCircle2, Lightbulb, Target, TrendingUp, TriangleAlert, Users } from 'lucide-react'
 import { calculateNewNameModel } from '../new-name-model'
 import { buildPipelineOverview } from '../pipeline-model'
-import { formatarOportunidades, formatarPercentualInteiro, formatarRealCompacto, formatarSaldo } from '../format'
+import { formatarOportunidades, formatarPercentualInteiro, formatarRealCompacto, formatarSaldo, formatarValorExato } from '../format'
 import { TrajectoryChart, TrajectoryLegend } from '../components/trajectory-chart'
 import { FadeUp, Stagger, StaggerItem } from '../components/motion-primitives'
 import { BarraProgressoAnimada, ImpactRing, MetricCard, MovementCard, PAINEL, Panel, PanelSection, Selo, formatarDataCurta, type RingGroup, type Tom } from '../components/executive-ui'
@@ -96,9 +96,11 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
   const previousOpportunities = previous?.opportunities?.records ?? null
   const previousOrders = previous?.orders?.records ?? null
 
+  // Competência da carga anterior: cargas de meses diferentes não se comparam.
+  const competenciaAnterior = previous?.opportunities?.referenceDate ?? null
   const forecast = useMemo(
-    () => opportunities && referenceDate ? selectForecastMovements(opportunities.records, previousOpportunities, referenceDate, 'mês') : null,
-    [opportunities, previousOpportunities, referenceDate],
+    () => opportunities && referenceDate ? selectForecastMovements(opportunities.records, previousOpportunities, referenceDate, 'mês', competenciaAnterior) : null,
+    [opportunities, previousOpportunities, referenceDate, competenciaAnterior],
   )
   const newName = useMemo(
     () => orders ? calculateNewNameModel({ orders: orders.records, opportunities: opportunities?.records ?? null, previousOrders, previousOpportunities, referenceDate: ordersReferenceDate }) : null,
@@ -150,7 +152,7 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
    * com a curva logo acima. Sem carga anterior não há saldo: "—", não zero.
    */
   const ponte = resultado?.bridge ?? null
-  const saldo = ponte
+  const saldo = ponte?.comparavel
     && ponteReconcilia({ totalAnterior: ponte.totalAnterior, totalAtual: ponte.totalAtual, entrou: ponte.entrou, saiu: ponte.saiu, alterou: ponte.alterou })
     ? (ponte.entrou ?? 0) + (ponte.saiu ?? 0) + (ponte.alterou ?? 0)
     : null
@@ -168,7 +170,7 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
    * base de comparação" — não "R$ 0", que sugere movimento nulo e mente sobre
    * o motivo. Ganhou e Perdeu vêm de uma única carga e sempre têm valor.
    */
-  const temAnterior = resultado?.entered !== null && resultado?.exited !== null
+  const temAnterior = resultado?.entered !== null && resultado?.exited !== null && (resultado?.bridge?.comparavel ?? true)
   /* Mesma decomposição da ponte: Ganhou/Perdeu já estão dentro de Saiu. */
   const anelForecast: RingGroup[] = forecast && temAnterior ? [
     { rotulo: 'Entrou', movimento: 'Entrou', valor: ponte?.entrou ?? null, peso: Math.abs(ponte?.entrou ?? 0) },
@@ -205,6 +207,11 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
                 </p>
               )}
               {referenceMismatch && <p className="mt-1 text-[12px] text-dado-atencao">Pedidos de {formatarDataCurta(ordersReferenceDate)} · data diferente do forecast.</p>}
+              {ponte && !ponte.comparavel && (
+                <p className="mt-1 text-[12px] text-dado-atencao">
+                  A carga anterior é de {formatarDataCurta(previous?.opportunities?.referenceDate ?? null)}. Entradas, saídas e saldo comparam cargas do mesmo mês, então ficam ocultos aqui.
+                </p>
+              )}
             </div>
             {temCarga && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-dado-positivo-suave px-3 py-1.5 text-[12px] font-semibold text-brand-escuro">
@@ -271,7 +278,7 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
                   <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                     {forecast && CARTOES_FORECAST.map(({ key }) => {
                       const item = grupo(key)
-                      const disponivel = key === 'Entrou' ? resultado!.entered !== null : key === 'Saiu' ? resultado!.exited !== null : true
+                      const disponivel = key === 'Entrou' ? temAnterior && resultado!.entered !== null : key === 'Saiu' ? temAnterior && resultado!.exited !== null : true
                       return (
                         <MovementCard
                           key={key}
@@ -280,6 +287,9 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
                           contagem={formatarOportunidades(item?.count ?? 0)}
                           nota={NOTAS_FORECAST[key]}
                           disponivel={disponivel}
+                          motivoIndisponivel={resultado?.bridge && !resultado.bridge.comparavel
+                            ? { contagem: `Carga anterior de ${formatarDataCurta(previous?.opportunities?.referenceDate ?? null)}`, nota: 'Cargas de meses diferentes não se comparam' }
+                            : undefined}
                           href="#forecast"
                         />
                       )
@@ -344,7 +354,13 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
                   <Sinal
                     icone={TrendingUp}
                     tom={saldo !== null && saldo < 0 ? 'negativo' : 'positivo'}
-                    titulo={saldo === null ? 'Movimento indisponível' : saldo < 0 ? `Previsto caiu ${formatarSaldo(Math.abs(saldo)).replace(/^[+−]/, '')}` : `Previsto subiu ${formatarSaldo(saldo)}`}
+                    titulo={saldo === null
+                      ? 'Movimento indisponível'
+                      : saldo === 0
+                        ? 'Previsto sem alteração'
+                        : saldo < 0
+                          ? `Previsto caiu ${formatarValorExato(Math.abs(saldo)).replace(/^[+−]/, '')}`
+                          : `Previsto subiu ${formatarValorExato(saldo).replace(/^\+/, '')}`}
                     detalhe={saldo === null ? 'A comparação começa na próxima importação' : `Entrou ${formatarRealCompacto(ponte?.entrou ?? null)} · Saiu ${formatarRealCompacto(ponte?.saiu ?? null)}`}
                     href="#forecast"
                   />

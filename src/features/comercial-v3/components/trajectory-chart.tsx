@@ -11,7 +11,7 @@ import {
   suavizar,
   thinAxisPositions,
 } from '../chart-math'
-import { formatarRealComSinal, formatarRealCompacto, formatarSaldo } from '../format'
+import { formatarRealComSinal, formatarRealCompacto, formatarValorExato } from '../format'
 import type { BridgeStep, TrajectoryBridge, TrajectoryModel, TrajectoryPoint, TrajectorySeries } from '../trajectory-model'
 import { SPRING_SUAVE } from './motion-primitives'
 
@@ -71,12 +71,13 @@ function TrajectoryBridgeBlock({ ponte }: { ponte: TrajectoryBridge }) {
       {/*
         Os totais em milhões e milhares são compactos por desenho. Quem confere
         a ponte precisa da diferença exata: R$ 24 mil → R$ 22 mil pareceria
-        −R$ 2 mil quando a variação é −R$ 2.500. O detalhe só aparece quando os
-        dois totais são conhecidos.
+        −R$ 2 mil quando a variação é −R$ 2.500. Só aparece quando a ponte foi
+        publicada — se os movimentos não fecham, a diferença dos totais não é
+        uma variação comparável.
       */}
-      {ponte.totalAnterior !== null && ponte.totalAtual !== null && (
+      {ponte.publicada && ponte.totalAnterior !== null && ponte.totalAtual !== null && (
         <p className="mt-1 text-[11px] text-ink-subtle">
-          Variação exata: <span className="num font-semibold text-ink-muted">{formatarSaldo(ponte.totalAtual - ponte.totalAnterior)}</span>
+          Variação exata: <span className="num font-semibold text-ink-muted">{formatarValorExato(ponte.totalAtual - ponte.totalAnterior)}</span>
         </p>
       )}
     </section>

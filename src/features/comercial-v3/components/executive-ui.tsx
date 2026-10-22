@@ -135,13 +135,21 @@ type MovementCardProps = {
   contagem: string
   nota: string
   disponivel: boolean
+  /**
+   * Por que o cartão está indisponível. Padrão é a primeira carga; quando a
+   * anterior é de outro mês, a tela precisa dizer isso em vez de sugerir que
+   * não há carga nenhuma.
+   */
+  motivoIndisponivel?: { contagem: string; nota: string }
   href?: string
   selecionado?: boolean
   onSelecionar?: () => void
 }
 
 /** Cartão de movimento: ícone em quadrado tingido, valor com sinal e uma legenda curta. */
-export function MovementCard({ movimento, titulo, valor, contagem, nota, disponivel, href, selecionado = false, onSelecionar }: MovementCardProps) {
+const SEM_CARGA_ANTERIOR = { contagem: 'Sem carga anterior', nota: 'A comparação começa na próxima importação' } as const
+
+export function MovementCard({ movimento, titulo, valor, contagem, nota, disponivel, motivoIndisponivel = SEM_CARGA_ANTERIOR, href, selecionado = false, onSelecionar }: MovementCardProps) {
   const visual = MOVIMENTO[movimento]
   const Icone = visual.icon
   const corValor = !disponivel || valor === null || valor === 0
@@ -159,9 +167,9 @@ export function MovementCard({ movimento, titulo, valor, contagem, nota, disponi
         <strong className={`num block text-[24px] font-bold leading-none tracking-[-0.035em] ${corValor}`}>
           {disponivel ? formatarRealComSinal(valor) : '—'}
         </strong>
-        <span className="mt-1.5 block text-[12px] text-ink-muted">{disponivel ? contagem : 'Sem carga anterior'}</span>
+        <span className="mt-1.5 block text-[12px] text-ink-muted">{disponivel ? contagem : motivoIndisponivel.contagem}</span>
       </span>
-      <span className="mt-2 block text-[11px] leading-4 text-ink-muted">{disponivel ? nota : 'A comparação começa na próxima importação'}</span>
+      <span className="mt-2 block text-[11px] leading-4 text-ink-muted">{disponivel ? nota : motivoIndisponivel.nota}</span>
     </>
   )
   const base = `revenue-panel vidro flex min-h-[132px] min-w-0 flex-col justify-between text-left transition-premium ${selecionado ? 'ring-2 ring-brand' : 'hover:-translate-y-px'}`

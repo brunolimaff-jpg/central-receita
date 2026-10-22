@@ -14,6 +14,12 @@ export type ForecastBridge = {
   /** Sinalizado: saída entra negativa. */
   saiu: number | null
   alterou: number | null
+  /**
+   * `false` quando a carga anterior é de outra competência: os totais de cada
+   * mês continuam corretos, mas a diferença entre eles não mede movimento e
+   * não pode virar saldo.
+   */
+  comparavel: boolean
 }
 export type ForecastMonthResult = {
   period: { start: string; end: string }
@@ -66,7 +72,20 @@ function variacaoDaCarteira(current: ImportedRecord[], previousById: Map<string,
 }
 const iso = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 
-export function calculateForecastMonth(current: ImportedRecord[], previous: ImportedRecord[] | null, month: string, referenceDate: string, period: ForecastPeriod): ForecastMonthResult {
+/** `2026-10-22` → `2026-10`; `null` se não for ISO válido. */
+const competenciaDe = (referenceDate: string | null | undefined): string | null => {
+  if (!referenceDate || !/^\d{4}-\d{2}-\d{2}$/.test(referenceDate)) return null
+  const date = new Date(`${referenceDate}T12:00:00Z`)
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === referenceDate ? referenceDate.slice(0, 7) : null
+}
+
+/**
+ * `previousReferenceDate` é a data de referência da carga anterior. Sem ela, a
+ * comparação herda o mês atual — é o que o app fazia antes de a competência
+ * existir no histórico. Com ela e de outro mês, a ponte não é comparável: os
+ * totais valem, a diferença não mede movimento.
+ */
+export function calculateForecastMonth(current: ImportedRecord[], previous: ImportedRecord[] | null, month: string, referenceDate: string, period: ForecastPeriod, previousReferenceDate?: string | null): ForecastMonthResult {
   const monthStart = `${month}-01`
   const monthEnd = iso(new Date(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0))
   let start = monthStart
@@ -125,12 +144,18 @@ export function calculateForecastMonth(current: ImportedRecord[], previous: Impo
    * aberto — por isso conta em Saiu, e o desfecho (Ganhou/Perdeu) é lido
    * separado, sem somar duas vezes.
    */
+  const competenciaAnterior = previousReferenceDate === undefined || previousReferenceDate === null
+    ? month
+    : competenciaDe(previousReferenceDate)
+  const comparavel = competenciaAnterior !== null && competenciaAnterior === month
   const bridge = previous === null ? null : {
     totalAnterior: sumKnown(previousWindow, record => record.predictedValue),
     totalAtual: predictedValue,
-    entrou: entered ? sumKnown(entered, record => record.predictedValue) : null,
-    saiu: exited && exited.length ? negateKnown(sumKnown(exited, record => record.predictedValue)) : (exited ? 0 : null),
-    alterou: variacaoDaCarteira(predictedRecords, previousById),
+    // Movimento só faz sentido entre cargas do mesmo mês; fora dele, fica null.
+    entrou: comparavel && entered ? sumKnown(entered, record => record.predictedValue) : null,
+    saiu: !comparavel ? null : exited && exited.length ? negateKnown(sumKnown(exited, record => record.predictedValue)) : (exited ? 0 : null),
+    alterou: comparavel ? variacaoDaCarteira(predictedRecords, previousById) : null,
+    comparavel,
   } satisfies ForecastBridge
   return {
     period: { start, end }, predicted: movement(predictedRecords), realized: movementForClosed(realizedRecords), projected,

@@ -98,6 +98,19 @@ export function formatarSaldo(valor: number | null): string {
   return `${sinal}${formatarRealCompacto(abs)}`
 }
 
+/**
+ * Valor em reais sem compactar, com sinal. Usado onde o número precisa fechar
+ * uma conta na tela: a "Variação exata" da ponte não pode dizer +R$ 13 mil
+ * para 12.500. O resto da interface continua no formato compacto.
+ */
+export function formatarValorExato(valor: number | null): string {
+  if (valor === null) return '—'
+  if (valor === 0) return formatarRealCompacto(0)
+  const sinal = valor > 0 ? '+' : '−'
+  const bruto = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(Math.abs(valor))
+  return `${sinal}${bruto.split(ESPACO_NAO_SEPARAVEL).join(ESPACO_COMUM)}`
+}
+
 /** `+R$ 80 mil` / `−R$ 1,2 mi` / `R$ 0` / `—`: valor com sinal para cartões e colunas Δ. */
 export function formatarRealComSinal(valor: number | null): string {
   if (valor === null) return '—'

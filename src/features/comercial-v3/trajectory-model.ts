@@ -153,7 +153,7 @@ export function buildTrajectory(args: {
     return { regime: 'vazio', series: [], ticks: [], previsto: null, realizado: null, datado: null, semData: 0, ponte: null }
   }
   const month = args.referenceDate.slice(0, 7)
-  const forecast = calculateForecastMonth(args.opportunities, args.previous, month, args.referenceDate, 'mês')
+  const forecast = calculateForecastMonth(args.opportunities, args.previous, month, args.referenceDate, 'mês', args.previousReferenceDate)
   const withSnapshot = args.history.filter(entry => entry.snapshot != null)
   /*
    * A série é do mês da carga atual. Snapshots de outro mês ou sem referência

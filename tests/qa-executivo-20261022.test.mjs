@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { calculateForecastMonth } from '../src/features/comercial-v3/forecast-month.ts'
 import { forecastMovementRows, groupMovements } from '../src/features/comercial-v3/movement-rows.ts'
 import { buildTrajectory, ponteReconcilia } from '../src/features/comercial-v3/trajectory-model.ts'
+import { formatarValorExato, formatarRealCompacto } from '../src/features/comercial-v3/format.ts'
 
 /**
  * Regressões do QA executivo de 22/10 (issue #16). Cada teste reproduz um
@@ -198,4 +199,50 @@ test('B: postergação conta como saída do recorte, com o valor anterior', () =
   const grupos = Object.fromEntries(groupMovements(forecastMovementRows(r, atual), CARTOES).map(g => [g.key, g]))
   assert.equal(grupos.Saiu.count, 1)
   assert.equal(grupos.Saiu.value, -4000)
+})
+
+// ---------- Revisão remota da PR #17: S1, S2, S3 ----------
+
+test('S1: carga anterior de outro mês não produz saldo comparável', () => {
+  const setembro = [rec({ opportunityId: 'A', stage: 'Negociação', forecastDate: '2026-09-20', predictedValue: 10000 })]
+  const outubro = [rec({ opportunityId: 'A', stage: 'Negociação', forecastDate: '2026-10-20', predictedValue: 5000 })]
+  const r = calculateForecastMonth(outubro, setembro, '2026-10', '2026-10-22', 'mês', '2026-09-30')
+  assert.equal(r.bridge.comparavel, false)
+  // os totais de cada mês continuam corretos
+  assert.equal(r.bridge.totalAtual, 5000)
+  assert.equal(r.bridge.totalAnterior, 0)
+  // e o movimento não é inventado: nulo, nunca zero
+  assert.equal(r.bridge.entrou, null)
+  assert.equal(r.bridge.saiu, null)
+  assert.equal(r.bridge.alterou, null)
+  assert.equal(ponteReconcilia({ totalAnterior: r.bridge.totalAnterior, totalAtual: r.bridge.totalAtual, entrou: r.bridge.entrou, saiu: r.bridge.saiu, alterou: r.bridge.alterou }), false)
+})
+
+test('S1: mesmo mês continua comparável e a referência ausente herda o mês', () => {
+  const anterior = [rec({ opportunityId: 'A', stage: 'Negociação', forecastDate: '2026-10-10', predictedValue: 10000 })]
+  const atual = [rec({ opportunityId: 'A', stage: 'Negociação', forecastDate: '2026-10-10', predictedValue: 9000 })]
+  const mesmoMes = calculateForecastMonth(atual, anterior, '2026-10', '2026-10-22', 'mês', '2026-10-10')
+  assert.equal(mesmoMes.bridge.comparavel, true)
+  assert.equal(mesmoMes.bridge.alterou, -1000)
+  const semReferencia = calculateForecastMonth(atual, anterior, '2026-10', '2026-10-22', 'mês')
+  assert.equal(semReferencia.bridge.comparavel, true)
+  assert.equal(semReferencia.bridge.alterou, -1000)
+})
+
+test('S1: a Trajetória concorda com o Forecast sobre a competência', () => {
+  const setembro = [rec({ opportunityId: 'A', stage: 'Negociação', forecastDate: '2026-09-20', predictedValue: 10000 })]
+  const outubro = [rec({ opportunityId: 'A', stage: 'Negociação', forecastDate: '2026-10-20', predictedValue: 5000 })]
+  const trajetoria = buildTrajectory({ opportunities: outubro, previous: setembro, referenceDate: '2026-10-22', previousReferenceDate: '2026-09-30', history: [] })
+  assert.equal(trajetoria.ponte.publicada, false)
+  assert.deepEqual(trajetoria.ponte.lances, [])
+})
+
+test('S2: a variação exata não arredonda acima de R$ 10 mil', () => {
+  assert.equal(formatarValorExato(12_500), '+R$ 12.500')
+  assert.equal(formatarValorExato(-12_500), '−R$ 12.500')
+  assert.equal(formatarValorExato(2_500), '+R$ 2.500')
+  assert.equal(formatarValorExato(0), 'R$ 0')
+  assert.equal(formatarValorExato(null), '—')
+  // o compacto continua compacto para os demais indicadores
+  assert.equal(formatarRealCompacto(12_500), 'R$ 13 mil')
 })
