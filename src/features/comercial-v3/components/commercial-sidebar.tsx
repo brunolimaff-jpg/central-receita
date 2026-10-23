@@ -188,7 +188,15 @@ export function CommercialSidebar({
             >
               <NavIcone icone={Icone} />
               <span className="revenue-nav-rotulo truncate">{item.label}</span>
-              {item.preliminar && <span aria-hidden className="revenue-nav-selo" />}
+              {/*
+                O ponto é decoração; o estado precisa chegar ao leitor de tela
+                pelo nome do link, não pelo `title` — que muitos leitores
+                ignoram e o teclado só mostra como dica visual.
+              */}
+              {item.preliminar && <>
+                <span aria-hidden className="revenue-nav-selo" />
+                <span className="sr-only"> (versão preliminar)</span>
+              </>}
               <NavDica rotulo={item.preliminar ? `${item.label} · versão preliminar` : item.label} />
             </Link>
           )

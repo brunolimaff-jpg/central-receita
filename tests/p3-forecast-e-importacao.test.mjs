@@ -135,3 +135,38 @@ test('o prazo chega ao ExecutivePage como falha, separado de carregando', () => 
   const texto = app()
   assert.match(texto, /carregando=\{importLoading && !importDraft\} falha=\{importError \|\| null\}/)
 })
+
+// ---------------------------------------------------------------------------
+// Segundo commit, achados da auditoria independente
+// ---------------------------------------------------------------------------
+
+const sistema = () => ler('../src/features/comercial-v3/screens/system-screen.tsx')
+const sidebar = () => ler('../src/features/comercial-v3/components/commercial-sidebar.tsx')
+
+test('Sistema de Receita marca a origem de cada bloco', () => {
+  const texto = sistema()
+  assert.match(texto, /<OrigemDado tipo="demonstrativo">Indicadores abaixo: snapshot demonstrativo/)
+  assert.match(texto, /<OrigemDado tipo="demonstrativo">Snapshot demonstrativo<\/OrigemDado>/)
+  assert.match(texto, /tipo=\{filiaisReais \? 'real' : 'demonstrativo'\}/)
+  assert.match(texto, /Agregado real exportado de setembro\/2026/)
+})
+
+test('Sistema de Receita não promete que o rail é sempre real', () => {
+  const texto = sistema()
+  // O cabeçalho antigo dizia "O rail de filiais informa quando usa o agregado
+  // real"; a etiqueta agora é por bloco, e o texto não pode afirmar o geral.
+  assert.doesNotMatch(texto, /O rail de filiais informa quando usa o agregado real de setembro/)
+})
+
+test('o ponto preliminar chega ao leitor de tela por texto, não só por title', () => {
+  const texto = sidebar()
+  assert.match(texto, /<span className="sr-only"> \(versão preliminar\)<\/span>/)
+  assert.match(texto, /aria-hidden className="revenue-nav-selo"/)
+})
+
+test('a decisão de liberar as quatro áreas está registrada no plano', () => {
+  const plano = ler('../docs/PLANO-VISAO-EXECUTIVA.md')
+  assert.match(plano, /Decisão posterior \(23\/10\/2026/)
+  assert.match(plano, /foram \*\*liberadas\*\* na navegação/)
+  assert.match(plano, /Esta nota prevalece sobre a linha anterior/)
+})

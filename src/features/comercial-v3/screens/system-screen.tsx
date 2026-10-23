@@ -15,6 +15,19 @@ type SystemScreenProps = {
   nav: CommercialNav
 }
 
+/** Etiqueta de origem do número: o bloco diz de onde vem antes de mostrar valor. */
+function OrigemDado({ tipo, children }: { tipo: 'demonstrativo' | 'real'; children: React.ReactNode }) {
+  const demonstrativo = tipo === 'demonstrativo'
+  return (
+    <p
+      className={`inline-flex w-fit items-start gap-1.5 rounded-[8px] px-2.5 py-1.5 text-[11px] leading-4 ${demonstrativo ? 'bg-[#f7f9fb] text-[#63748a]' : 'bg-[#f3faf8] text-[#086b6b]'}`}
+    >
+      <span aria-hidden className={`mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full ${demonstrativo ? 'bg-[#94a6ba]' : 'bg-[#00968c]'}`} />
+      <span>{children}</span>
+    </p>
+  )
+}
+
 export function SystemScreen({ model, filiaisReais, nav }: SystemScreenProps) {
   return (
     <div className="grid gap-3">
@@ -30,11 +43,21 @@ export function SystemScreen({ model, filiaisReais, nav }: SystemScreenProps) {
       <section className="rounded-[10px] border border-[#dfe8ef] bg-white px-5 py-4 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
         <h2 className="text-[22px] font-bold tracking-[-0.035em] text-[#0d2340]">Saúde e cobertura do recorte</h2>
         <p className="mt-1 max-w-[820px] text-[13px] leading-5 text-[#50647d]">
-          Indicadores disponíveis no snapshot V3, com os filtros do cabeçalho. O rail de filiais informa quando usa o agregado real de setembro.
+          Indicadores disponíveis no snapshot V3, com os filtros do cabeçalho. Cada bloco diz de onde vêm seus números.
         </p>
       </section>
 
-      <KpiStrip kpis={model.kpis} />
+      {/*
+       * A tela mistura duas origens, e elas não se somam: os KPIs e os
+       * movimentos vêm do snapshot demonstrativo; o rail de filiais, no
+       * recorte mensal, usa o agregado real exportado de setembro. Marcar
+       * cada bloco na origem evita que o número fictício seja lido como
+       * fechamento e que o real seja lido como parte do demo.
+       */}
+      <section aria-label="Indicadores do recorte" className="grid gap-2">
+        <OrigemDado tipo="demonstrativo">Indicadores abaixo: snapshot demonstrativo, não são números fechados.</OrigemDado>
+        <KpiStrip kpis={model.kpis} />
+      </section>
 
       <div className="grid items-start gap-3 xl:grid-cols-[minmax(0,1.4fr)_minmax(300px,0.8fr)]">
         <div className="grid gap-3">
@@ -43,6 +66,7 @@ export function SystemScreen({ model, filiaisReais, nav }: SystemScreenProps) {
               <div>
                 <h2 className="text-[15px] font-bold tracking-[-0.02em] text-[#0d2340]">Movimentos do forecast</h2>
                 <p className="mt-0.5 text-[12px] text-[#63748a]">Contagem e variação dentro do recorte atual.</p>
+                <div className="mt-2"><OrigemDado tipo="demonstrativo">Snapshot demonstrativo</OrigemDado></div>
               </div>
               <Link
                 href={nav.href('forecast', { from: 'system' })}
@@ -91,7 +115,12 @@ export function SystemScreen({ model, filiaisReais, nav }: SystemScreenProps) {
           </section>
         </div>
 
-        <BranchRail filiais={model.filiais} nav={nav} real={filiaisReais} from="system" />
+        <div className="grid gap-2">
+          <OrigemDado tipo={filiaisReais ? 'real' : 'demonstrativo'}>
+            {filiaisReais ? 'Agregado real exportado de setembro/2026 — não é o recorte demonstrativo ao lado' : 'Snapshot demonstrativo'}
+          </OrigemDado>
+          <BranchRail filiais={model.filiais} nav={nav} real={filiaisReais} from="system" />
+        </div>
       </div>
     </div>
   )
