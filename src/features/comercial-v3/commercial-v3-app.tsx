@@ -70,10 +70,17 @@ export function CommercialV3App() {
     /*
      * Prazo de segurança: se a leitura da carga não responder (IndexedDB
      * travado por outra aba, armazenamento bloqueado), a tela não pode ficar
-     * em "Carregando a última carga…" para sempre. Depois do prazo, a seção
-     * assume o estado vazio honesto.
+     * em "Carregando a última carga…" para sempre.
+     *
+     * O prazo NÃO vira estado vazio: "não consegui consultar" e "não há
+     * carga" são fatos diferentes, e trocar um pelo outro esconde falha. O
+     * vazio só aparece quando a consulta respondeu que não há nada.
      */
-    const prazo = window.setTimeout(() => { if (active) setImportLoading(false) }, 15000)
+    const prazo = window.setTimeout(() => {
+      if (!active) return
+      setImportLoading(false)
+      setImportError(atual => atual || 'A consulta da última carga não terminou. Verifique a conexão e tente novamente.')
+    }, 15000)
     void refresh().finally(() => window.clearTimeout(prazo))
     // Do not replace the revision being reviewed while an import is being prepared.
     const canRefresh = () => sharedImportEnabled && new URLSearchParams(window.location.search).get('view') !== 'config'
@@ -279,7 +286,7 @@ export function CommercialV3App() {
         <Link href={nav.href('config')} className="font-semibold text-[#086b6b] underline">Consultar cargas</Link>
       </div>}
       {view === 'config' && <ImportScreen draft={importDraft} canImport={canImport} onSaved={draft => { importEpoch.current++; setPreviousImportDraft(importDraft); setImportDraft(draft); setImportError('') }} loading={importLoading} loadError={importError} nav={nav} />}
-      {executiveView && <ExecutivePage opportunities={importDraft?.opportunities ?? null} orders={importDraft?.orders ?? null} previous={previousImportDraft} history={importDraft?.history ?? []} nav={nav} carregando={importLoading && !importDraft} />}
+      {executiveView && <ExecutivePage opportunities={importDraft?.opportunities ?? null} orders={importDraft?.orders ?? null} previous={previousImportDraft} history={importDraft?.history ?? []} nav={nav} carregando={importLoading && !importDraft} falha={importError || null} />}
 
       {view === 'agent' && <AgentScreen briefing={briefing} from={from} nav={nav} />}
 

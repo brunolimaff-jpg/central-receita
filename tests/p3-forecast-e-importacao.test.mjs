@@ -96,3 +96,42 @@ test('P3-b: o painel lê draft, nunca workspace nem staged', () => {
   assert.match(texto, /fonteCarregada\(draft\?\.opportunities/)
   assert.match(texto, /fonteCarregada\(draft\?\.orders/)
 })
+
+// ---------------------------------------------------------------------------
+// Segundo commit: falha de consulta não pode virar "sem carga"
+// ---------------------------------------------------------------------------
+
+const executivo = () => ler('../src/features/comercial-v3/screens/executive-page.tsx')
+const app = () => ler('../src/features/comercial-v3/commercial-v3-app.tsx')
+
+test('a seção vazia distingue carregando, falha e ausência de carga', () => {
+  const texto = executivo()
+  assert.match(texto, /if \(carregando\) return 'Carregando a última carga…'/)
+  assert.match(texto, /if \(falha\) return 'Não foi possível consultar a carga/)
+  assert.match(texto, /return 'Sem carga importada para esta seção\.'/)
+})
+
+test('a falha aparece em âmbar na seção, não como texto apagado de vazio', () => {
+  const texto = executivo()
+  assert.match(texto, /falha && !carregando \? 'text-\[13px\] text-dado-atencao' : 'text-\[13px\] text-ink-muted'/)
+})
+
+test('o cartão principal da Visão Executiva oferece tentar de novo quando a consulta falha', () => {
+  const texto = executivo()
+  assert.match(texto, /falha \? 'Não foi possível consultar a carga\.' : 'Nenhuma carga importada\.'/)
+  assert.match(texto, /Tentar novamente/)
+})
+
+test('o prazo de segurança termina o loading com erro de consulta, nunca com estado vazio', () => {
+  const texto = app()
+  const bloco = texto.slice(texto.indexOf('const prazo = window.setTimeout'), texto.indexOf('void refresh().finally'))
+  assert.match(bloco, /setImportLoading\(false\)/)
+  assert.match(bloco, /setImportError\(/)
+  assert.doesNotMatch(bloco, /setImportDraft\(/)
+  assert.match(bloco, /A consulta da última carga não terminou/)
+})
+
+test('o prazo chega ao ExecutivePage como falha, separado de carregando', () => {
+  const texto = app()
+  assert.match(texto, /carregando=\{importLoading && !importDraft\} falha=\{importError \|\| null\}/)
+})
