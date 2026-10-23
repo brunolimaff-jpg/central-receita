@@ -19,6 +19,8 @@ type ItemNav = {
   label: string
   icon: typeof LayoutDashboard
   view?: CommercialView
+  /** Tela existe e abre, mas o conteúdo ainda é preliminar. */
+  preliminar?: boolean
 }
 
 /** Seções da página corrida, na ordem da sidebar. Cada uma tem âncora e marcação de visibilidade. */
@@ -26,16 +28,20 @@ const SECOES = ['home', 'forecast', 'new-name', 'opportunities'] as const
 type Secao = (typeof SECOES)[number]
 const pertenceAPagina = (view: CommercialView) => (SECOES as readonly string[]).includes(view)
 
-/** Jornada, Sistema de Receita, Contas e Cross ficam "Em breve", sem link (docs/PLANO-VISAO-EXECUTIVA.md §Navegação). */
+/**
+ * Jornada, Sistema de Receita, Contas e Cross já abrem. O conteúdo existe em
+ * rascunho, então cada tela leva o aviso de versão preliminar — o menu sinaliza
+ * a mesma condição em vez de esconder a área.
+ */
 const ITENS: ItemNav[] = [
   { key: 'home', label: VIEW_LABELS.home, icon: LayoutDashboard, view: 'home' },
   { key: 'forecast', label: VIEW_LABELS.forecast, icon: TrendingUp, view: 'forecast' },
   { key: 'new-name', label: VIEW_LABELS['new-name'], icon: Target, view: 'new-name' },
   { key: 'opportunities', label: VIEW_LABELS.opportunities, icon: List, view: 'opportunities' },
-  { key: 'journey', label: VIEW_LABELS.journey, icon: GitBranch },
-  { key: 'system', label: VIEW_LABELS.system, icon: Layers },
-  { key: 'accounts', label: VIEW_LABELS.accounts, icon: Building2 },
-  { key: 'cross', label: VIEW_LABELS.cross, icon: PackagePlus },
+  { key: 'journey', label: VIEW_LABELS.journey, icon: GitBranch, view: 'journey', preliminar: true },
+  { key: 'system', label: VIEW_LABELS.system, icon: Layers, view: 'system', preliminar: true },
+  { key: 'accounts', label: VIEW_LABELS.accounts, icon: Building2, view: 'accounts', preliminar: true },
+  { key: 'cross', label: VIEW_LABELS.cross, icon: PackagePlus, view: 'cross', preliminar: true },
 ]
 
 const PENDENTE = 'Em breve'
@@ -177,20 +183,22 @@ export function CommercialSidebar({
               key={item.key}
               href={naPagina && (SECOES as readonly string[]).includes(item.view) ? `#${item.view}` : nav.href(item.view, { from: 'home' })}
               aria-current={ativo ? (pageView === 'home' ? 'location' : 'page') : undefined}
-              title={item.label}
+              title={item.preliminar ? `${item.label} · versão preliminar` : item.label}
               className="revenue-nav-item"
             >
               <NavIcone icone={Icone} />
               <span className="revenue-nav-rotulo truncate">{item.label}</span>
-              <NavDica rotulo={item.label} />
+              {item.preliminar && <span aria-hidden className="revenue-nav-selo" />}
+              <NavDica rotulo={item.preliminar ? `${item.label} · versão preliminar` : item.label} />
             </Link>
           )
         })}
       </nav>
 
-      {/* Os itens desabilitados ficam visíveis mas sem selo por item, que não cabe na largura da sidebar. */}
-      <p className="revenue-marca-texto mt-3 px-3 text-[11px] leading-4 text-ink-subtle">
-        Em breve: Jornada, Sistema de Receita, Contas e Cross.
+      {/* O ponto âmbar marca cada item; esta linha diz o que ele significa. */}
+      <p className="revenue-marca-texto mt-3 flex gap-1.5 px-3 text-[11px] leading-4 text-ink-subtle">
+        <span aria-hidden className="mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-dado-atencao" />
+        Jornada, Sistema de Receita, Contas e Cross estão em versão preliminar.
       </p>
 
       <div className="mt-auto grid gap-1 pt-4">

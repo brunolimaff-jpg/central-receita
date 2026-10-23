@@ -67,13 +67,20 @@ export function CommercialV3App() {
         .catch(error => { if (active && epoch === importEpoch.current) { setImportError(error instanceof Error ? error.message : 'Prévia local indisponível.'); if (sharedImportEnabled) { setCanImport(false); setImportDraft(null); setPreviousImportDraft(null) } } })
         .finally(() => { if (active && epoch === importEpoch.current) setImportLoading(false) })
     }
-    void refresh()
+    /*
+     * Prazo de segurança: se a leitura da carga não responder (IndexedDB
+     * travado por outra aba, armazenamento bloqueado), a tela não pode ficar
+     * em "Carregando a última carga…" para sempre. Depois do prazo, a seção
+     * assume o estado vazio honesto.
+     */
+    const prazo = window.setTimeout(() => { if (active) setImportLoading(false) }, 15000)
+    void refresh().finally(() => window.clearTimeout(prazo))
     // Do not replace the revision being reviewed while an import is being prepared.
     const canRefresh = () => sharedImportEnabled && new URLSearchParams(window.location.search).get('view') !== 'config'
     const onFocus = () => { if (canRefresh()) void refresh() }
     window.addEventListener('focus', onFocus)
     const timer = sharedImportEnabled ? window.setInterval(() => { if (canRefresh() && document.visibilityState === 'visible') void refresh() }, 60000) : undefined
-    return () => { active = false; window.removeEventListener('focus', onFocus); if (timer) window.clearInterval(timer) }
+    return () => { active = false; window.clearTimeout(prazo); window.removeEventListener('focus', onFocus); if (timer) window.clearInterval(timer) }
   }, [])
 
   const consulta = searchParams.toString()

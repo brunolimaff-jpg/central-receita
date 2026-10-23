@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { AvisoPreliminar } from '../components/aviso-preliminar'
 import { BranchRail } from '../components/branch-rail'
 import { KpiStrip } from '../components/kpi-strip'
 import { ViewToolbar } from '../components/view-toolbar'
@@ -24,6 +25,7 @@ export function SystemScreen({ model, filiaisReais, nav }: SystemScreenProps) {
         ]}
         voltar={{ label: VOLTAR_POR_ORIGEM.home, href: nav.href('home') }}
       />
+      <AvisoPreliminar area="Sistema de Receita" />
 
       <section className="rounded-[10px] border border-[#dfe8ef] bg-white px-5 py-4 shadow-[0_3px_9px_rgba(32,73,91,0.025)]">
         <h2 className="text-[22px] font-bold tracking-[-0.035em] text-[#0d2340]">Saúde e cobertura do recorte</h2>

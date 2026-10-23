@@ -582,6 +582,25 @@
   }
 
   /*
+   * Ponto de versão preliminar.
+   *
+   * Jornada, Sistema de Receita, Contas e Cross já abrem, mas ainda não
+   * passaram pelo aceite. Na coluna de 208px, palavra nenhuma cabe depois de
+   * "Sistema de Receita"; o ponto âmbar diz o estado sem competir com o
+   * rótulo, e a legenda sob a navegação explica o que ele marca. O `title`
+   * do item repete a informação para quem chega pelo teclado.
+   */
+  .revenue-app .revenue-nav-selo {
+    margin-left: auto;
+    flex: 0 0 auto;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--dado-atencao);
+    box-shadow: 0 0 0 3px rgb(230 150 0 / 12%);
+  }
+
+  /*
    * Controle de largura da coluna: é um item de navegação como os outros, mas
    * sempre habilitado e com alvo de pelo menos 40px de altura (herdado do item).
    */
