@@ -258,7 +258,7 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
           ? 'Critério: Proposta ou Negociação, chance de 75% ou mais, previsão no mês.'
           : 'Probabilidade ausente na carga: o critério de 75% não foi aplicado.'}
         {outsideRule > 0 && ` ${outsideRule} ${outsideRule === 1 ? 'oportunidade do mês está' : 'oportunidades do mês estão'} fora da régua.`}
-        {' '}Previsão de {dataCurta(monthResult.period.start)} a {dataCurta(monthResult.period.end)}.
+        {' '}Previsão de {dataCurta(result.period.start)} a {dataCurta(result.period.end)}.
       </p>
     </PanelSection>
   )
