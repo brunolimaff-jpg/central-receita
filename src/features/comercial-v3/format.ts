@@ -82,6 +82,44 @@ export function formatarRealCompacto(valor: number | null): string {
   return `${sinal}${bruto.split(ESPACO_NAO_SEPARAVEL).join(ESPACO_COMUM)}`
 }
 
+/**
+ * Saldo de movimento, com sinal. Abaixo de R$ 10 mil fica em reais, sem
+ * arredondar para milhar: o saldo existe para reconciliar com a curva, e
+ * "−R$ 3 mil" no lugar de "−R$ 2.500" faria a conta não fechar na mesma tela.
+ */
+export function formatarSaldo(valor: number | null): string {
+  if (valor === null) return '—'
+  if (valor === 0) return formatarRealCompacto(0)
+  const sinal = valor > 0 ? '+' : '−'
+  const abs = Math.abs(valor)
+  if (abs < 10_000) {
+    return `${sinal}${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(abs).split(ESPACO_NAO_SEPARAVEL).join(ESPACO_COMUM)}`
+  }
+  return `${sinal}${formatarRealCompacto(abs)}`
+}
+
+/**
+ * Valor em reais sem compactar, com sinal. Usado onde o número precisa fechar
+ * uma conta na tela: a "Variação exata" da ponte não pode dizer +R$ 13 mil
+ * para 12.500. O resto da interface continua no formato compacto.
+ */
+export function formatarValorExato(valor: number | null): string {
+  if (valor === null) return '—'
+  if (valor === 0) return formatarRealCompacto(0)
+  const sinal = valor > 0 ? '+' : '−'
+  /*
+   * "Exato" não pode arredondar: 12.500,25 tem de mostrar os centavos, e
+   * 1.234,5 tem de mostrar dois dígitos, não um. Valor redondo segue inteiro.
+   */
+  const temCentavos = Math.round(Math.abs(valor) * 100) % 100 !== 0
+  const bruto = new Intl.NumberFormat('pt-BR', {
+    style: 'currency', currency: 'BRL',
+    minimumFractionDigits: temCentavos ? 2 : 0,
+    maximumFractionDigits: temCentavos ? 2 : 0,
+  }).format(Math.abs(valor))
+  return `${sinal}${bruto.split(ESPACO_NAO_SEPARAVEL).join(ESPACO_COMUM)}`
+}
+
 /** `+R$ 80 mil` / `−R$ 1,2 mi` / `R$ 0` / `—`: valor com sinal para cartões e colunas Δ. */
 export function formatarRealComSinal(valor: number | null): string {
   if (valor === null) return '—'
