@@ -61,27 +61,37 @@ export function CommercialV3App() {
   const importEpoch = useRef(0)
   useEffect(() => {
     let active = true
-    const refresh = () => {
-      const epoch = ++importEpoch.current
-      return Promise.all([loadImportDraft(), loadPreviousDraft()]).then(([access, previous]) => { if (active && epoch === importEpoch.current) { setImportDraft(access.draft); setPreviousImportDraft(previous); setCanImport(access.canImport); setImportError('') } })
-        .catch(error => { if (active && epoch === importEpoch.current) { setImportError(error instanceof Error ? error.message : 'Prévia local indisponível.'); if (sharedImportEnabled) { setCanImport(false); setImportDraft(null); setPreviousImportDraft(null) } } })
-        .finally(() => { if (active && epoch === importEpoch.current) setImportLoading(false) })
-    }
+    let prazo: number | undefined
     /*
      * Prazo de segurança: se a leitura da carga não responder (IndexedDB
      * travado por outra aba, armazenamento bloqueado), a tela não pode ficar
      * em "Carregando a última carga…" para sempre.
      *
+     * O prazo pertence à consulta vigente (identificada por epoch): uma
+     * consulta nova cancela o prazo da anterior e arma o seu, senão o prazo
+     * de uma consulta velha pode anunciar erro sobre dados que chegaram —
+     * ou ser limpo por uma consulta que terminou, deixando a nova sem rede.
+     *
      * O prazo NÃO vira estado vazio: "não consegui consultar" e "não há
      * carga" são fatos diferentes, e trocar um pelo outro esconde falha. O
      * vazio só aparece quando a consulta respondeu que não há nada.
      */
-    const prazo = window.setTimeout(() => {
-      if (!active) return
-      setImportLoading(false)
-      setImportError(atual => atual || 'A consulta da última carga não terminou. Verifique a conexão e tente novamente.')
-    }, 15000)
-    void refresh().finally(() => window.clearTimeout(prazo))
+    const armarPrazo = (epoch: number) => {
+      window.clearTimeout(prazo)
+      prazo = window.setTimeout(() => {
+        if (!active || epoch !== importEpoch.current) return
+        setImportLoading(false)
+        setImportError(atual => atual || 'A consulta da última carga não terminou. Verifique a conexão e tente novamente.')
+      }, 15000)
+    }
+    const refresh = () => {
+      const epoch = ++importEpoch.current
+      armarPrazo(epoch)
+      return Promise.all([loadImportDraft(), loadPreviousDraft()]).then(([access, previous]) => { if (active && epoch === importEpoch.current) { setImportDraft(access.draft); setPreviousImportDraft(previous); setCanImport(access.canImport); setImportError('') } })
+        .catch(error => { if (active && epoch === importEpoch.current) { setImportError(error instanceof Error ? error.message : 'Prévia local indisponível.'); if (sharedImportEnabled) { setCanImport(false); setImportDraft(null); setPreviousImportDraft(null) } } })
+        .finally(() => { if (active && epoch === importEpoch.current) { window.clearTimeout(prazo); setImportLoading(false) } })
+    }
+    void refresh()
     // Do not replace the revision being reviewed while an import is being prepared.
     const canRefresh = () => sharedImportEnabled && new URLSearchParams(window.location.search).get('view') !== 'config'
     const onFocus = () => { if (canRefresh()) void refresh() }

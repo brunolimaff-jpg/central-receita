@@ -124,7 +124,7 @@ test('o cartão principal da Visão Executiva oferece tentar de novo quando a co
 
 test('o prazo de segurança termina o loading com erro de consulta, nunca com estado vazio', () => {
   const texto = app()
-  const bloco = texto.slice(texto.indexOf('const prazo = window.setTimeout'), texto.indexOf('void refresh().finally'))
+  const bloco = texto.slice(texto.indexOf('const armarPrazo'), texto.indexOf('const refresh'))
   assert.match(bloco, /setImportLoading\(false\)/)
   assert.match(bloco, /setImportError\(/)
   assert.doesNotMatch(bloco, /setImportDraft\(/)
@@ -169,4 +169,41 @@ test('a decisão de liberar as quatro áreas está registrada no plano', () => {
   assert.match(plano, /Decisão posterior \(23\/10\/2026/)
   assert.match(plano, /foram \*\*liberadas\*\* na navegação/)
   assert.match(plano, /Esta nota prevalece sobre a linha anterior/)
+})
+
+// ---------------------------------------------------------------------------
+// Terceiro commit: o prazo pertence à consulta vigente
+// ---------------------------------------------------------------------------
+
+test('o prazo é rearmado a cada consulta, não uma vez por efeito', () => {
+  const texto = app()
+  // `armarPrazo` é chamado dentro de refresh(), então uma consulta nova
+  // substitui o prazo da anterior em vez de conviver com ele.
+  assert.match(texto, /const armarPrazo = \(epoch: number\) =>/)
+  assert.match(texto, /armarPrazo\(epoch\)/)
+  // armado dentro do refresh, depois do epoch novo
+  const refresh = texto.slice(texto.indexOf('const refresh = () => {'), texto.indexOf('void refresh()'))
+  const posEpoch = refresh.indexOf('importEpoch.current')
+  const posArma = refresh.indexOf('armarPrazo(epoch)')
+  assert.ok(posEpoch !== -1 && posArma > posEpoch, 'armarPrazo deve vir depois do epoch novo')
+})
+
+test('o prazo vencido só age se a consulta que o armou continua vigente', () => {
+  const texto = app()
+  const bloco = texto.slice(texto.indexOf('const armarPrazo'), texto.indexOf('const refresh'))
+  assert.match(bloco, /epoch !== importEpoch\.current/)
+  // Uma consulta velha que vence depois que outra assumiu não pode anunciar
+  // erro sobre dados que chegaram.
+  assert.match(bloco, /setImportError/)
+})
+
+test('a consulta que termina limpa o próprio prazo', () => {
+  const texto = app()
+  const fim = texto.slice(texto.indexOf('.finally(() => { if (active && epoch === importEpoch.current)'), texto.indexOf('void refresh()'))
+  assert.match(fim, /window\.clearTimeout\(prazo\)/)
+})
+
+test('o aria-label do cartão vazio acompanha o estado', () => {
+  const texto = executivo()
+  assert.match(texto, /aria-label=\{carregando \? 'Carregando a última carga' : falha \? 'Falha ao consultar a carga' : 'Sem carga importada'\}/)
 })

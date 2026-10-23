@@ -237,7 +237,7 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
 
         <div className={`grid min-w-0 gap-4 ${temCarga ? 'xl:grid-cols-[minmax(0,1fr)_345px]' : ''}`}>
           {!temCarga && (
-            <section aria-label="Sem carga importada" className={`${PAINEL} grid gap-3 xl:col-span-2`}>
+            <section aria-label={carregando ? 'Carregando a última carga' : falha ? 'Falha ao consultar a carga' : 'Sem carga importada'} className={`${PAINEL} grid gap-3 xl:col-span-2`}>
               <p className={`text-[15px] font-bold ${falha && !carregando ? 'text-dado-atencao' : 'text-ink-strong'}`}>
                 {carregando ? 'Carregando a última carga…' : falha ? 'Não foi possível consultar a carga.' : 'Nenhuma carga importada.'}
               </p>
