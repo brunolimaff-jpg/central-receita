@@ -44,8 +44,6 @@ const ITENS: ItemNav[] = [
   { key: 'cross', label: VIEW_LABELS.cross, icon: PackagePlus, view: 'cross', preliminar: true },
 ]
 
-const PENDENTE = 'Em breve'
-
 export function sectionAtOffset(blocos: Array<{ view: CommercialView; top: number }>): CommercialView {
   return blocos.filter((bloco) => bloco.top <= 120).at(-1)?.view ?? 'home'
 }
@@ -159,29 +157,16 @@ export function CommercialSidebar({
         {ITENS.map((item) => {
           const Icone = item.icon
           const ativo = ativoNoMenu(item)
+          const view = item.view
 
-          if (!item.view) {
-            return (
-              <button
-                key={item.key}
-                type="button"
-                disabled
-                aria-disabled="true"
-                title={`${item.label} · ${PENDENTE}`}
-                className="revenue-nav-item cursor-not-allowed opacity-50"
-              >
-                <NavIcone icone={Icone} />
-                <span className="revenue-nav-rotulo truncate">{item.label}</span>
-                <span className="sr-only"> ({PENDENTE})</span>
-                <NavDica rotulo={`${item.label} · ${PENDENTE}`} />
-              </button>
-            )
-          }
+          /* Sem item pendente hoje: as quatro áreas "Em breve" viraram links
+           * preliminares. O ramo desabilitado volta quando existir área nova
+           * sem tela; `view` é obrigatório enquanto isso não acontecer. */
 
           return (
             <Link
               key={item.key}
-              href={naPagina && (SECOES as readonly string[]).includes(item.view) ? `#${item.view}` : nav.href(item.view, { from: 'home' })}
+              href={naPagina && view && (SECOES as readonly string[]).includes(view) ? `#${view}` : nav.href(view ?? 'home', { from: 'home' })}
               aria-current={ativo ? (pageView === 'home' ? 'location' : 'page') : undefined}
               title={item.preliminar ? `${item.label} · versão preliminar` : item.label}
               className="revenue-nav-item"

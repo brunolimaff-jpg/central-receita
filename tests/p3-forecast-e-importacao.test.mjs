@@ -107,7 +107,8 @@ const app = () => ler('../src/features/comercial-v3/commercial-v3-app.tsx')
 test('a seção vazia distingue carregando, falha e ausência de carga', () => {
   const texto = executivo()
   assert.match(texto, /if \(carregando\) return 'Carregando a última carga…'/)
-  assert.match(texto, /if \(falha\) return 'Não foi possível consultar a carga/)
+  // A mensagem completa da falha fica no cartão do topo; a seção aponta para lá.
+  assert.match(texto, /if \(falha\) return 'Falha na consulta — veja o aviso no topo/)
   assert.match(texto, /return 'Sem carga importada para esta seção\.'/)
 })
 

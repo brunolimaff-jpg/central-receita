@@ -81,7 +81,9 @@ export function CommercialV3App() {
       prazo = window.setTimeout(() => {
         if (!active || epoch !== importEpoch.current) return
         setImportLoading(false)
-        setImportError(atual => atual || 'A consulta da última carga não terminou. Verifique a conexão e tente novamente.')
+        setImportError(atual => atual || (sharedImportEnabled
+          ? 'A consulta da última carga não terminou. Verifique a conexão e tente novamente.'
+          : 'A consulta da prévia local não terminou. Outra aba pode estar segurando o armazenamento; feche as outras abas da Central e tente novamente.'))
       }, 15000)
     }
     const refresh = () => {

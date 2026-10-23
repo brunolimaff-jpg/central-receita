@@ -11,7 +11,7 @@ export function AvisoPreliminar({ area }: { area: string }) {
   return (
     <p
       role="note"
-      className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-[10px] border border-dado-atencao/35 bg-dado-atencao-suave px-4 py-2.5 text-[13px] leading-5 text-dado-atencao"
+      className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-[10px] border border-dado-atencao/35 bg-dado-atencao-suave px-4 py-2.5 text-[13px] leading-5 text-[#7a5210]"
     >
       <Sparkles aria-hidden className="h-4 w-4 shrink-0" strokeWidth={1.8} />
       <span>

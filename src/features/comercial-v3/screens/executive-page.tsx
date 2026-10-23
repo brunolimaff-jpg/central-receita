@@ -70,10 +70,12 @@ function Sinal({ icone: Icone, tom, titulo, detalhe, href }: {
  * Texto da seção vazia. Três estados, não dois: "ainda carregando", "não
  * consegui consultar" e "não há carga". Trocar falha por vazio faz a tela
  * afirmar que não existe dado quando o que existe é um erro de consulta.
+ * A mensagem completa da falha fica só no cartão do topo; aqui é uma linha,
+ * para não repetir três vezes o mesmo aviso na tela.
  */
 function textoVazio(carregando: boolean, falha: string | null) {
   if (carregando) return 'Carregando a última carga…'
-  if (falha) return 'Não foi possível consultar a carga. O que aparece abaixo não é o estado da importação.'
+  if (falha) return 'Falha na consulta — veja o aviso no topo da página.'
   return 'Sem carga importada para esta seção.'
 }
 
@@ -237,7 +239,7 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
 
         <div className={`grid min-w-0 gap-4 ${temCarga ? 'xl:grid-cols-[minmax(0,1fr)_345px]' : ''}`}>
           {!temCarga && (
-            <section aria-label={carregando ? 'Carregando a última carga' : falha ? 'Falha ao consultar a carga' : 'Sem carga importada'} className={`${PAINEL} grid gap-3 xl:col-span-2`}>
+            <section aria-label={carregando ? 'Carregando a última carga' : falha ? 'Falha ao consultar a carga' : 'Sem carga importada'} aria-live="polite" className={`${PAINEL} grid gap-3 xl:col-span-2`}>
               <p className={`text-[15px] font-bold ${falha && !carregando ? 'text-dado-atencao' : 'text-ink-strong'}`}>
                 {carregando ? 'Carregando a última carga…' : falha ? 'Não foi possível consultar a carga.' : 'Nenhuma carga importada.'}
               </p>
