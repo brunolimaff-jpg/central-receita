@@ -1,26 +1,50 @@
 # Handoff — Central de Receita
 
-Atualizado: 2026-10-22. Estado publicado em checkpoint; PR em revisão, sem merge.
+Atualizado em 26/10/2026. Modo compact-pr. Bruno encerrou para retomar em outro local.
 
-## Trabalho local de 22/10 — sem commit/push
+## Comece por aqui
 
-- Bruno autorizou ajustes pontuais, revisão e validação, com DeepSeek 4.1 Flash implementando e supervisor revisando. Proibidos merge, push e deploy.
-- Leitura/navegação: copy de Previsto alinhada, razão heterogênea de New Name retirada, contexto mensal explícito e Ganhos → Forecast/Ganhou. Composição da Home preservada. Supervisor validou 198 testes, typecheck, build estático e app em aba limpa nesse primeiro delta.
-- Revisão dirigida encontrou e reproduziu dois P2: série C mistura competências; pedidos-only gera snapshot de oportunidades preservadas. Ambos corrigidos localmente. Dados históricos não foram migrados ou regravados. Snapshots antigos com referência válida, mas valor já contaminado, não podem ser atestados automaticamente.
-- Auditoria remota do planejador (somente leitura, sobre `4329ba8...b42cc2c`) apontou um terceiro P2: a série C usava horário UTC enquanto o histórico mostra `America/Cuiaba`. Corrigido localmente; horário inválido fica fora da curva e entra no aviso existente. Também corrigido o último rótulo do eixo, que mostrava a carga mais antiga do mesmo dia e estourava o SVG.
-- Gates finais supervisionados, execução única: 215/215 testes PASS, typecheck PASS, build estático PASS (3/3 páginas), saída zero, `next-env.d.ts` preservado. App verificado em origem isolada `qa-historico.localhost` com fixture inteiramente sintética: eixo `08/10`, `15/10`, `22/10 23:10` sem corte, setembro fora com aviso. Sem upload e sem D1.
-- Relatório e limites: `docs/reviews/2026-10-22-pr15-leitura-navegacao.md`. Nada foi commitado, enviado, mesclado ou publicado.
+- Homologação online: https://central-receita-visual.brunolimaff.workers.dev
+- Abra essa URL; não precisa iniciar Next.js local para testar visualmente.
+- Exposição pública explicitamente autorizada por Bruno, sem Access, API, D1 ou dados reais.
+- Worker `central-receita-visual`, conta `Brunolimaff@gmail.com's Account`, versão `dfb0d215-3c61-42b9-b536-a579e133581b`.
+- PR [brunolimaff-jpg/central-receita#19](https://github.com/brunolimaff-jpg/central-receita/pull/19): OPEN, draft, head `bb884bb` (delta da homologação pushado), sem merge.
+- Branch desta worktree: `fix/p3-forecast-e-importacao`. Não usar a pasta principal main para implementar este delta.
 
-## Checkpoint remoto anterior
+## Atenção ao trocar de local
 
-- Branch: `feat/trajetoria-receita`; checkpoint `26ec8b5e659a28d865e11ae331350fe0a46e1415` (pai `08869cdb06f76cbf35bd7c3ab6c748ddb2105a8b`). Draft PR #15 contra `main`; CI hospedado observado 1 PASS/0 FAIL; sem auto-merge/autofix. Merge exige pedido explícito “MERGE”.
-- Checkpoint contém 21 arquivos de código/testes/documentação; 189/189 testes, typecheck e build estático exato pós-restauração passaram. `next-env.d.ts` permanece modificado após checkpoint; pastas `.claude/`, `.agents/`, `.scratch/` e backup temporário permanecem locais, fora do checkpoint.
-- Home restaurada à composição referenciada; build pós-restauração está validado no checkpoint. Revisão/aprovação visual pessoal de Bruno ainda pendente.
-- Riscos/limites: data histórica malformada em regime C, ambiguidade `savedAt`/`importedAt`, validação comercial dos gates #4/#7/#8, runtime D1 e fluxo Fabi→Giovanni não concluídos. Não declarar pronto para produção.
-- Performance: build estático do checkpoint exato pós-restauração e typecheck passaram; 189/189 testes. Separadamente, P0 de performance foi executado em snapshot derivado sintético, então não representa os dados reais nem o cenário final completo. Chrome externo 21–22/10: P1 5 cold + 5 warm; P2 6 traces aceitos com ressalvas, sem gargalo causal; P3 CSV sintético 100 (n=1) e 5.000 (n=3), fluxo local IndexedDB. Não foram medidos 50k, XLSX, heap/memória, D1 ou métricas de campo; sem extrapolação de escala/otimização. Relatório e hashes: `docs/performance/coleta-chrome-externo-2026-10-21.md`; diagnóstico inicial: `docs/performance/diagnostico-baseline-2026-10-21.md`; evidências permanecem privadas em `.scratch/`/AppData. Nenhuma otimização foi feita.
-- Preview temporário: issue #14 OPEN; Codespaces bloqueado por escopos ausentes (`codespace` para listar e `user` para billing), custo/saldo não verificados. Decisão humana: não ampliar acesso; nenhum ambiente foi criado nem snapshot enviado. Detalhes em `docs/performance/preview-temporario-2026-10-21.md`.
-- Issues/PR: [#11](https://github.com/brunolimaff-jpg/central-receita/issues/11) OPEN (Scout); [#12](https://github.com/brunolimaff-jpg/central-receita/issues/12) OPEN (diagnóstico de performance e lacunas); [#13](https://github.com/brunolimaff-jpg/central-receita/issues/13) OPEN (checkpoint publicado); [#14](https://github.com/brunolimaff-jpg/central-receita/issues/14) OPEN (preview bloqueado). [Draft PR #15](https://github.com/brunolimaff-jpg/central-receita/pull/15) contra `main`; checkpoint 26ec8b5e publicado; CI observado passou, sem merge. A API de deployments retornou 0 em consulta anterior; isso não prova ausência de deploy fora do GitHub.
-- Próximas decisões humanas: revisão visual de Bruno, gates comerciais #4/#7/#8 e deploy; merge apenas mediante pedido explícito “MERGE”. Commits/push autorizados do escopo atual não aguardam nova decisão. Preview segue bloqueado pela decisão de não ampliar escopos e por custo/cota não verificados.
-- Não descartar evidências nem `.scratch/executive-page.tsx.backup-20261021.tmp`.
+O delta da homologação foi commitado (`bb884bb`) e enviado à branch `fix/p3-forecast-e-importacao` em 26/10; um clone remoto o recebe com checkout dessa branch. As evidências em `.scratch/p3-20261023/` (550 MB) não são versionadas e continuam apenas nesta máquina — não apagar `.scratch/` nem usar clean/reset. O merge da PR segue decisão do Bruno.
 
-Narrativa e lição duráveis no Bruno Vault: `C:/Users/bruno.ferreira/OneDrive - Senior Sistemas SA/Documentos/Bruno Vault/Sessões/2026-10/2026-10-21T19-00-32-central-receita-scout-trajetoria-home.md`.
+## Alterações locais
+
+- Build separado `npm run build:visual`; flag `NEXT_PUBLIC_VISUAL_PREVIEW=1`, fonte comercial substituída por `visual-branches.json` via alias Webpack.
+- Home usa `visual-import.json` das fixtures sintéticas, sem IndexedDB/API. Upload e gravação recusados no modo visual.
+- Identificação de homologação, visitante neutro, rótulos e unidades fictícias corretos.
+- `wrangler.visual.jsonc` foi criado após Bruno pedir Wrangler. Sem entrypoint backend ou bindings, workers.dev ativo, preview_urls false.
+- Pacote publicado: `dist/visual/2026-10-26T14-35-34-624Z/assets` (92 arquivos com SHA-256). A configuração aponta para esse timestamp; não substituir por out de outro modo.
+- Arquivos de código alterados: next.config.ts, package.json, commercial-v3-app.tsx, manual-import-client.ts, branch-rail.tsx, commercial-sidebar.tsx, executive-page.tsx, import-screen.tsx.
+- Novos scripts build-visual.mjs/serve-visual.mjs e teste visual-preview.test.mjs; documentos Cloudflare em docs/; launch.json local.
+- `next-env.d.ts` foi ajustado automaticamente pelo build. `.scratch/p3-20261023/` era preexistente e está preservado.
+- real-branches.json, backend/worker.js e scripts/build-sites.mjs originais sem diff.
+
+## Evidências
+
+- PASS final: 255/255 testes, typecheck, build visual 3/3, verificador de pacote e Wrangler dry-run.
+- Uma falha intermediária 254/255 foi resolvida antes do build publicado. Ver relatório.
+- Local: nove visões renderizaram; amostra responsiva em 375px sem overflow em Jornada.
+- Hospedado: Home HTTP 200, dados fictícios, Configurações sem upload, Jornada com superfície nos painéis; nenhum erro de console ou chamada API observado. GET/PUT /api/imports/current retornaram 404.
+- GitHub retornou apenas GitGuardian SUCCESS; não atribuir os 255 testes ao CI ou ao commit 546eb20.
+- Nenhum servidor local desta sessão ficou ativo; preview estático e login pendente cf encerrados. Sessão legítima Wrangler preservada.
+
+## Pendências
+
+- Aceite visual de Bruno: NAO VALIDADO. Merge é decisão separada, não executar.
+- Delta de homologação e documentação enviados ao GitHub (commit `bb884bb`); merge é decisão de Bruno.
+- Operação real, identidade, retenção, D1 e concorrência shared hospedada: NAO VALIDADO, fora desta demonstração. Não expor o Worker Sites diretamente.
+- Planner GPT Web recebeu checkpoint inicial, mas não o relatório final da publicação. Não alegar que está atualizado até enviar e confirmar.
+
+## Referências
+
+- Relatório: `docs/cloudflare-publicacao-visual.md`; validação: `docs/cloudflare-homologacao-resultado.md`.
+- Narrativa canônica: `C:/Users/bruno.ferreira/OneDrive - Senior Sistemas SA/Documentos/Bruno Vault/Sessões/2026-10/2026-10-26T11-13-59-central-receita-cloudflare-visual-publicada.md`.
+- Skills de retomada: cloudflare:wrangler e doc-handoff; sem reinstalar dependências do projeto para servir os assets.
