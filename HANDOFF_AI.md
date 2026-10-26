@@ -8,12 +8,12 @@ Atualizado em 26/10/2026. Modo compact-pr. Bruno encerrou para retomar em outro 
 - Abra essa URL; não precisa iniciar Next.js local para testar visualmente.
 - Exposição pública explicitamente autorizada por Bruno, sem Access, API, D1 ou dados reais.
 - Worker `central-receita-visual`, conta `Brunolimaff@gmail.com's Account`, versão `dfb0d215-3c61-42b9-b536-a579e133581b`.
-- PR [brunolimaff-jpg/central-receita#19](https://github.com/brunolimaff-jpg/central-receita/pull/19): OPEN, draft, head `bb884bb` (delta da homologação pushado), sem merge.
+- PR [brunolimaff-jpg/central-receita#19](https://github.com/brunolimaff-jpg/central-receita/pull/19): OPEN, draft, head `36b81e3`, 10 commits, sem merge. Checks: build-deploy SUCCESS e GitGuardian SUCCESS.
 - Branch desta worktree: `fix/p3-forecast-e-importacao`. Não usar a pasta principal main para implementar este delta.
 
 ## Atenção ao trocar de local
 
-O delta da homologação foi commitado (`bb884bb`) e enviado à branch `fix/p3-forecast-e-importacao` em 26/10; um clone remoto o recebe com checkout dessa branch. As evidências em `.scratch/p3-20261023/` (550 MB) não são versionadas e continuam apenas nesta máquina — não apagar `.scratch/` nem usar clean/reset. O merge da PR segue decisão do Bruno.
+O delta da homologação e o CI foram commitados e enviados à branch `fix/p3-forecast-e-importacao` em 26/10; um clone remoto os recebe com checkout dessa branch. O build remoto roda no GitHub Actions (`.github/workflows/homologacao-visual.yml`, secret `CLOUDFLARE_API_TOKEN`); a API de Workers Builds da Cloudflare recusa configuração (`8000008`) apesar do Git conectado. As evidências em `.scratch/p3-20261023/` (550 MB) não são versionadas e continuam apenas nesta máquina — não apagar `.scratch/` nem usar clean/reset. O merge da PR segue decisão do Bruno.
 
 ## Alterações locais
 
@@ -39,7 +39,7 @@ O delta da homologação foi commitado (`bb884bb`) e enviado à branch `fix/p3-f
 ## Pendências
 
 - Aceite visual de Bruno: NAO VALIDADO. Merge é decisão separada, não executar.
-- Delta de homologação e documentação enviados ao GitHub (commit `bb884bb`); merge é decisão de Bruno.
+- Build remoto ativo no GitHub Actions (Central `f2e77b5a`, Atlas `eb0840be` publicados nos runs `40407352712` e `40407230755`); Workers Builds via dashboard/API segue bloqueado (`8000008`). Aceite visual e merge seguem com Bruno.
 - Operação real, identidade, retenção, D1 e concorrência shared hospedada: NAO VALIDADO, fora desta demonstração. Não expor o Worker Sites diretamente.
 - Planner GPT Web recebeu checkpoint inicial, mas não o relatório final da publicação. Não alegar que está atualizado até enviar e confirmar.
 
