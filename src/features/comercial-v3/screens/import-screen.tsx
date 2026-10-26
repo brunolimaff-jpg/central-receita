@@ -8,7 +8,7 @@ import { MetricDetail } from '../components/metric-detail'
 import { OpportunitiesForecastChart } from '../components/opportunities-forecast-chart'
 import type { ImportBatch, ImportIssue, ImportKind, ImportWorkspace, ImportedRecord } from '../manual-import'
 import { fonteCarregada, reconcileImports, groupForecastDates, isDuplicateImport, isValidImportReference, currentImportDate as localDate } from '../manual-import'
-import { readImportFile, saveImportDraft, sharedImportEnabled, type ImportDraft } from '../manual-import-client'
+import { readImportFile, saveImportDraft, sharedImportEnabled, visualPreviewEnabled, type ImportDraft } from '../manual-import-client'
 import type { CommercialNav } from '../nav'
 
 const panel = 'rounded-[10px] border border-hairline bg-surface-raised p-5 shadow-[var(--sombra-painel)]'
@@ -288,6 +288,11 @@ export function ImportScreen({ draft, canImport, onSaved, loading, loadError, na
     } catch (error) { setMessage(error instanceof Error ? error.message : 'A prévia não foi salva. Tente novamente.') }
     finally { setBusy(false) }
   }
+
+  if (visualPreviewEnabled) return <section className="revenue-page grid gap-4">
+    <h1 className="revenue-heading">Configurações</h1>
+    <p className="revenue-subtitle">Importação desativada na homologação visual. Navegue pelas telas com os dados fictícios; nenhum arquivo é lido ou armazenado.</p>
+  </section>
 
   if (sharedImportEnabled && !canImport) return <div className="revenue-page grid gap-4">
     <header>

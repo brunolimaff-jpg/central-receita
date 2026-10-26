@@ -331,7 +331,7 @@ export function CommercialTopbar({
         <button type="button" className="revenue-control flex h-12 shrink-0 items-center gap-2.5 rounded-[10px] py-1 pl-1.5 pr-3 text-left">
           <span aria-hidden className="grid h-9 w-9 place-items-center rounded-full bg-[linear-gradient(135deg,var(--verde-escuro),var(--verde-medio))] text-[13px] font-bold text-white">G</span>
           <span className="hidden leading-tight min-[1440px]:block">
-            <strong className="block text-[13px] font-semibold text-ink-strong">Giovanni</strong>
+            <strong className="block text-[13px] font-semibold text-ink-strong">{process.env.NEXT_PUBLIC_VISUAL_PREVIEW === '1' ? 'Visitante' : 'Giovanni'}</strong>
             <small className="block text-[11px] text-ink-muted">Diretoria Comercial</small>
           </span>
           <ChevronDown aria-hidden className="hidden h-4 w-4 text-ink-muted min-[1440px]:block" strokeWidth={1.8} />

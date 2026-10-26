@@ -193,7 +193,7 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
     { rotulo: 'Alterou valor', movimento: 'Alterou valor', valor: ponte?.alterou ?? null, peso: Math.abs(ponte?.alterou ?? 0) },
   ] : []
 
-  const nome = 'Giovanni'
+  const nome = process.env.NEXT_PUBLIC_VISUAL_PREVIEW === '1' ? 'Visitante' : 'Giovanni'
 
   return (
     <div className="grid min-w-0 gap-5">

@@ -24,7 +24,7 @@ import { BranchScreen } from './screens/branch-screen'
 import { CrossScreen } from './screens/cross-screen'
 import { ForecastScreen } from './screens/forecast-screen'
 import { ImportScreen } from './screens/import-screen'
-import { loadImportDraft, loadPreviousDraft, sharedImportEnabled, type ImportDraft } from './manual-import-client'
+import { loadImportDraft, loadPreviousDraft, sharedImportEnabled, visualPreviewEnabled, type ImportDraft } from './manual-import-client'
 import { ExecutivePage } from './screens/executive-page'
 import { JourneyScreen } from './screens/journey-screen'
 import { NewNameScreen } from './screens/new-name-screen'
@@ -55,7 +55,7 @@ export function CommercialV3App() {
   const searchParams = useSearchParams()
   const [importDraft, setImportDraft] = useState<ImportDraft | null>(null)
   const [previousImportDraft, setPreviousImportDraft] = useState<ImportDraft | null>(null)
-  const [canImport, setCanImport] = useState(!sharedImportEnabled)
+  const [canImport, setCanImport] = useState(!sharedImportEnabled && !visualPreviewEnabled)
   const [importLoading, setImportLoading] = useState(true)
   const [importError, setImportError] = useState('')
   const importEpoch = useRef(0)
@@ -110,7 +110,7 @@ export function CommercialV3App() {
    * publicação, o painel mostra somente a carga confirmada: aceitar o parâmetro
    * ali expunha dados de demonstração no endereço do diretor.
    */
-  const demoRequested = !sharedImportEnabled && searchParams.get('demo') === '1'
+  const demoRequested = !visualPreviewEnabled && !sharedImportEnabled && searchParams.get('demo') === '1'
   const sourceView = view === 'forecast' || view === 'new-name'
   // Página corrida: Visão Executiva, Forecast, New Name e Oportunidades numa rolagem só, com a carga real.
   // Com demo=1 cada tela volta ao cenário demonstrativo; a Visão Executiva (home) segue como antes.
@@ -293,6 +293,7 @@ export function CommercialV3App() {
       executiveMode={executiveView}
       dataCarga={cargaNaPagina ? dataCarga : null}
     >
+      {visualPreviewEnabled && <p role="status" className="mb-4 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-700">Homologação visual · dados fictícios · importação e armazenamento desativados.</p>}
       {sharedImportEnabled && view !== 'config' && !executiveView && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#dfe8ef] bg-white px-4 py-3 text-sm text-[#33466c]">
         <p><strong>Cenário demonstrativo.</strong> As cargas CSV/XLSX são consultadas em Forecast e New Name. Esta visão usa o cenário fixo, com agregados por filial identificados na tela.</p>
         <Link href={nav.href('config')} className="font-semibold text-[#086b6b] underline">Consultar cargas</Link>
@@ -307,7 +308,7 @@ export function CommercialV3App() {
       )}
 
       {view === 'system' && (
-        <SystemScreen model={home} filiaisReais={period === 'month'} nav={nav} />
+        <SystemScreen model={home} filiaisReais={!visualPreviewEnabled && period === 'month'} nav={nav} />
       )}
 
       {importError && view !== 'config' && <section className="rounded-xl border border-[#dfe8ef] bg-white p-6 text-sm text-[#33466c]">
