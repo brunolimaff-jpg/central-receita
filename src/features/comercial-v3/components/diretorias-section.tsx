@@ -21,13 +21,15 @@ const LOGO_MARCA: Record<string, string> = {
 }
 const TOTAL_GRUPOS = VERTICAIS.reduce((soma, v) => soma + v.grupos, 0)
 
-/** Avatar por iniciais na cor da vertical; vaga aberta vira contorno tracejado. */
 /**
- * Foto oficial da pessoa em `public/pessoas/<slug>.jpg`, desenhada sobre as
- * iniciais. Quem não tem arquivo simplesmente deixa as iniciais aparecerem:
- * não há lista de fotos em código nem estado de "já falhou", que prendia o
- * avatar nas iniciais depois de um 404 transitório.
+ * Foto oficial da pessoa em `public/pessoas/<slug>.jpg`, pintada como fundo do
+ * avatar. A foto vem por cima das iniciais, então quem não tem arquivo mostra
+ * as iniciais sem código de fallback. O `?v=` renova a entrada de cache quando
+ * uma foto é substituída.
  */
+const VERSAO_FOTO = '1'
+const fotoPessoa = (nome: string) => `/pessoas/${slugPessoa(nome)}.jpg?v=${VERSAO_FOTO}`
+
 function Avatar({ pessoa, cor, tamanho = 36 }: { pessoa: Pessoa; cor: string; tamanho?: number }) {
   const vaga = !pessoa.nome
   return (
@@ -44,11 +46,9 @@ function Avatar({ pessoa, cor, tamanho = 36 }: { pessoa: Pessoa; cor: string; ta
     >
       {vaga ? '+' : iniciais(pessoa.nome)}
       {!vaga && (
-        <img
-          src={`/pessoas/${slugPessoa(pessoa.nome!)}.jpg`}
-          alt=""
-          decoding="async"
-          className="absolute inset-0 h-full w-full object-cover"
+        <span
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${fotoPessoa(pessoa.nome!)})` }}
         />
       )}
     </span>
