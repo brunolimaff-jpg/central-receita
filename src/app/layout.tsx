@@ -2,15 +2,15 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 
-// Public Sans licenciada (OFL), servida localmente nos pesos utilizados.
-const publicSans = localFont({
-  variable: "--font-public-sans",
+// Manrope licenciada (OFL), servida localmente como variável 200–800.
+// Escolha de produto (27/10/2026): substitui a Public Sans oficial do DS Senior
+// por leitura que Bruno aprovou melhor; troca registrada como adaptação local.
+const manrope = localFont({
+  variable: "--font-app",
   display: "swap",
   src: [
-    { path: "./fonts/public-sans/PublicSans-Regular.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/public-sans/PublicSans-Medium.woff2", weight: "500", style: "normal" },
-    { path: "./fonts/public-sans/PublicSans-SemiBold.woff2", weight: "600", style: "normal" },
-    { path: "./fonts/public-sans/PublicSans-Bold.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/manrope/Manrope-Variable.woff2", weight: "200 800", style: "normal" },
+    { path: "./fonts/manrope/Manrope-Variable-latin-ext.woff2", weight: "200 800", style: "normal" },
   ],
 });
 
@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body
-        className={`${publicSans.variable} font-sans antialiased bg-background text-foreground`}
+        className={`${manrope.variable} font-sans antialiased bg-background text-foreground`}
       >
         {children}
       </body>

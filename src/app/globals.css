@@ -6,7 +6,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-public-sans), "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-app), "Segoe UI", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
 
   /* Semânticos da Central: os componentes usam estas classes, nunca hex solto. */
@@ -209,7 +209,7 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-public-sans), "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-app), "Segoe UI", ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: "tnum" 1;
     text-rendering: optimizeLegibility;
     font-synthesis: none;
@@ -726,7 +726,16 @@
     box-shadow: 0 24px 48px -24px rgb(6 30 50 / 55%), inset 0 1px 0 rgb(255 255 255 / 10%);
     -webkit-backdrop-filter: blur(24px) saturate(150%);
     backdrop-filter: blur(24px) saturate(150%);
-    color: rgb(255 255 255 / 72%);
+    color: rgb(255 255 255 / 84%);
+  }
+
+  /*
+   * O anel global de foco é `verde-escuro` — pensado para fundo claro. Sobre a
+   * coluna petróleo ele desaparece, e o teclado fica cego. Aqui o anel vira o
+   * verde da marca em superfície escura, que é como a marca se lê no escuro.
+   */
+  .revenue-app .revenue-sidebar :focus-visible {
+    outline-color: var(--verde-neon);
   }
 
   /*
@@ -744,7 +753,7 @@
 
   .revenue-app .revenue-nav-grupo {
     margin: 14px 10px 4px;
-    color: rgb(255 255 255 / 42%);
+    color: rgb(255 255 255 / 52%);
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.14em;
@@ -766,7 +775,10 @@
   }
 
   .revenue-app .revenue-sidebar .revenue-nav-item {
-    color: rgb(255 255 255 / 72%);
+    color: rgb(255 255 255 / 84%);
+    /* Rótulos de 13px em caixa de 40px: 1px de entrelinha devolve o ar que o
+     * peso único de fonte apertava. */
+    letter-spacing: 0.01em;
   }
 
   .revenue-app .revenue-sidebar .revenue-nav-item > :not(.revenue-nav-pill, .revenue-nav-dica) {
@@ -792,7 +804,7 @@
   }
 
   .revenue-app .revenue-sidebar .revenue-nav-item[aria-current] .revenue-nav-icon {
-    background: linear-gradient(140deg, #19c2b0, var(--verde-institucional));
+    background: linear-gradient(140deg, var(--verde-claro), var(--verde-institucional));
     box-shadow: 0 4px 14px -3px rgb(0 200 180 / 60%), inset 0 1px 0 rgb(255 255 255 / 30%);
   }
 
@@ -802,7 +814,7 @@
     inset: 0;
     z-index: 0;
     border: 1px solid rgb(120 235 215 / 22%);
-    border-radius: 10px;
+    border-radius: 8px;
     background: linear-gradient(100deg, rgb(0 190 170 / 26%), rgb(0 190 170 / 6%));
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%), 0 8px 20px -12px rgb(0 200 180 / 60%);
   }
@@ -816,10 +828,10 @@
     gap: 10px;
     margin-top: 6px;
     padding: 10px 12px;
-    border: 1px solid rgb(255 255 255 / 8%);
+    border: 1px solid rgb(255 255 255 / 10%);
     border-radius: 12px;
-    background: rgb(255 255 255 / 5%);
-    color: rgb(255 255 255 / 58%);
+    background: rgb(255 255 255 / 7%);
+    color: rgb(255 255 255 / 72%);
     font-size: 11px;
     line-height: 1.35;
   }
@@ -835,7 +847,7 @@
     height: 8px;
     margin-top: 4px;
     border-radius: 999px;
-    background: #2ee6c8;
+    background: var(--verde-neon);
   }
 
   .revenue-app .revenue-nav-pulso::after {
@@ -857,7 +869,7 @@
   }
 
   .revenue-app .revenue-sidebar .revenue-nav-toggle {
-    color: rgb(255 255 255 / 55%);
+    color: rgb(255 255 255 / 68%);
   }
 
   /* ---------- Cabeçalho ---------- */

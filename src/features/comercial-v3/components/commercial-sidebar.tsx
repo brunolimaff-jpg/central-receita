@@ -135,7 +135,7 @@ export function CommercialSidebar({
         assinatura. Recolhida: só o símbolo "S", que a marca permite usar
         isolado como apoio — e é a única forma que cabe em 72px sem truncar.
       */}
-      <Link href={nav.href('home')} className="mb-5 flex flex-col items-center gap-1 px-3 pb-1 text-center">
+      <Link href={nav.href('home')} className="mb-4 flex flex-col items-center gap-1.5 border-b border-white/10 px-3 pb-3.5 text-center">
         <Image
           src="/brand/senior-official-logos/slide-13-logo-01.svg"
           alt="Senior"

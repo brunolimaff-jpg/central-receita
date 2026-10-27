@@ -32,7 +32,7 @@ const TOTAL_GRUPOS = VERTICAIS.reduce((soma, v) => soma + v.grupos, 0)
  * reavalia sozinho: quando uma foto entra depois, o avatar ficava nas iniciais
  * mesmo com o arquivo no ar. Subir este número descarta essas falhas antigas.
  */
-const VERSAO_FOTO = '2'
+const VERSAO_FOTO = '3'
 const fotoPessoa = (nome: string) => `/pessoas/${slugPessoa(nome)}.jpg?v=${VERSAO_FOTO}`
 
 function Avatar({ pessoa, cor, tamanho = 36 }: { pessoa: Pessoa; cor: string; tamanho?: number }) {
