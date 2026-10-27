@@ -41,14 +41,31 @@ function Avatar({ pessoa, cor, tamanho = 36 }: { pessoa: Pessoa; cor: string; ta
   )
 }
 
+/**
+ * Gerente e, abaixo, os líderes de vendas em blocos ligados por um traço —
+ * a mesma leitura do organograma: gerente → líder → executivos.
+ */
 function LinhaPessoa({ pessoa, cor }: { pessoa: Pessoa; cor: string }) {
   return (
-    <li className="flex items-center gap-2.5">
-      <Avatar pessoa={pessoa} cor={cor} tamanho={30} />
-      <span className="min-w-0 leading-tight">
-        <strong className={`block truncate text-[13px] font-semibold ${pessoa.nome ? 'text-ink-strong' : 'text-ink-muted'}`}>{pessoa.nome ?? 'Vaga aberta'}</strong>
-        <small className="block truncate text-[11px] text-ink-muted">{pessoa.cargo.replace('Gerente de Vendas ', '')}{pessoa.escopo ? ` · ${pessoa.escopo}` : ''}</small>
+    <li className="grid gap-1.5">
+      <span className="flex items-center gap-2.5">
+        <Avatar pessoa={pessoa} cor={cor} tamanho={30} />
+        <span className="min-w-0 leading-tight">
+          <strong className={`block truncate text-[13px] font-semibold ${pessoa.nome ? 'text-ink-strong' : 'text-ink-muted'}`}>{pessoa.nome ?? 'Vaga aberta'}</strong>
+          <small className="block truncate text-[11px] text-ink-muted">{pessoa.cargo.replace('Gerente de Vendas ', '')}{pessoa.escopo ? ` · ${pessoa.escopo}` : ''}</small>
+        </span>
       </span>
+      {pessoa.lideres && pessoa.lideres.length > 0 && (
+        <ul aria-label={`Líderes de vendas de ${pessoa.nome}`} className="ml-[14px] grid gap-1.5 border-l-2 pl-3" style={{ borderColor: `color-mix(in srgb, ${cor} 30%, transparent)` }}>
+          {pessoa.lideres.map(lider => (
+            <li key={lider.nome} className="relative rounded-[9px] px-2.5 py-1.5" style={{ background: `color-mix(in srgb, ${cor} 9%, white)` }}>
+              <span aria-hidden className="absolute -left-3 top-1/2 h-0.5 w-3" style={{ background: `color-mix(in srgb, ${cor} 30%, transparent)` }} />
+              <small className="block text-[9px] font-bold uppercase tracking-[0.08em]" style={{ color: `color-mix(in srgb, ${cor} 80%, black)` }}>Líder · {lider.escopo}</small>
+              <strong className="block truncate text-[12px] font-semibold text-ink-strong">{lider.nome}</strong>
+            </li>
+          ))}
+        </ul>
+      )}
     </li>
   )
 }
@@ -246,7 +263,7 @@ export function DiretoriasSection() {
 
       {/* Territórios */}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {TERRITORIOS.map((t, i) => (
+        {TERRITORIOS.filter(t => t.porVertical).map((t, i) => (
           <motion.article
             key={t.numero}
             initial={{ opacity: 0, y: 12 }}
@@ -259,7 +276,7 @@ export function DiretoriasSection() {
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-full text-[17px] font-bold text-white" style={{ background: t.cor, boxShadow: `0 8px 18px -8px ${t.cor}` }}>{t.numero}</span>
               <span className="min-w-0 leading-tight">
-                <strong className="block text-[14px] font-bold text-ink-strong">{t.nome}{t.estimado && <span className="ml-1.5 rounded-full bg-surface-sunken px-1.5 py-0.5 align-middle text-[10px] font-semibold text-ink-muted">estimado</span>}</strong>
+                <strong className="block text-[14px] font-bold text-ink-strong">{t.nome}</strong>
                 <small className="block truncate text-[12px]" style={{ color: t.cor }}>{t.ufs}</small>
               </span>
             </div>
@@ -269,7 +286,7 @@ export function DiretoriasSection() {
             </div>
             <ul className="mt-3 grid gap-1.5">
               {VERTICAIS.map(v => {
-                const item = t.porVertical[v.id]
+                const item = t.porVertical![v.id]
                 return (
                   <li key={v.id} className="grid grid-cols-[8.2rem_minmax(0,1fr)_2.8rem] items-center gap-2 text-[12px]">
                     <span className="truncate text-ink-muted">{v.nome}</span>
@@ -284,6 +301,18 @@ export function DiretoriasSection() {
           </motion.article>
         ))}
       </div>
+      {TERRITORIOS.filter(t => !t.porVertical).map(t => (
+        <div key={t.numero} className="vidro -mt-1 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-[14px] px-4 py-3" style={{ background: `linear-gradient(90deg, color-mix(in srgb, ${t.cor} 16%, white), transparent 70%)` }}>
+          <span className="flex items-center gap-3">
+            <span className="grid h-9 w-9 place-items-center rounded-full text-[15px] font-bold text-white" style={{ background: t.cor }}>{t.numero}</span>
+            <span className="leading-tight">
+              <strong className="block text-[14px] font-bold text-ink-strong">{t.nome}</strong>
+              <small className="block text-[12px]" style={{ color: `color-mix(in srgb, ${t.cor} 70%, black)` }}>{t.ufs}</small>
+            </span>
+          </span>
+          {t.nota?.map(item => <span key={item} className="rounded-full bg-white/80 px-3 py-1 text-[12px] font-semibold text-ink-strong">{item}</span>)}
+        </div>
+      ))}
 
       <div className="grid gap-2">
         <div className="flex flex-wrap items-center gap-2 text-[12px]">

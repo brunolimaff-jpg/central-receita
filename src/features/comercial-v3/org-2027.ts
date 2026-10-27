@@ -5,11 +5,11 @@
  * "Organograma" e "Geografia de atuação — Territórios". O modelo está em
  * construção, sujeito a revisão orçamentária e discussão com o CE — por isso
  * os números aqui são a base de MRR declarada nos slides, não cálculo da carga.
- * O Território 03 não veio nos slides: os valores dele são a diferença entre o
- * total por vertical e os demais territórios (`estimado: true`).
+ * Cinco territórios: o 05 (Norte) faz novos negócios via canais e tem a base
+ * anexa ao Território 02, por isso não traz grupos nem MRR próprios.
  */
 
-export type Pessoa = { nome: string | null; cargo: string; escopo?: string }
+export type Pessoa = { nome: string | null; cargo: string; escopo?: string; /** Líderes de vendas abaixo do gerente. */ lideres?: Pessoa[] }
 
 export type VerticalId = 'demais' | 'agro' | 'construcao' | 'industria'
 export type HorizontalId = 'erp' | 'hcm' | 'logistica'
@@ -59,8 +59,12 @@ export const VERTICAIS: Vertical[] = [
     mrr: 15e6, participacao: 0.19, grupos: 1299,
     diretor: { nome: 'Marcos Paulo Malagola', cargo: 'Diretor de segmento' },
     gerentes: [
-      { nome: 'Alexandre Kahler', cargo: 'Gerente de Vendas Base' },
-      { nome: 'Gabriela Nayara Dias Correa', cargo: 'Gerente de Vendas Novos', escopo: 'Sudeste + Nordeste' },
+      { nome: 'Alexandre Kahler', cargo: 'Gerente de Vendas Base', lideres: [
+        { nome: 'Ana Cristina Santos', cargo: 'Líder de Vendas Base', escopo: 'Nacional Tech Touch' },
+        { nome: 'Luiz Andre Bento Ribeiro', cargo: 'Líder de Vendas Base', escopo: 'Sul + Centro-Oeste + Norte' },
+        { nome: 'Andre Luis de Oliveira', cargo: 'Líder de Vendas Base', escopo: 'Sudeste + Nordeste' },
+      ] },
+      { nome: 'Gabriele Nayara Dias Correa', cargo: 'Gerente de Vendas Novos', escopo: 'Sudeste + Nordeste' },
       { nome: 'Mario Borges', cargo: 'Gerente de Vendas Novos', escopo: 'Sul + Centro-Oeste' },
     ],
     chegando: ['Obra Prima'],
@@ -71,7 +75,10 @@ export const VERTICAIS: Vertical[] = [
     mrr: 14.5e6, participacao: 0.19, grupos: 752,
     diretor: { nome: null, cargo: 'Diretor de segmento' },
     gerentes: [
-      { nome: 'Vitor Diego', cargo: 'Gerente de Vendas Base' },
+      { nome: 'Vitor Diego', cargo: 'Gerente de Vendas Base', lideres: [
+        { nome: 'Samanta de Andrade Alves', cargo: 'Líder de Vendas Base', escopo: 'Sul + Centro-Oeste + Norte' },
+        { nome: 'Vinnicius Gomes de Arruda', cargo: 'Líder de Vendas Base', escopo: 'Sudeste + Nordeste' },
+      ] },
       { nome: 'Daniel Augusto', cargo: 'Gerente de Vendas Novos' },
     ],
     resumo: '2 gerentes de vendas · 2 líderes de vendas',
@@ -81,8 +88,11 @@ export const VERTICAIS: Vertical[] = [
     mrr: 10e6, participacao: 0.13, grupos: 407,
     diretor: { nome: 'Fernando Silva', cargo: 'Diretor de segmento' },
     gerentes: [
-      { nome: 'Matheus Martins', cargo: 'Gerente de Vendas Base' },
-      { nome: 'Alessandra Diniz', cargo: 'Gerente de Vendas Novos' },
+      { nome: 'Matheus Martins', cargo: 'Gerente de Vendas Base', lideres: [
+        { nome: 'Agnaldo Paz', cargo: 'Líder de Vendas Base', escopo: 'Sul + Centro-Oeste + Norte' },
+        { nome: 'Frederico Freitas', cargo: 'Líder de Vendas Base', escopo: 'Sudeste + Nordeste' },
+      ] },
+      { nome: 'Alessandra Di Sicco', cargo: 'Gerente de Vendas Novos' },
     ],
     chegando: ['GATEC'],
     resumo: '2 gerentes de vendas · 2 líderes de vendas',
@@ -113,20 +123,23 @@ export type Territorio = {
   cor: string
   grupos: number
   mrr: number
-  estimado?: boolean
+  /** Território sem base própria: só a regra de atuação. */
+  nota?: string[]
   /** MRR por vertical, na ordem de `VERTICAIS`. */
-  porVertical: Record<VerticalId, { grupos: number; mrr: number }>
+  porVertical: Record<VerticalId, { grupos: number; mrr: number }> | null
 }
 
 export const TERRITORIOS: Territorio[] = [
   { numero: 1, nome: 'Território 01', ufs: 'RS · SC · PR', cor: '#12b5bf', grupos: 1104, mrr: 21.2e6,
     porVertical: { agro: { grupos: 109, mrr: 2.7e6 }, construcao: { grupos: 153, mrr: 2.2e6 }, industria: { grupos: 275, mrr: 5.0e6 }, demais: { grupos: 567, mrr: 11.3e6 } } },
-  { numero: 2, nome: 'Território 02', ufs: 'MT · MS · DF · GO · Norte', cor: '#ee8f3f', grupos: 731, mrr: 10.0e6,
+  { numero: 2, nome: 'Território 02', ufs: 'MT + MS · DF · GO / TO', cor: '#ee8f3f', grupos: 731, mrr: 10.0e6,
     porVertical: { agro: { grupos: 94, mrr: 2.1e6 }, construcao: { grupos: 450, mrr: 3.6e6 }, industria: { grupos: 37, mrr: 0.677e6 }, demais: { grupos: 150, mrr: 3.6e6 } } },
-  { numero: 3, nome: 'Território 03', ufs: 'SP', cor: '#6b4fbb', grupos: 1375, mrr: 30.6e6, estimado: true,
-    porVertical: { agro: { grupos: 103, mrr: 3.0e6 }, construcao: { grupos: 352, mrr: 5.9e6 }, industria: { grupos: 323, mrr: 6.4e6 }, demais: { grupos: 597, mrr: 15.3e6 } } },
+  { numero: 3, nome: 'Território 03', ufs: 'São Paulo Capital · Interior', cor: '#8cc63f', grupos: 1374, mrr: 30.5e6,
+    porVertical: { agro: { grupos: 103, mrr: 2.9e6 }, construcao: { grupos: 352, mrr: 5.9e6 }, industria: { grupos: 323, mrr: 6.3e6 }, demais: { grupos: 596, mrr: 15.4e6 } } },
   { numero: 4, nome: 'Território 04', ufs: 'Nordeste · MG · RJ / ES', cor: '#2fae6c', grupos: 882, mrr: 15.8e6,
     porVertical: { agro: { grupos: 101, mrr: 2.2e6 }, construcao: { grupos: 344, mrr: 3.3e6 }, industria: { grupos: 117, mrr: 2.4e6 }, demais: { grupos: 320, mrr: 7.8e6 } } },
+  { numero: 5, nome: 'Território 05', ufs: 'Norte', cor: '#f2a974', grupos: 0, mrr: 0, porVertical: null,
+    nota: ['Novos negócios via canais', 'Base anexa ao Território 02'] },
 ]
 
 export const iniciais = (nome: string | null) =>
