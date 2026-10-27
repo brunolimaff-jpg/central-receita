@@ -700,6 +700,153 @@
     transition-delay: 0ms;
   }
 
+  /* ---------- Sidebar escura ---------- */
+  /*
+   * A coluna vira a peça de marca da tela: vidro escuro em petróleo, com o
+   * wordmark branco oficial e um brilho verde que vaza do topo. O conteúdo
+   * continua em vidro claro, então a navegação se separa sem precisar de borda.
+   * Texto em branco a 72% sobre o fundo mais claro (#0f4a55) passa AA.
+   */
+  .revenue-app .revenue-sidebar {
+    isolation: isolate;
+    border: 1px solid rgb(255 255 255 / 9%);
+    border-radius: 18px;
+    background:
+      radial-gradient(120% 60% at 50% -10%, rgb(0 190 170 / 38%), transparent 60%),
+      radial-gradient(90% 50% at 0% 100%, rgb(60 110 200 / 22%), transparent 70%),
+      linear-gradient(170deg, rgb(13 74 85 / 94%) 0%, rgb(10 52 70 / 95%) 45%, rgb(12 33 62 / 96%) 100%);
+    box-shadow: 0 24px 48px -24px rgb(6 30 50 / 55%), inset 0 1px 0 rgb(255 255 255 / 10%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    backdrop-filter: blur(24px) saturate(150%);
+    color: rgb(255 255 255 / 72%);
+  }
+
+  .revenue-app .revenue-marca-assinatura {
+    color: rgb(255 255 255 / 60%);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .revenue-app .revenue-nav-grupo {
+    margin: 14px 10px 4px;
+    color: rgb(255 255 255 / 42%);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .revenue-app nav > :first-child > .revenue-nav-grupo {
+    margin-top: 0;
+  }
+
+  .revenue-app[data-nav='recolhida'] .revenue-nav-grupo {
+    height: 1px;
+    margin: 10px 14px;
+    background: rgb(255 255 255 / 12%);
+  }
+
+  .revenue-app[data-nav='recolhida'] nav > :first-child > .revenue-nav-grupo {
+    display: none;
+  }
+
+  .revenue-app .revenue-sidebar .revenue-nav-item {
+    color: rgb(255 255 255 / 72%);
+  }
+
+  .revenue-app .revenue-sidebar .revenue-nav-item > :not(.revenue-nav-pill, .revenue-nav-dica) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .revenue-app .revenue-sidebar .revenue-nav-item:hover {
+    background: rgb(255 255 255 / 6%);
+    color: var(--branco);
+  }
+
+  .revenue-app .revenue-sidebar .revenue-nav-item:hover .revenue-nav-icon {
+    background: rgb(255 255 255 / 8%);
+  }
+
+  .revenue-app .revenue-sidebar .revenue-nav-item[aria-current] {
+    color: var(--branco);
+  }
+
+  .revenue-app .revenue-sidebar .revenue-nav-item[aria-current]:hover {
+    background: transparent;
+  }
+
+  .revenue-app .revenue-sidebar .revenue-nav-item[aria-current] .revenue-nav-icon {
+    background: linear-gradient(140deg, #19c2b0, var(--verde-institucional));
+    box-shadow: 0 4px 14px -3px rgb(0 200 180 / 60%), inset 0 1px 0 rgb(255 255 255 / 30%);
+  }
+
+  /* Destaque que desliza (layoutId): vidro verde com filete claro. */
+  .revenue-app .revenue-nav-pill {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border: 1px solid rgb(120 235 215 / 22%);
+    border-radius: 10px;
+    background: linear-gradient(100deg, rgb(0 190 170 / 26%), rgb(0 190 170 / 6%));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%), 0 8px 20px -12px rgb(0 200 180 / 60%);
+  }
+
+  .revenue-app .revenue-sidebar .revenue-nav-selo {
+    box-shadow: 0 0 0 3px rgb(230 150 0 / 22%);
+  }
+
+  .revenue-app .revenue-nav-status {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+    padding: 10px 12px;
+    border: 1px solid rgb(255 255 255 / 8%);
+    border-radius: 12px;
+    background: rgb(255 255 255 / 5%);
+    color: rgb(255 255 255 / 58%);
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  .revenue-app .revenue-nav-status strong {
+    color: var(--branco);
+  }
+
+  .revenue-app .revenue-nav-pulso {
+    position: relative;
+    flex: 0 0 auto;
+    width: 8px;
+    height: 8px;
+    margin-top: 4px;
+    border-radius: 999px;
+    background: #2ee6c8;
+  }
+
+  .revenue-app .revenue-nav-pulso::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: inherit;
+    animation: revenue-pulso 2.4s cubic-bezier(0.2, 0, 0, 1) infinite;
+  }
+
+  @keyframes revenue-pulso {
+    from { opacity: 0.7; transform: scale(1); }
+    to { opacity: 0; transform: scale(3); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .revenue-app .revenue-nav-pulso::after { animation: none; }
+  }
+
+  .revenue-app .revenue-sidebar .revenue-nav-toggle {
+    color: rgb(255 255 255 / 55%);
+  }
+
   /* ---------- Cabeçalho ---------- */
   .revenue-app .revenue-control {
     border: 1px solid var(--vidro-borda);
@@ -1200,10 +1347,15 @@
 }
 
 @media (prefers-reduced-transparency: reduce) {
+  .revenue-app .revenue-sidebar {
+    background: #0c3a4c;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
   .vidro,
   .vidro-forte,
-  .revenue-app .revenue-control,
-  .revenue-app .revenue-sidebar {
+  .revenue-app .revenue-control {
     background: var(--surface-raised);
     border-color: var(--hairline);
     -webkit-backdrop-filter: none;
@@ -1325,7 +1477,8 @@
     display: none;
   }
 
-  .revenue-app .revenue-sidebar nav > .revenue-nav-item:nth-child(n + 5) {
+  .revenue-app .revenue-sidebar nav .revenue-nav-grupo,
+  .revenue-app .revenue-sidebar nav .revenue-nav-item[data-preliminar] {
     display: none;
   }
 

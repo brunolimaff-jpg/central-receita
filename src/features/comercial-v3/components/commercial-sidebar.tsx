@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import { Bell, Building2, ChevronDown, GitBranch, Layers, LayoutDashboard, List, PackagePlus, PanelLeftClose, PanelLeftOpen, Search, Settings2, Target, TrendingUp, Users } from 'lucide-react'
 import { FILTER_LABELS, VIEW_LABELS } from '../copy'
 import { sharedImportEnabled } from '../manual-import-client'
@@ -135,7 +136,7 @@ export function CommercialSidebar({
       */}
       <Link href={nav.href('home')} className="mb-5 flex flex-col items-center gap-1 px-3 pb-1 text-center">
         <Image
-          src="/brand/senior-official-logos/slide-12-logo-01.svg"
+          src="/brand/senior-official-logos/slide-13-logo-01.svg"
           alt="Senior"
           width={112}
           height={36}
@@ -150,12 +151,13 @@ export function CommercialSidebar({
           priority
           className="revenue-marca-simbolo h-[34px] w-auto"
         />
-        <span className="revenue-marca-texto text-[11px] font-medium tracking-[0.02em] text-ink-muted">Central de Receita</span>
+        <span className="revenue-marca-texto revenue-marca-assinatura">Central de Receita</span>
       </Link>
 
       <nav id="revenue-navegacao" aria-label="Seções" className="grid gap-1">
-        {ITENS.map((item) => {
+        {ITENS.map((item, indice) => {
           const Icone = item.icon
+          const abreGrupo = indice === 0 || item.preliminar !== ITENS[indice - 1].preliminar
           const ativo = ativoNoMenu(item)
           const view = item.view
 
@@ -164,13 +166,21 @@ export function CommercialSidebar({
            * sem tela; `view` é obrigatório enquanto isso não acontecer. */
 
           return (
+            <div key={item.key} className="contents">
+            {abreGrupo && (
+              <p className="revenue-nav-grupo">
+                <span className="revenue-nav-rotulo">{item.preliminar ? 'Em prévia' : 'Receita'}</span>
+              </p>
+            )}
             <Link
-              key={item.key}
+              data-preliminar={item.preliminar ? '' : undefined}
               href={naPagina && view && (SECOES as readonly string[]).includes(view) ? `#${view}` : nav.href(view ?? 'home', { from: 'home' })}
               aria-current={ativo ? (pageView === 'home' ? 'location' : 'page') : undefined}
               title={item.preliminar ? `${item.label} · versão preliminar` : item.label}
               className="revenue-nav-item"
             >
+              {/* Um destaque só, que desliza de um item ao outro. */}
+              {ativo && <motion.span aria-hidden layoutId="revenue-nav-ativo" className="revenue-nav-pill" transition={{ type: 'spring', stiffness: 420, damping: 36 }} />}
               <NavIcone icone={Icone} />
               <span className="revenue-nav-rotulo truncate">{item.label}</span>
               {/*
@@ -178,21 +188,13 @@ export function CommercialSidebar({
                 pelo nome do link, não pelo `title` — que muitos leitores
                 ignoram e o teclado só mostra como dica visual.
               */}
-              {item.preliminar && <>
-                <span aria-hidden className="revenue-nav-selo" />
-                <span className="sr-only"> (versão preliminar)</span>
-              </>}
+              {item.preliminar && <span className="sr-only"> (versão preliminar)</span>}
               <NavDica rotulo={item.preliminar ? `${item.label} · versão preliminar` : item.label} />
             </Link>
+            </div>
           )
         })}
       </nav>
-
-      {/* O ponto âmbar marca cada item; esta linha diz o que ele significa. */}
-      <p className="revenue-marca-texto mt-3 flex gap-1.5 px-3 text-[11px] leading-4 text-ink-subtle">
-        <span aria-hidden className="mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-dado-atencao" />
-        Jornada, Sistema de Receita, Contas e Cross estão em versão preliminar.
-      </p>
 
       <div className="mt-auto grid gap-1 pt-4">
         {/*
@@ -217,13 +219,20 @@ export function CommercialSidebar({
           href={nav.href('config')}
           aria-current={configAtiva ? 'page' : undefined}
           title={VIEW_LABELS.config}
-          className="revenue-nav-item border-t border-hairline-suave pt-3"
+          className="revenue-nav-item"
         >
+          {configAtiva && <motion.span aria-hidden layoutId="revenue-nav-ativo" className="revenue-nav-pill" transition={{ type: 'spring', stiffness: 420, damping: 36 }} />}
           <NavIcone icone={Settings2} />
           <span className="revenue-nav-rotulo truncate">{VIEW_LABELS.config}</span>
           <NavDica rotulo={VIEW_LABELS.config} />
         </Link>
-        <p className="revenue-nav-rotulo px-3 pt-1 text-[11px] leading-4 text-ink-muted">{rodape}</p>
+        <p className="revenue-nav-rotulo revenue-nav-status">
+          <span aria-hidden className="revenue-nav-pulso" />
+          <span className="min-w-0">
+            <strong className="block font-semibold">{importPreview ? 'Dados carregados' : 'Demonstração'}</strong>
+            {rodape}
+          </span>
+        </p>
       </div>
     </aside>
   )

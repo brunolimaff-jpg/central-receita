@@ -159,10 +159,9 @@ test('Sistema de Receita não promete que o rail é sempre real', () => {
   assert.doesNotMatch(texto, /O rail de filiais informa quando usa o agregado real de setembro/)
 })
 
-test('o ponto preliminar chega ao leitor de tela por texto, não só por title', () => {
+test('o estado preliminar chega ao leitor de tela por texto, não só por title', () => {
   const texto = sidebar()
   assert.match(texto, /<span className="sr-only"> \(versão preliminar\)<\/span>/)
-  assert.match(texto, /aria-hidden className="revenue-nav-selo"/)
 })
 
 test('a decisão de liberar as quatro áreas está registrada no plano', () => {
