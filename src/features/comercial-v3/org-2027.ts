@@ -47,9 +47,17 @@ export const VERTICAIS: Vertical[] = [
     mrr: 38e6, participacao: 0.49, grupos: 1634,
     diretor: { nome: 'Giovanne Farias', cargo: 'Diretor de segmento' },
     gerentes: [
-      { nome: 'José Tavares', cargo: 'Gerente de Vendas Base', escopo: 'Negócios Públicos' },
-      { nome: 'Raissa Delamora', cargo: 'Gerente de Vendas Base' },
-      { nome: 'Sabrina Bezerra', cargo: 'Gerente de Vendas Novos', escopo: 'Sudeste + Nordeste' },
+      { nome: 'José Tavares', cargo: 'Gerente de Vendas Base', escopo: 'Negócios Públicos', lideres: [
+        { nome: null, cargo: 'Especialista', escopo: 'Negócios Públicos' },
+      ] },
+      { nome: 'Raíssa Delamora', cargo: 'Gerente de Vendas Base', lideres: [
+        { nome: 'Elias Junior', cargo: 'Gerente de Vendas Enterprise', escopo: 'Sul + Centro-Oeste + Norte' },
+        { nome: 'Felipe Santos', cargo: 'Gerente de Vendas Enterprise', escopo: 'Sudeste + Nordeste' },
+        { nome: 'Alice da Silveira dos Reis', cargo: 'Líder de Vendas Base', escopo: 'Sul + Centro-Oeste + Norte' },
+        { nome: 'Juliana Escarabelin Martins', cargo: 'Líder de Vendas Base', escopo: 'SP' },
+        { nome: 'Edmilson Tadeu de Freitas', cargo: 'Líder de Vendas Base', escopo: 'MG · RJ · ES · Nordeste' },
+      ] },
+      { nome: 'Sabrina Bowens', cargo: 'Gerente de Vendas Novos', escopo: 'Sudeste + Nordeste' },
       { nome: 'Carina Baldissera', cargo: 'Gerente de Vendas Novos', escopo: 'Sul + Centro-Oeste' },
     ],
     resumo: '6 gerentes de vendas · 3 líderes de vendas',

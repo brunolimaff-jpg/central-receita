@@ -41,6 +41,11 @@ function Avatar({ pessoa, cor, tamanho = 36 }: { pessoa: Pessoa; cor: string; ta
   )
 }
 
+const ROTULO_CARGO: Record<string, string> = {
+  'Líder de Vendas Base': 'Líder',
+  'Gerente de Vendas Enterprise': 'Enterprise',
+}
+
 /**
  * Gerente e, abaixo, os líderes de vendas em blocos ligados por um traço —
  * a mesma leitura do organograma: gerente → líder → executivos.
@@ -58,10 +63,10 @@ function LinhaPessoa({ pessoa, cor }: { pessoa: Pessoa; cor: string }) {
       {pessoa.lideres && pessoa.lideres.length > 0 && (
         <ul aria-label={`Líderes de vendas de ${pessoa.nome}`} className="ml-[14px] grid gap-1.5 border-l-2 pl-3" style={{ borderColor: `color-mix(in srgb, ${cor} 30%, transparent)` }}>
           {pessoa.lideres.map(lider => (
-            <li key={lider.nome} className="relative rounded-[9px] px-2.5 py-1.5" style={{ background: `color-mix(in srgb, ${cor} 9%, white)` }}>
+            <li key={`${lider.nome}-${lider.escopo}`} className="relative rounded-[9px] px-2.5 py-1.5" style={{ background: `color-mix(in srgb, ${cor} 9%, white)` }}>
               <span aria-hidden className="absolute -left-3 top-1/2 h-0.5 w-3" style={{ background: `color-mix(in srgb, ${cor} 30%, transparent)` }} />
-              <small className="block text-[9px] font-bold uppercase tracking-[0.08em]" style={{ color: `color-mix(in srgb, ${cor} 80%, black)` }}>Líder · {lider.escopo}</small>
-              <strong className="block truncate text-[12px] font-semibold text-ink-strong">{lider.nome}</strong>
+              <small className="block text-[9px] font-bold uppercase tracking-[0.08em]" style={{ color: `color-mix(in srgb, ${cor} 80%, black)` }}>{ROTULO_CARGO[lider.cargo] ?? lider.cargo}{lider.nome ? ` · ${lider.escopo}` : ''}</small>
+              <strong className={`block truncate text-[12px] font-semibold ${lider.nome ? 'text-ink-strong' : 'text-ink-muted'}`}>{lider.nome ?? lider.escopo}</strong>
             </li>
           ))}
         </ul>
