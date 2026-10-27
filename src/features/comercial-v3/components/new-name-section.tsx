@@ -115,10 +115,6 @@ export function NewNameSection({
         />
       </div>
 
-      <Panel titulo="Contas novas por valor" subtitulo="Pedidos novos do período, maiores primeiro.">
-        <ColumnChart colunas={contas} vazio="Nenhum pedido novo no período." />
-      </Panel>
-
       {indicators.sourceOnlyCount > 0 && (
         <p className="rounded-[10px] bg-[#eef2f6] px-4 py-3 text-[13px] leading-5 text-[#52677f]">
           New Name pela fonte: {plural(indicators.sourceOnlyCount, 'pedido', 'pedidos')} com classificação “NOVO” vinda da exportação, ainda sem confirmação institucional.
@@ -132,7 +128,11 @@ export function NewNameSection({
       )}
 
       <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="grid grid-cols-2 gap-3 self-start lg:grid-cols-4">
+        <Panel className="h-full" titulo="Contas novas por valor" subtitulo="Pedidos novos do período, maiores primeiro.">
+          <ColumnChart colunas={contas} vazio="Nenhum pedido novo no período." />
+        </Panel>
+        <div className="grid min-w-0 content-start gap-4">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-3">
           {CARTOES.map(({ key }) => (
             <MovementCard
               key={key}
@@ -147,6 +147,7 @@ export function NewNameSection({
           ))}
         </div>
         <ImpactRing titulo="Impacto no New Name" legenda="Peso de cada movimento no saldo." grupos={anel} saldo={saldo} />
+        </div>
       </div>
 
       <Panel

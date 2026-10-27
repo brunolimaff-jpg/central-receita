@@ -5,9 +5,9 @@ import type { ImportedRecord } from '../manual-import'
 import { buildPipelineOverview, isOpenStage } from '../pipeline-model'
 import { formatarOportunidades, formatarPercentualInteiro, formatarRealCompacto } from '../format'
 import { groupMovements, pipelineMovementRows, type MovementLabel } from '../movement-rows'
-import { BarList, InfoTip, ImpactRing, MetricCard, MovementCard, Panel, PanelSection, type RingGroup } from './executive-ui'
+import { InfoTip, ImpactRing, MetricCard, MovementCard, Panel, PanelSection, type RingGroup } from './executive-ui'
 import { MovementTable } from './movement-table'
-import { ColumnChart } from './charts'
+import { ColumnChart, DonutChart } from './charts'
 
 /**
  * Seção Oportunidades da página corrida (docs/PLANO-VISAO-EXECUTIVA.md §Oportunidades).
@@ -66,8 +66,8 @@ export function PipelineSection({ records, previousRecords = null, referenceDate
         <MetricCard rotulo="Previsão vencida" valor={formatarOportunidades(overview.overdue.length)} nota={`Antes de ${referenceDate.split('-').reverse().join('/')}`} tom="negativo" />
       </div>
 
-      <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="grid grid-cols-2 gap-3 self-start lg:grid-cols-4">
+      {rows !== null && <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-3 self-start">
           {CARTOES.map(({ key }) => (
             <MovementCard
               key={key}
@@ -82,7 +82,7 @@ export function PipelineSection({ records, previousRecords = null, referenceDate
           ))}
         </div>
         <ImpactRing titulo="Impacto na carteira" legenda="Peso de cada movimento no saldo." grupos={anel} saldo={saldo} />
-      </div>
+      </div>}
 
       {rows !== null && <Panel
         titulo={selecionado ? `${selecionado} · ${plural(linhas.length, 'oportunidade', 'oportunidades')}` : 'Principais movimentos da carteira'}
@@ -101,14 +101,15 @@ export function PipelineSection({ records, previousRecords = null, referenceDate
       </Panel>}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Panel titulo="Carteira por etapa">
-          <BarList
-            itens={overview.byStage.map(stage => ({
-              rotulo: stage.stage,
-              valor: `${formatarRealCompacto(stage.value)} · ${stage.count}`,
-              proporcao: (stage.value ?? 0) / maxStageValue,
+        <Panel titulo="Carteira por etapa" subtitulo="Valor e quantidade de oportunidades abertas.">
+          <DonutChart
+            centro={String(overview.open.length)}
+            legendaCentro="abertas"
+            fatias={overview.byStage.map((stage, indice) => ({
+              rotulo: `${stage.stage} · ${stage.count}`,
+              valor: stage.value,
+              cor: ['var(--verde-institucional)', 'var(--verde-claro)', 'var(--dado-info)', 'var(--dado-atencao)', 'var(--ink-muted)'][indice % 5],
             }))}
-            vazio="Sem oportunidades abertas nesta carga."
           />
         </Panel>
         <Panel titulo="Previsão por mês" acao={<InfoTip texto="Valor previsto das oportunidades abertas, do mês da carga aos três seguintes." />}>

@@ -26,7 +26,7 @@ export function DonutChart({ fatias, centro, legendaCentro, tamanho = 148 }: {
   const total = fatias.reduce((soma, fatia) => soma + Math.max(0, fatia.valor ?? 0), 0)
   let acumulado = 0
   return (
-    <div className="flex flex-wrap items-center gap-5">
+    <div className="flex flex-wrap items-center justify-center gap-5">
       <div className="relative shrink-0" style={{ width: tamanho, height: tamanho }}>
         <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90" role="img" aria-label={fatias.map(f => `${f.rotulo} ${formatarRealCompacto(f.valor)}`).join(', ')}>
           <circle cx="50" cy="50" r={raio} fill="none" stroke="var(--surface-sunken)" strokeWidth="11" />
@@ -53,14 +53,14 @@ export function DonutChart({ fatias, centro, legendaCentro, tamanho = 148 }: {
           <small className="mt-1 block text-[11px] text-ink-muted">{legendaCentro}</small>
         </span>
       </div>
-      <ul className="grid min-w-0 flex-1 gap-2.5">
+      <ul className="grid min-w-[12rem] flex-1 gap-2.5">
         {fatias.map(fatia => (
           <li key={fatia.rotulo} className="flex items-center justify-between gap-3 text-[13px]">
             <span className="flex min-w-0 items-center gap-2 text-ink-muted">
               <i aria-hidden className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: fatia.cor }} />
               <span className="truncate">{fatia.rotulo}</span>
             </span>
-            <span className="num font-semibold text-ink-strong">{formatarRealCompacto(fatia.valor)}</span>
+            <span className="num shrink-0 whitespace-nowrap font-semibold text-ink-strong">{formatarRealCompacto(fatia.valor)}</span>
           </li>
         ))}
       </ul>

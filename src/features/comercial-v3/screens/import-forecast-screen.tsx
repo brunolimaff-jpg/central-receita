@@ -174,12 +174,14 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
       }
     >
       <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="grid min-w-0 content-start gap-4">
-          <Panel titulo="Ganhos por semana" subtitulo={`Valor fechado como ganho em ${mesLabel}.`} acao={<InfoTip texto={monthResult.probabilityAvailable ? 'Entram no previsto as oportunidades em Proposta ou Negociação, com chance de 75% ou mais e previsão no mês.' : 'A carga não traz probabilidade: o critério de 75% não foi aplicado.'} />}>
+        <div className="grid min-w-0 gap-4">
+          <Panel className="h-full" titulo="Ganhos por semana" subtitulo={`Valor fechado como ganho em ${mesLabel}.`} acao={<InfoTip texto={monthResult.probabilityAvailable ? 'Entram no previsto as oportunidades em Proposta ou Negociação, com chance de 75% ou mais e previsão no mês.' : 'A carga não traz probabilidade: o critério de 75% não foi aplicado.'} />}>
             <ColumnChart colunas={ganhosPorSemana} vazio="Nenhum ganho registrado no mês." />
           </Panel>
+        </div>
 
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="grid min-w-0 content-start gap-4">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-3">
             {CARTOES_FORECAST.map(({ key }) => {
               const item = grupo(key)
               const ok = disponivel[key as keyof typeof disponivel]
@@ -215,9 +217,9 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
               )
             })}
           </div>
-        </div>
 
         <ImpactRing titulo={period === 'semana' ? 'Impacto no forecast da semana' : 'Impacto no forecast do mês'} legenda="Peso de cada movimento no saldo." grupos={anel} saldo={saldo} rotuloSaldo={period === 'semana' ? 'Saldo da semana' : 'Saldo no mês'} />
+        </div>
       </div>
 
       <Panel

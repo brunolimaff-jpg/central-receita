@@ -291,19 +291,6 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
 
             {temCarga && (
               <>
-                <div className="grid gap-4 md:grid-cols-3">
-                  <Panel titulo="Composição do previsto" className={saldo === null ? "md:col-span-2" : ""}>
-                    <DonutChart
-                      centro={progresso === null ? '—' : formatarPercentualInteiro(progresso / 100)}
-                      legendaCentro="já ganho"
-                      fatias={[
-                        { rotulo: 'Ganhos no CRM', valor: realizado, cor: 'var(--verde-institucional)' },
-                        { rotulo: 'Em aberto', valor: emAberto, cor: 'var(--verde-claro)' },
-                        { rotulo: 'Perdido no mês', valor: Math.abs(grupo('Perdeu')?.value ?? 0), cor: 'var(--dado-negativo)' },
-                      ]}
-                    />
-                  </Panel>
-
                   {saldo !== null && <Panel className="grid content-center gap-3">
                     <span className="text-[13px] font-semibold text-ink-strong">Saldo do mês</span>
                     <strong className={`num text-[26px] font-bold leading-none tracking-[-0.035em] ${saldo === null ? 'text-ink-strong' : saldo > 0 ? 'text-dado-positivo' : saldo < 0 ? 'text-dado-negativo' : 'text-ink-strong'}`}>
@@ -316,24 +303,6 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
                     </p>
                   </Panel>}
 
-                  {/* Base de pedidos: valor absoluto, não fatia dos ganhos no CRM. */}
-                  <Panel className="grid content-center gap-3">
-                    <span className="text-[13px] font-semibold text-ink-strong">Pedidos conferidos</span>
-                    <div className="min-w-0">
-                      <strong className="num block text-[26px] font-bold leading-none tracking-[-0.035em] text-ink-strong">
-                        {newName ? formatarRealCompacto(newName.indicators.realizedValue) : '—'}
-                      </strong>
-                      <small className="mt-1.5 block text-[12px] text-ink-muted">
-                        {newName
-                          ? `${umOuVarios(newName.indicators.realizedCount, 'pedido conferido', 'pedidos conferidos')} · ${umOuVarios(newName.indicators.realizedAccounts, 'conta', 'contas')}`
-                          : 'Sem carga de pedidos'}
-                      </small>
-                      {newName && newName.indicators.realizedValue === null && (
-                        <small className="mt-1 block text-[12px] text-dado-atencao">Há pedido conferido sem valor de manutenção</small>
-                      )}
-                    </div>
-                  </Panel>
-                </div>
               </>
             )}
           </div>
@@ -385,6 +354,35 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
                 </div>
               </Panel>
 
+                  <Panel titulo="Composição do previsto">
+                    <DonutChart
+                      centro={progresso === null ? '—' : formatarPercentualInteiro(progresso / 100)}
+                      legendaCentro="já ganho"
+                      fatias={[
+                        { rotulo: 'Ganhos no CRM', valor: realizado, cor: 'var(--verde-institucional)' },
+                        { rotulo: 'Em aberto', valor: emAberto, cor: 'var(--verde-claro)' },
+                        { rotulo: 'Perdido no mês', valor: Math.abs(grupo('Perdeu')?.value ?? 0), cor: 'var(--dado-negativo)' },
+                      ]}
+                    />
+                  </Panel>
+
+                  {/* Base de pedidos: valor absoluto, não fatia dos ganhos no CRM. */}
+                  <Panel className="grid content-center gap-3">
+                    <span className="text-[13px] font-semibold text-ink-strong">Pedidos conferidos</span>
+                    <div className="min-w-0">
+                      <strong className="num block text-[26px] font-bold leading-none tracking-[-0.035em] text-ink-strong">
+                        {newName ? formatarRealCompacto(newName.indicators.realizedValue) : '—'}
+                      </strong>
+                      <small className="mt-1.5 block text-[12px] text-ink-muted">
+                        {newName
+                          ? `${umOuVarios(newName.indicators.realizedCount, 'pedido conferido', 'pedidos conferidos')} · ${umOuVarios(newName.indicators.realizedAccounts, 'conta', 'contas')}`
+                          : 'Sem carga de pedidos'}
+                      </small>
+                      {newName && newName.indicators.realizedValue === null && (
+                        <small className="mt-1 block text-[12px] text-dado-atencao">Há pedido conferido sem valor de manutenção</small>
+                      )}
+                    </div>
+                  </Panel>
               {forecast && saldo !== null && (
                 <ImpactRing titulo="Impacto no mês" legenda="Peso de cada movimento no saldo." grupos={anelForecast} saldo={saldo} />
               )}
