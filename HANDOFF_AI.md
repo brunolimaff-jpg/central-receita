@@ -1,6 +1,19 @@
 # Handoff — Central de Receita
 
-Atualizado em 26/10/2026. Modo compact-pr. Bruno encerrou para retomar em outro local.
+## Estado em 27/10/2026 — esta worktree
+
+Branch `claude/gifted-mccarthy-odjru5`, que é a que publica a homologação. Três commits nesta data, todos no ar: `1ed4bac` (tipografia da assinatura na sidebar volta a caixa normal, 11px, peso 500), `9fc8789` e `816f8ef` (foto no avatar de cinco executivos, como camada de fundo sobre as iniciais).
+
+- Fotos em `public/pessoas/<slug>.jpg`, 320x320, ~16 KB cada. Slug vem de `slugPessoa()` em `org-2027.ts`. Quem não tem arquivo mostra as iniciais — não existe lista de fotos em código.
+- Publicados: Hermínio Gastaldi, Giovanne Farias, Fernando Silva, Alexandre Mancini, Marcos Paulo Malagola. Bruno decidiu parar nos cinco.
+- **A busca da hierarquia responde "Não autorizado. Usuário não autorizado."** para o usuário do Bruno (`searchHierarchyItem` 401). As 23 pessoas restantes do organograma não são alcançáveis por ali; é bloqueio de permissão.
+- Gates: 264 testes, typecheck e build visual PASS. Deploys `40511916157`, `40515996627`, `40517850570` success.
+- Relatório para o planejador: `docs/planner/2026-10-27-relatorio-planejador.md`.
+- PR 19 segue OPEN/draft em `5dedd87`, intocada por esta sessão.
+
+## Histórico — 26/10/2026
+
+Modo compact-pr. Bruno encerrou para retomar em outro local.
 
 ## Comece por aqui
 
