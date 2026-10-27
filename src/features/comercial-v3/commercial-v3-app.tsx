@@ -24,7 +24,7 @@ import { BranchScreen } from './screens/branch-screen'
 import { CrossScreen } from './screens/cross-screen'
 import { ForecastScreen } from './screens/forecast-screen'
 import { ImportScreen } from './screens/import-screen'
-import { loadImportDraft, loadPreviousDraft, sharedImportEnabled, type ImportDraft } from './manual-import-client'
+import { loadImportDraft, loadPreviousDraft, sharedImportEnabled, visualPreviewEnabled, type ImportDraft } from './manual-import-client'
 import { ExecutivePage } from './screens/executive-page'
 import { JourneyScreen } from './screens/journey-screen'
 import { NewNameScreen } from './screens/new-name-screen'
@@ -55,17 +55,43 @@ export function CommercialV3App() {
   const searchParams = useSearchParams()
   const [importDraft, setImportDraft] = useState<ImportDraft | null>(null)
   const [previousImportDraft, setPreviousImportDraft] = useState<ImportDraft | null>(null)
-  const [canImport, setCanImport] = useState(!sharedImportEnabled)
+  const [canImport, setCanImport] = useState(!sharedImportEnabled && !visualPreviewEnabled)
   const [importLoading, setImportLoading] = useState(true)
   const [importError, setImportError] = useState('')
   const importEpoch = useRef(0)
   useEffect(() => {
     let active = true
+    let prazo: number | undefined
+    /*
+     * Prazo de segurança: se a leitura da carga não responder (IndexedDB
+     * travado por outra aba, armazenamento bloqueado), a tela não pode ficar
+     * em "Carregando a última carga…" para sempre.
+     *
+     * O prazo pertence à consulta vigente (identificada por epoch): uma
+     * consulta nova cancela o prazo da anterior e arma o seu, senão o prazo
+     * de uma consulta velha pode anunciar erro sobre dados que chegaram —
+     * ou ser limpo por uma consulta que terminou, deixando a nova sem rede.
+     *
+     * O prazo NÃO vira estado vazio: "não consegui consultar" e "não há
+     * carga" são fatos diferentes, e trocar um pelo outro esconde falha. O
+     * vazio só aparece quando a consulta respondeu que não há nada.
+     */
+    const armarPrazo = (epoch: number) => {
+      window.clearTimeout(prazo)
+      prazo = window.setTimeout(() => {
+        if (!active || epoch !== importEpoch.current) return
+        setImportLoading(false)
+        setImportError(atual => atual || (sharedImportEnabled
+          ? 'A consulta da última carga não terminou. Verifique a conexão e tente novamente.'
+          : 'A consulta da prévia local não terminou. Outra aba pode estar segurando o armazenamento; feche as outras abas da Central e tente novamente.'))
+      }, 15000)
+    }
     const refresh = () => {
       const epoch = ++importEpoch.current
+      armarPrazo(epoch)
       return Promise.all([loadImportDraft(), loadPreviousDraft()]).then(([access, previous]) => { if (active && epoch === importEpoch.current) { setImportDraft(access.draft); setPreviousImportDraft(previous); setCanImport(access.canImport); setImportError('') } })
         .catch(error => { if (active && epoch === importEpoch.current) { setImportError(error instanceof Error ? error.message : 'Prévia local indisponível.'); if (sharedImportEnabled) { setCanImport(false); setImportDraft(null); setPreviousImportDraft(null) } } })
-        .finally(() => { if (active && epoch === importEpoch.current) setImportLoading(false) })
+        .finally(() => { if (active && epoch === importEpoch.current) { window.clearTimeout(prazo); setImportLoading(false) } })
     }
     void refresh()
     // Do not replace the revision being reviewed while an import is being prepared.
@@ -73,7 +99,7 @@ export function CommercialV3App() {
     const onFocus = () => { if (canRefresh()) void refresh() }
     window.addEventListener('focus', onFocus)
     const timer = sharedImportEnabled ? window.setInterval(() => { if (canRefresh() && document.visibilityState === 'visible') void refresh() }, 60000) : undefined
-    return () => { active = false; window.removeEventListener('focus', onFocus); if (timer) window.clearInterval(timer) }
+    return () => { active = false; window.clearTimeout(prazo); window.removeEventListener('focus', onFocus); if (timer) window.clearInterval(timer) }
   }, [])
 
   const consulta = searchParams.toString()
@@ -84,7 +110,7 @@ export function CommercialV3App() {
    * publicação, o painel mostra somente a carga confirmada: aceitar o parâmetro
    * ali expunha dados de demonstração no endereço do diretor.
    */
-  const demoRequested = !sharedImportEnabled && searchParams.get('demo') === '1'
+  const demoRequested = !visualPreviewEnabled && !sharedImportEnabled && searchParams.get('demo') === '1'
   const sourceView = view === 'forecast' || view === 'new-name'
   // Página corrida: Visão Executiva, Forecast, New Name e Oportunidades numa rolagem só, com a carga real.
   // Com demo=1 cada tela volta ao cenário demonstrativo; a Visão Executiva (home) segue como antes.
@@ -267,12 +293,13 @@ export function CommercialV3App() {
       executiveMode={executiveView}
       dataCarga={cargaNaPagina ? dataCarga : null}
     >
+      {visualPreviewEnabled && <p role="status" className="mb-4 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-700">Homologação visual · dados fictícios · importação e armazenamento desativados.</p>}
       {sharedImportEnabled && view !== 'config' && !executiveView && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#dfe8ef] bg-white px-4 py-3 text-sm text-[#33466c]">
         <p><strong>Cenário demonstrativo.</strong> As cargas CSV/XLSX são consultadas em Forecast e New Name. Esta visão usa o cenário fixo, com agregados por filial identificados na tela.</p>
         <Link href={nav.href('config')} className="font-semibold text-[#086b6b] underline">Consultar cargas</Link>
       </div>}
       {view === 'config' && <ImportScreen draft={importDraft} canImport={canImport} onSaved={draft => { importEpoch.current++; setPreviousImportDraft(importDraft); setImportDraft(draft); setImportError('') }} loading={importLoading} loadError={importError} nav={nav} />}
-      {executiveView && <ExecutivePage opportunities={importDraft?.opportunities ?? null} orders={importDraft?.orders ?? null} previous={previousImportDraft} history={importDraft?.history ?? []} nav={nav} carregando={importLoading && !importDraft} />}
+      {executiveView && <ExecutivePage opportunities={importDraft?.opportunities ?? null} orders={importDraft?.orders ?? null} previous={previousImportDraft} history={importDraft?.history ?? []} nav={nav} carregando={importLoading && !importDraft} falha={importError || null} />}
 
       {view === 'agent' && <AgentScreen briefing={briefing} from={from} nav={nav} />}
 
@@ -281,7 +308,7 @@ export function CommercialV3App() {
       )}
 
       {view === 'system' && (
-        <SystemScreen model={home} filiaisReais={period === 'month'} nav={nav} />
+        <SystemScreen model={home} filiaisReais={!visualPreviewEnabled && period === 'month'} nav={nav} />
       )}
 
       {importError && view !== 'config' && <section className="rounded-xl border border-[#dfe8ef] bg-white p-6 text-sm text-[#33466c]">

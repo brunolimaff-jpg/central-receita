@@ -19,6 +19,8 @@ type ItemNav = {
   label: string
   icon: typeof LayoutDashboard
   view?: CommercialView
+  /** Tela existe e abre, mas o conteúdo ainda é preliminar. */
+  preliminar?: boolean
 }
 
 /** Seções da página corrida, na ordem da sidebar. Cada uma tem âncora e marcação de visibilidade. */
@@ -26,19 +28,21 @@ const SECOES = ['home', 'forecast', 'new-name', 'opportunities'] as const
 type Secao = (typeof SECOES)[number]
 const pertenceAPagina = (view: CommercialView) => (SECOES as readonly string[]).includes(view)
 
-/** Jornada, Sistema de Receita, Contas e Cross ficam "Em breve", sem link (docs/PLANO-VISAO-EXECUTIVA.md §Navegação). */
+/**
+ * Jornada, Sistema de Receita, Contas e Cross já abrem. O conteúdo existe em
+ * rascunho, então cada tela leva o aviso de versão preliminar — o menu sinaliza
+ * a mesma condição em vez de esconder a área.
+ */
 const ITENS: ItemNav[] = [
   { key: 'home', label: VIEW_LABELS.home, icon: LayoutDashboard, view: 'home' },
   { key: 'forecast', label: VIEW_LABELS.forecast, icon: TrendingUp, view: 'forecast' },
   { key: 'new-name', label: VIEW_LABELS['new-name'], icon: Target, view: 'new-name' },
   { key: 'opportunities', label: VIEW_LABELS.opportunities, icon: List, view: 'opportunities' },
-  { key: 'journey', label: VIEW_LABELS.journey, icon: GitBranch },
-  { key: 'system', label: VIEW_LABELS.system, icon: Layers },
-  { key: 'accounts', label: VIEW_LABELS.accounts, icon: Building2 },
-  { key: 'cross', label: VIEW_LABELS.cross, icon: PackagePlus },
+  { key: 'journey', label: VIEW_LABELS.journey, icon: GitBranch, view: 'journey', preliminar: true },
+  { key: 'system', label: VIEW_LABELS.system, icon: Layers, view: 'system', preliminar: true },
+  { key: 'accounts', label: VIEW_LABELS.accounts, icon: Building2, view: 'accounts', preliminar: true },
+  { key: 'cross', label: VIEW_LABELS.cross, icon: PackagePlus, view: 'cross', preliminar: true },
 ]
-
-const PENDENTE = 'Em breve'
 
 export function sectionAtOffset(blocos: Array<{ view: CommercialView; top: number }>): CommercialView {
   return blocos.filter((bloco) => bloco.top <= 120).at(-1)?.view ?? 'home'
@@ -153,44 +157,41 @@ export function CommercialSidebar({
         {ITENS.map((item) => {
           const Icone = item.icon
           const ativo = ativoNoMenu(item)
+          const view = item.view
 
-          if (!item.view) {
-            return (
-              <button
-                key={item.key}
-                type="button"
-                disabled
-                aria-disabled="true"
-                title={`${item.label} · ${PENDENTE}`}
-                className="revenue-nav-item cursor-not-allowed opacity-50"
-              >
-                <NavIcone icone={Icone} />
-                <span className="revenue-nav-rotulo truncate">{item.label}</span>
-                <span className="sr-only"> ({PENDENTE})</span>
-                <NavDica rotulo={`${item.label} · ${PENDENTE}`} />
-              </button>
-            )
-          }
+          /* Sem item pendente hoje: as quatro áreas "Em breve" viraram links
+           * preliminares. O ramo desabilitado volta quando existir área nova
+           * sem tela; `view` é obrigatório enquanto isso não acontecer. */
 
           return (
             <Link
               key={item.key}
-              href={naPagina && (SECOES as readonly string[]).includes(item.view) ? `#${item.view}` : nav.href(item.view, { from: 'home' })}
+              href={naPagina && view && (SECOES as readonly string[]).includes(view) ? `#${view}` : nav.href(view ?? 'home', { from: 'home' })}
               aria-current={ativo ? (pageView === 'home' ? 'location' : 'page') : undefined}
-              title={item.label}
+              title={item.preliminar ? `${item.label} · versão preliminar` : item.label}
               className="revenue-nav-item"
             >
               <NavIcone icone={Icone} />
               <span className="revenue-nav-rotulo truncate">{item.label}</span>
-              <NavDica rotulo={item.label} />
+              {/*
+                O ponto é decoração; o estado precisa chegar ao leitor de tela
+                pelo nome do link, não pelo `title` — que muitos leitores
+                ignoram e o teclado só mostra como dica visual.
+              */}
+              {item.preliminar && <>
+                <span aria-hidden className="revenue-nav-selo" />
+                <span className="sr-only"> (versão preliminar)</span>
+              </>}
+              <NavDica rotulo={item.preliminar ? `${item.label} · versão preliminar` : item.label} />
             </Link>
           )
         })}
       </nav>
 
-      {/* Os itens desabilitados ficam visíveis mas sem selo por item, que não cabe na largura da sidebar. */}
-      <p className="revenue-marca-texto mt-3 px-3 text-[11px] leading-4 text-ink-subtle">
-        Em breve: Jornada, Sistema de Receita, Contas e Cross.
+      {/* O ponto âmbar marca cada item; esta linha diz o que ele significa. */}
+      <p className="revenue-marca-texto mt-3 flex gap-1.5 px-3 text-[11px] leading-4 text-ink-subtle">
+        <span aria-hidden className="mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-dado-atencao" />
+        Jornada, Sistema de Receita, Contas e Cross estão em versão preliminar.
       </p>
 
       <div className="mt-auto grid gap-1 pt-4">
@@ -330,7 +331,7 @@ export function CommercialTopbar({
         <button type="button" className="revenue-control flex h-12 shrink-0 items-center gap-2.5 rounded-[10px] py-1 pl-1.5 pr-3 text-left">
           <span aria-hidden className="grid h-9 w-9 place-items-center rounded-full bg-[linear-gradient(135deg,var(--verde-escuro),var(--verde-medio))] text-[13px] font-bold text-white">G</span>
           <span className="hidden leading-tight min-[1440px]:block">
-            <strong className="block text-[13px] font-semibold text-ink-strong">Giovanni</strong>
+            <strong className="block text-[13px] font-semibold text-ink-strong">{process.env.NEXT_PUBLIC_VISUAL_PREVIEW === '1' ? 'Visitante' : 'Giovanni'}</strong>
             <small className="block text-[11px] text-ink-muted">Diretoria Comercial</small>
           </span>
           <ChevronDown aria-hidden className="hidden h-4 w-4 text-ink-muted min-[1440px]:block" strokeWidth={1.8} />

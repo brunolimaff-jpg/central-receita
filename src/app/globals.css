@@ -304,9 +304,14 @@
     grid-template-columns: 72px minmax(0, 1fr);
   }
 
+  /*
+   * `!important` porque o `flex` do Tailwind no parágrafo da legenda vem
+   * depois desta camada e venceria o `display: none` — e a legenda quebra
+   * palavra por palavra na coluna de 72px (bug visto por Bruno).
+   */
   .revenue-app[data-nav='recolhida'] .revenue-sidebar .revenue-nav-rotulo,
   .revenue-app[data-nav='recolhida'] .revenue-sidebar .revenue-marca-texto {
-    display: none;
+    display: none !important;
   }
 
   /* Recolhida, a marca é só o símbolo: o wordmark não cabe em 72px. */
@@ -582,6 +587,25 @@
   }
 
   /*
+   * Ponto de versão preliminar.
+   *
+   * Jornada, Sistema de Receita, Contas e Cross já abrem, mas ainda não
+   * passaram pelo aceite. Na coluna de 208px, palavra nenhuma cabe depois de
+   * "Sistema de Receita"; o ponto âmbar diz o estado sem competir com o
+   * rótulo, e a legenda sob a navegação explica o que ele marca. O `title`
+   * do item repete a informação para quem chega pelo teclado.
+   */
+  .revenue-app .revenue-nav-selo {
+    margin-left: auto;
+    flex: 0 0 auto;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--dado-atencao);
+    box-shadow: 0 0 0 3px rgb(230 150 0 / 12%);
+  }
+
+  /*
    * Controle de largura da coluna: é um item de navegação como os outros, mas
    * sempre habilitado e com alvo de pelo menos 40px de altura (herdado do item).
    */
@@ -659,10 +683,19 @@
 
   /* ---------- Painel ---------- */
   /* Padding unico de painel. Antes havia 16/18 e 12/14 competindo. */
+  /*
+   * Superfície padrão dos painéis de gráfico e tabela. Sem fundo, os blocos
+   * flutuam direto sobre o gradiente da página — o gráfico "não tem fundo"
+   * (visto por Bruno na Jornada). O vidro é o mesmo material da Visão
+   * Executiva; painéis que precisam de branco puro adicionam bg-white neles.
+   */
   .revenue-app .revenue-panel {
     min-width: 0;
     border-radius: 10px;
     padding: 16px;
+    background: var(--vidro);
+    border: 1px solid var(--vidro-borda-suave);
+    box-shadow: var(--sombra-painel);
   }
 
   /* ---------- Cabeçalho de página das telas internas ---------- */

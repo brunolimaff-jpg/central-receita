@@ -303,6 +303,23 @@ export function normalizeImport(kind: ImportKind, rows: Cell[][]): ImportBatch {
   return result
 }
 
+/**
+ * O que o painel "O que já está carregado" pode afirmar de uma fonte.
+ *
+ * Recebe só o estado persistido. A leitura em curso (`staged`) fica de fora de
+ * propósito: ela ainda não foi salva, e um arquivo com erros nunca será. Dizer
+ * que entrou faria a tela prometer uma gravação que não houve.
+ */
+export function fonteCarregada(saved: ImportBatch | null) {
+  if (!saved) return null
+  const quando = saved.savedAt ?? saved.importedAt ?? null
+  return {
+    filename: saved.filename ?? null,
+    referenceDate: saved.referenceDate ?? null,
+    quando: quando && Number.isFinite(Date.parse(quando)) ? quando : null,
+  }
+}
+
 export function reconcileImports(opportunities: ImportBatch | null, orders: ImportBatch | null) {
   const result = { matchedOrders: 0, unmatchedOrders: 0, conflictingAccounts: 0 }
   if (!opportunities || !orders) return result

@@ -66,11 +66,24 @@ function Sinal({ icone: Icone, tom, titulo, detalhe, href }: {
   )
 }
 
-function EmptySection({ id, titulo, contexto, nav, carregando }: { id: string; titulo: string; contexto: string; nav: CommercialNav; carregando: boolean }) {
+/**
+ * Texto da seção vazia. Três estados, não dois: "ainda carregando", "não
+ * consegui consultar" e "não há carga". Trocar falha por vazio faz a tela
+ * afirmar que não existe dado quando o que existe é um erro de consulta.
+ * A mensagem completa da falha fica só no cartão do topo; aqui é uma linha,
+ * para não repetir três vezes o mesmo aviso na tela.
+ */
+function textoVazio(carregando: boolean, falha: string | null) {
+  if (carregando) return 'Carregando a última carga…'
+  if (falha) return 'Falha na consulta — veja o aviso no topo da página.'
+  return 'Sem carga importada para esta seção.'
+}
+
+function EmptySection({ id, titulo, contexto, nav, carregando, falha }: { id: string; titulo: string; contexto: string; nav: CommercialNav; carregando: boolean; falha: string | null }) {
   return (
     <PanelSection id={id} titulo={titulo} contexto={contexto}>
       <div className={`${PAINEL} flex flex-wrap items-center justify-between gap-3`}>
-        <p className="text-[13px] text-ink-muted">{carregando ? 'Carregando a última carga…' : 'Sem carga importada para esta seção.'}</p>
+        <p className={falha && !carregando ? 'text-[13px] text-dado-atencao' : 'text-[13px] text-ink-muted'}>{textoVazio(carregando, falha)}</p>
         <Link href={nav.href('config')} className="inline-flex min-h-9 items-center gap-1.5 rounded-[10px] border border-brand px-3 text-[13px] font-semibold text-brand-escuro transition-premium hover:bg-dado-positivo-suave">
           Abrir Configurações
           <ArrowRight aria-hidden className="h-3.5 w-3.5" />
@@ -80,7 +93,7 @@ function EmptySection({ id, titulo, contexto, nav, carregando }: { id: string; t
   )
 }
 
-export function ExecutivePage({ opportunities, orders, previous, history, nav, carregando = false }: {
+export function ExecutivePage({ opportunities, orders, previous, history, nav, carregando = false, falha = null }: {
   opportunities: ImportDraft['opportunities']
   orders: ImportDraft['orders']
   previous: ImportDraft | null
@@ -88,6 +101,8 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
   history: ImportHistoryEntry[]
   nav: CommercialNav
   carregando?: boolean
+  /** Mensagem quando a consulta da carga falhou — não confundir com ausência de carga. */
+  falha?: string | null
 }) {
   const referenceDate = opportunities?.referenceDate ?? orders?.referenceDate ?? ''
   const ordersReferenceDate = orders?.referenceDate ?? referenceDate
@@ -178,7 +193,7 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
     { rotulo: 'Alterou valor', movimento: 'Alterou valor', valor: ponte?.alterou ?? null, peso: Math.abs(ponte?.alterou ?? 0) },
   ] : []
 
-  const nome = 'Giovanni'
+  const nome = process.env.NEXT_PUBLIC_VISUAL_PREVIEW === '1' ? 'Visitante' : 'Giovanni'
 
   return (
     <div className="grid min-w-0 gap-5">
@@ -224,10 +239,21 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
 
         <div className={`grid min-w-0 gap-4 ${temCarga ? 'xl:grid-cols-[minmax(0,1fr)_345px]' : ''}`}>
           {!temCarga && (
-            <section aria-label="Sem carga importada" className={`${PAINEL} grid gap-3 xl:col-span-2`}>
-              <p className="text-[15px] font-bold text-ink-strong">{carregando ? 'Carregando a última carga…' : 'Nenhuma carga importada.'}</p>
-              <p className="text-[13px] text-ink-muted">Importe as planilhas de Forecast e New Name em Configurações para ver os números deste mês.</p>
-              <div>
+            <section aria-label={carregando ? 'Carregando a última carga' : falha ? 'Falha ao consultar a carga' : 'Sem carga importada'} aria-live="polite" className={`${PAINEL} grid gap-3 xl:col-span-2`}>
+              <p className={`text-[15px] font-bold ${falha && !carregando ? 'text-dado-atencao' : 'text-ink-strong'}`}>
+                {carregando ? 'Carregando a última carga…' : falha ? 'Não foi possível consultar a carga.' : 'Nenhuma carga importada.'}
+              </p>
+              <p className="text-[13px] text-ink-muted">
+                {falha && !carregando
+                  ? falha
+                  : 'Importe as planilhas de Forecast e New Name em Configurações para ver os números deste mês.'}
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {falha && !carregando && (
+                  <button type="button" onClick={() => window.location.reload()} className="inline-flex min-h-10 items-center gap-2 rounded-[10px] border border-brand px-4 text-[13px] font-semibold text-brand-escuro transition-premium hover:bg-dado-positivo-suave">
+                    Tentar novamente
+                  </button>
+                )}
                 <Link href={nav.href('config')} className="inline-flex min-h-10 items-center gap-2 rounded-[10px] bg-brand-escuro px-4 text-[13px] font-semibold text-white transition-premium hover:bg-verde-escuro">
                   Abrir Configurações
                   <ArrowRight aria-hidden className="h-4 w-4" />
@@ -404,15 +430,15 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
 
       {opportunities
         ? <ImportedForecastScreen batch={opportunities} previousBatch={previous?.opportunities ?? null} referenceDate={referenceDate} focus={pedidoFoco} />
-        : <EmptySection id="forecast" titulo="Forecast" contexto="Previsto, ganhos no CRM e o que mudou desde a carga anterior." nav={nav} carregando={carregando} />}
+        : <EmptySection id="forecast" titulo="Forecast" contexto="Previsto, ganhos no CRM e o que mudou desde a carga anterior." nav={nav} carregando={carregando} falha={falha} />}
 
       {orders
         ? <NewNameSection orders={orders.records} opportunities={opportunities?.records ?? null} previousOrders={previousOrders} previousOpportunities={previousOpportunities} referenceDate={ordersReferenceDate} />
-        : <EmptySection id="new-name" titulo="New Name" contexto="Contas novas, pedidos conferidos e o que saiu do período." nav={nav} carregando={carregando} />}
+        : <EmptySection id="new-name" titulo="New Name" contexto="Contas novas, pedidos conferidos e o que saiu do período." nav={nav} carregando={carregando} falha={falha} />}
 
       {opportunities
         ? <PipelineSection records={opportunities.records} previousRecords={previousOpportunities} referenceDate={referenceDate} />
-        : <EmptySection id="opportunities" titulo="Oportunidades" contexto="Entradas, saídas e mudanças na carteira aberta." nav={nav} carregando={carregando} />}
+        : <EmptySection id="opportunities" titulo="Oportunidades" contexto="Entradas, saídas e mudanças na carteira aberta." nav={nav} carregando={carregando} falha={falha} />}
     </div>
   )
 }
