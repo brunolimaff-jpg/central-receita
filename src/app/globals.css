@@ -558,6 +558,14 @@
     );
     -webkit-backdrop-filter: blur(2px) saturate(112%);
     backdrop-filter: blur(2px) saturate(112%);
+    /* A coluna rola quando o menu não cabe, mas a barra de rolagem fica fora
+     * de vista: ela cortava o vidro e não dizia nada ao leitor. */
+    scrollbar-width: none;
+  }
+
+  .revenue-app .revenue-sidebar::-webkit-scrollbar {
+    width: 0;
+    height: 0;
   }
 
   /*
