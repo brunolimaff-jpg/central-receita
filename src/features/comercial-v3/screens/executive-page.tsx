@@ -292,35 +292,28 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
 
             {temCarga && (
               <>
-                  {/* Base de pedidos: valor absoluto, não fatia dos ganhos no CRM. */}
-                  <Panel className="flex flex-wrap items-center justify-between gap-3">
-                    <span className="text-[13px] font-semibold text-ink-strong">Pedidos conferidos</span>
-                    <div className="min-w-0">
-                      <strong className="num block text-[26px] font-bold leading-none tracking-[-0.035em] text-ink-strong">
-                        {newName ? formatarRealCompacto(newName.indicators.realizedValue) : '—'}
-                      </strong>
-                      <small className="mt-1.5 block text-[12px] text-ink-muted">
-                        {newName
-                          ? `${umOuVarios(newName.indicators.realizedCount, 'pedido conferido', 'pedidos conferidos')} · ${umOuVarios(newName.indicators.realizedAccounts, 'conta', 'contas')}`
-                          : 'Sem carga de pedidos'}
-                      </small>
-                      {newName && newName.indicators.realizedValue === null && (
-                        <small className="mt-1 block text-[12px] text-dado-atencao">Há pedido conferido sem valor de manutenção</small>
-                      )}
-                    </div>
-                  </Panel>
-
-                  {saldo !== null && <Panel className="grid content-center gap-3">
-                    <span className="text-[13px] font-semibold text-ink-strong">Saldo do mês</span>
-                    <strong className={`num text-[26px] font-bold leading-none tracking-[-0.035em] ${saldo === null ? 'text-ink-strong' : saldo > 0 ? 'text-dado-positivo' : saldo < 0 ? 'text-dado-negativo' : 'text-ink-strong'}`}>
-                      {formatarSaldo(saldo)}
-                    </strong>
-                    <p className="text-[12px] text-ink-muted">
-                      {saldo === null
-                        ? 'Entrou e Saiu só aparecem a partir da segunda carga.'
+                  {/* Pedidos e saldo no mesmo formato dos cartões acima: uma grade, sem faixa solta. */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <MetricCard
+                      rotulo="Pedidos conferidos"
+                      valor={newName ? formatarRealCompacto(newName.indicators.realizedValue) : '—'}
+                      nota={newName
+                        ? newName.indicators.realizedValue === null
+                          ? 'Há pedido conferido sem valor de manutenção'
+                          : `${umOuVarios(newName.indicators.realizedCount, 'pedido conferido', 'pedidos conferidos')} · ${umOuVarios(newName.indicators.realizedAccounts, 'conta', 'contas')}`
+                        : 'Sem carga de pedidos'}
+                      info="Base de pedidos: valor absoluto de manutenção dos pedidos conferidos, não uma fatia dos ganhos no CRM."
+                      tom="info"
+                    />
+                    <MetricCard
+                      rotulo="Saldo do mês"
+                      valor={formatarSaldo(saldo)}
+                      nota={saldo === null
+                        ? 'Aparece a partir da segunda carga'
                         : `Entrou ${formatarRealCompacto(ponte?.entrou ?? null)} · Saiu ${formatarRealCompacto(ponte?.saiu ?? null)} · Alterou ${formatarRealCompacto(ponte?.alterou ?? null)}`}
-                    </p>
-                  </Panel>}
+                      tom={saldo === null ? 'marca' : saldo < 0 ? 'negativo' : 'positivo'}
+                    />
+                  </div>
 
               </>
             )}

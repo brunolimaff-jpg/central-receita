@@ -81,11 +81,13 @@ function ColunaVertical({ vertical, indice }: { vertical: Vertical; indice: numb
         <ul className="grid gap-2.5">
           {vertical.gerentes.map(pessoa => <LinhaPessoa key={`${pessoa.nome}-${pessoa.escopo}`} pessoa={pessoa} cor={cor} />)}
         </ul>
-        <div className="mt-auto flex flex-wrap items-center gap-1.5 border-t border-hairline pt-3 text-[11px] text-ink-muted">
+        <div className="mt-auto grid gap-2 border-t border-hairline pt-3 text-[11px] text-ink-muted">
           <span>{vertical.resumo}</span>
-          {vertical.chegando?.map(produto => (
-            <span key={produto} className="rounded-full px-2 py-0.5 font-semibold" style={{ color: cor, background: `color-mix(in srgb, ${cor} 12%, transparent)` }}>{produto} · 2027</span>
-          ))}
+          <span className="flex min-h-[22px] flex-wrap gap-1.5">
+            {vertical.chegando?.map(produto => (
+              <span key={produto} className="rounded-full px-2 py-0.5 font-semibold" style={{ color: cor, background: `color-mix(in srgb, ${cor} 12%, transparent)` }}>Chega em 2027 · {produto}</span>
+            ))}
+          </span>
         </div>
       </div>
     </motion.article>
@@ -150,7 +152,7 @@ export function DiretoriasSection() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: '-30px' }}
             transition={{ ...SPRING_SUAVE, delay: i * 0.08 }}
-            className="vidro relative grid items-center gap-3 overflow-hidden rounded-[14px] p-3 sm:grid-cols-[200px_minmax(0,1fr)_auto]"
+            className="vidro relative grid items-center gap-3 overflow-hidden rounded-[14px] p-3 lg:grid-cols-[190px_minmax(0,1fr)_250px]"
           >
             <span aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-[linear-gradient(90deg,transparent,rgb(31_57_96/7%))]" />
             <div className="flex items-center gap-3">
@@ -158,13 +160,23 @@ export function DiretoriasSection() {
               <span className="leading-tight">
                 <small className="block text-[10px] font-bold uppercase tracking-[0.08em] text-ink-muted">Horizontal</small>
                 <strong className="block text-[15px] font-bold text-ink-strong">{h.nome}</strong>
+                {h.id === 'erp' && <small className="block text-[11px] text-ink-muted">Vendedores de novos clientes</small>}
               </span>
             </div>
-            <ul className="flex flex-wrap gap-1.5">
-              {h.produtos.map(p => <li key={p} className="rounded-full border border-hairline bg-white/80 px-2.5 py-1 text-[12px] font-semibold text-ink-strong">{p}</li>)}
-              <li className="px-1 py-1 text-[12px] text-ink-muted">em todas as verticais →</li>
-            </ul>
-            <div className="flex items-center gap-2.5">
+            <div className="grid min-w-0 gap-2">
+              <ul className="flex flex-wrap gap-1.5">
+                {h.produtos.map(p => <li key={p} className="rounded-full border border-hairline bg-white/80 px-2.5 py-0.5 text-[12px] font-semibold text-ink-strong">{p}</li>)}
+              </ul>
+              <ul aria-label={`${h.nome} atua em todas as verticais`} className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+                {VERTICAIS.map(v => (
+                  <li key={v.id} className="flex items-center gap-1.5 truncate rounded-[8px] px-2 py-1 text-[11px] font-semibold" style={{ color: `color-mix(in srgb, ${v.cor} 75%, black)`, background: `color-mix(in srgb, ${v.cor} 11%, white)` }}>
+                    <i aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: v.cor }} />
+                    <span className="truncate">{v.nome}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex items-center gap-2.5 lg:border-l lg:border-hairline lg:pl-4">
               <Avatar pessoa={h.lider} cor="#1c3a63" tamanho={34} />
               <span className="leading-tight">
                 <strong className={`block text-[13px] font-semibold ${h.lider.nome ? 'text-ink-strong' : 'text-ink-muted'}`}>{h.lider.nome ?? 'Vaga nova'}</strong>
@@ -194,9 +206,9 @@ export function DiretoriasSection() {
                 <small className="block truncate text-[12px]" style={{ color: t.cor }}>{t.ufs}</small>
               </span>
             </div>
-            <div className="mt-3 flex items-baseline justify-between gap-2">
-              <strong className="num text-[22px] font-bold tracking-[-0.03em] text-ink-strong">{formatarRealCompacto(t.mrr)}</strong>
-              <span className="text-[12px] text-ink-muted">{grupos(t.grupos)} grupos · {pct(t.mrr / MRR_TOTAL)}</span>
+            <div className="mt-3">
+              <strong className="num block whitespace-nowrap text-[24px] font-bold leading-none tracking-[-0.03em] text-ink-strong">{formatarRealCompacto(t.mrr)}</strong>
+              <span className="mt-1 block text-[12px] text-ink-muted">{grupos(t.grupos)} grupos · {pct(t.mrr / MRR_TOTAL)} do MRR</span>
             </div>
             <ul className="mt-3 grid gap-1.5">
               {VERTICAIS.map(v => {
@@ -219,7 +231,7 @@ export function DiretoriasSection() {
       <div className="flex flex-wrap items-center gap-2 text-[12px]">
         <span className="font-semibold text-ink-muted">Aquisições no modelo</span>
         {AQUISICOES.contempla.map(n => <span key={n} className="rounded-full bg-dado-positivo-suave px-2.5 py-1 font-semibold text-brand-escuro">✓ {n}</span>)}
-        <span className="ml-2 font-semibold text-ink-muted">Fora</span>
+        <span className="ml-2 font-semibold text-ink-muted">Fora do modelo</span>
         {AQUISICOES.naoContempla.map(n => <span key={n} className="rounded-full bg-surface-sunken px-2.5 py-1 text-ink-muted">{n}</span>)}
       </div>
     </PanelSection>
