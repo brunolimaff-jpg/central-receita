@@ -73,12 +73,13 @@ function ColunaVertical({ vertical, indice }: { vertical: Vertical; indice: numb
         <span aria-hidden className="pointer-events-none absolute inset-0 mix-blend-color" style={{ background: cor }} />
         <span aria-hidden className="pointer-events-none absolute inset-0" style={{ background: `linear-gradient(180deg, color-mix(in srgb, ${cor} 35%, transparent), color-mix(in srgb, ${cor} 75%, black) 120%)` }} />
         <span aria-hidden className="pointer-events-none absolute -left-6 -top-6 h-24 w-24 bg-contain bg-no-repeat opacity-25" style={{ backgroundImage: 'url(/brand/apoio/pontos-branco.png)' }} />
-        {vertical.icone && (
+        {/* Demais Segmentos não tem ícone de segmento: o guarda-chuva é a própria marca Senior. */}
+        {(vertical.icone || vertical.id === 'demais') && (
           <motion.img
             aria-hidden
             alt=""
-            src={`/brand/produtos/${vertical.icone}-branco.png`}
-            className="pointer-events-none absolute -bottom-5 -right-3 h-28 w-auto"
+            src={vertical.icone ? `/brand/produtos/${vertical.icone}-branco.png` : '/brand/senior-official-logos/slide-13-logo-01.svg'}
+            className={vertical.icone ? 'pointer-events-none absolute -bottom-5 -right-3 h-28 w-auto' : 'pointer-events-none absolute -bottom-4 -right-8 h-14 w-auto'}
             initial={{ opacity: 0, scale: 0.85, rotate: -6 }}
             whileInView={{ opacity: 0.22, scale: 1, rotate: -6 }}
             viewport={{ once: true }}
@@ -185,6 +186,8 @@ export function DiretoriasSection() {
             className="vidro relative grid items-center gap-3 overflow-hidden rounded-[14px] p-3 lg:grid-cols-[190px_minmax(0,1fr)_250px]"
           >
             <span aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-[linear-gradient(90deg,transparent,rgb(31_57_96/7%))]" />
+            {/* Ícone oficial da horizontal em marca d'água, como nas verticais. */}
+            <img aria-hidden alt="" src={`/brand/produtos/${h.icone}.png`} className="pointer-events-none absolute -bottom-6 left-[38%] h-24 w-auto -rotate-6 opacity-[0.1]" />
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-[11px] bg-[#1c3a63] shadow-md"><span className="grid h-7 w-7 place-items-center rounded-[8px] bg-white"><ProductIcon solucao={h.nome} tamanho={18} /></span></span>
               <span className="leading-tight">
