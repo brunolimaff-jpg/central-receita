@@ -10,6 +10,7 @@ import { forecastMovementRows, groupMovements, type MovementLabel } from '../mov
 import { ImpactRing, InfoTip, MovementCard, Panel, PanelSection, type RingGroup } from '../components/executive-ui'
 import { ColumnChart, type Coluna } from '../components/charts'
 import { MovementTable } from '../components/movement-table'
+import { ForecastTowersPanel, type ModoRecorte } from '../components/forecast-towers-panel'
 
 /** Cartões do Forecast: Saiu junta as postergadas (ver docs/PLANO-VISAO-EXECUTIVA.md §Forecast). */
 export const CARTOES_FORECAST: ReadonlyArray<{ key: string; labels: MovementLabel[] }> = [
@@ -69,6 +70,7 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
 }) {
   const [period, setPeriod] = useState<ForecastPeriod>('mês')
   const [selecionado, setSelecionado] = useState<string | null>(null)
+  const [recorte, setRecorte] = useState<ModoRecorte>('agora')
   const previous = previousBatch?.records ?? null
 
   useEffect(() => {
@@ -165,12 +167,20 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
       titulo="Forecast"
       contexto={`Previsto, ganhos no CRM e movimentação de ${mesLabel}.`}
       acao={
+        <div className="flex flex-wrap items-center gap-2">
+        <SeletorPeriodo
+          rotulo="Estrutura do forecast"
+          valor={recorte}
+          opcoes={[{ valor: 'agora', texto: 'Agora' }, { valor: '2027', texto: '2027' }]}
+          onChange={valor => setRecorte(valor as ModoRecorte)}
+        />
         <SeletorPeriodo
           rotulo="Período do forecast"
           valor={period}
           opcoes={[{ valor: 'semana', texto: 'Semana' }, { valor: 'mês', texto: 'Mês' }]}
           onChange={valor => { setPeriod(valor as ForecastPeriod); setSelecionado(null); marcarHash(null) }}
         />
+        </div>
       }
     >
       <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -221,6 +231,13 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
         <ImpactRing titulo={period === 'semana' ? 'Impacto no forecast da semana' : 'Impacto no forecast do mês'} legenda="Peso de cada movimento no saldo." grupos={anel} saldo={saldo} rotuloSaldo={period === 'semana' ? 'Saldo da semana' : 'Saldo no mês'} />
         </div>
       </div>
+
+      <ForecastTowersPanel
+        modo={recorte}
+        previstos={result.predicted.records}
+        ganhos={result.realized.records}
+        periodo={period === 'semana' ? 'da semana' : `de ${mesLabel}`}
+      />
 
       <Panel
         titulo={selecionado ? `${selecionado} · ${formatarOportunidades(linhas.length)}` : period === 'semana' ? 'Principais movimentos da semana' : 'Principais movimentos do mês'}

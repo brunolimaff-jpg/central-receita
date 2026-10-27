@@ -20,7 +20,7 @@
         "predictedValue": null,
         "closedValue": 4000,
         "maintenance": null,
-        "product": "",
+        "product": "HCM Indústria",
         "module": "",
         "modality": "",
         "probability": null
@@ -43,7 +43,7 @@
         "predictedValue": null,
         "closedValue": 2500,
         "maintenance": null,
-        "product": "",
+        "product": "TMS Agronegócio",
         "module": "",
         "modality": "",
         "probability": null
@@ -66,7 +66,7 @@
         "predictedValue": null,
         "closedValue": 900,
         "maintenance": null,
-        "product": "",
+        "product": "GRS",
         "module": "",
         "modality": "",
         "probability": null
@@ -89,7 +89,7 @@
         "predictedValue": 6000,
         "closedValue": null,
         "maintenance": null,
-        "product": "",
+        "product": "Wiipo",
         "module": "",
         "modality": "",
         "probability": 0.8
@@ -112,7 +112,7 @@
         "predictedValue": 1500,
         "closedValue": null,
         "maintenance": null,
-        "product": "",
+        "product": "ERP Construção",
         "module": "",
         "modality": "",
         "probability": 0.9
