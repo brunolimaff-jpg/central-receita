@@ -8,25 +8,27 @@ test('segmento vem do produto/módulo e cai em Outros sem correspondência', () 
   assert.equal(segmentoDe(rec({ product: 'ERP Indústria' })), 'Indústria')
   assert.equal(segmentoDe(rec({ module: 'Agronegócio' })), 'Agronegócio')
   assert.equal(segmentoDe(rec({ product: 'Gestão Construção' })), 'Construção')
-  assert.equal(segmentoDe(rec({ product: 'ERP' })), 'Outros')
+  assert.equal(segmentoDe(rec({ product: 'ERP' })), 'Demais Segmentos')
+  assert.equal(segmentoDe(rec({ product: 'Hypnobox' })), 'Construção')
 })
 
-test('horizontal reconhece HCM, Logística, GRS e Wiipo', () => {
+test('horizontal: ERP, HCM (com GRS e Wiipo) e Logística', () => {
   assert.equal(horizontalDe(rec({ product: 'HCM' })), 'HCM')
   assert.equal(horizontalDe(rec({ product: 'TMS' })), 'Logística')
-  assert.equal(horizontalDe(rec({ module: 'GRS' })), 'GRS')
-  assert.equal(horizontalDe(rec({ product: 'Wiipo' })), 'Wiipo')
-  assert.equal(horizontalDe(rec({ product: 'ERP' })), null)
-  assert.equal(horizontalOuSem(rec({ product: 'ERP' })), SEM_HORIZONTAL)
+  assert.equal(horizontalDe(rec({ module: 'GRS' })), 'HCM')
+  assert.equal(horizontalDe(rec({ product: 'Wiipo' })), 'HCM')
+  assert.equal(horizontalDe(rec({ product: 'Senior Capital' })), 'ERP')
+  assert.equal(horizontalDe(rec({ product: 'CRM' })), null)
+  assert.equal(horizontalOuSem(rec({ product: 'CRM' })), SEM_HORIZONTAL)
 })
 
 test('agrupar mantém as torres fixas e soma previsto e ganhos', () => {
-  const previstos = [rec({ product: 'HCM', predictedValue: 300 }), rec({ product: 'ERP Indústria', predictedValue: 200 })]
+  const previstos = [rec({ product: 'HCM', predictedValue: 300 }), rec({ product: 'Manufatura', predictedValue: 200 })]
   const ganhos = [rec({ product: 'HCM', closedValue: 50 })]
   const seg = agruparPor(previstos, ganhos, segmentoDe, SEGMENTOS)
   assert.deepEqual(seg.map(l => l.rotulo), [...SEGMENTOS])
   assert.equal(seg.find(l => l.rotulo === 'Indústria').previsto, 200)
-  assert.equal(seg.find(l => l.rotulo === 'Outros').ganho, 50)
+  assert.equal(seg.find(l => l.rotulo === 'Demais Segmentos').ganho, 50)
   const hor = agruparPor(previstos, ganhos, horizontalOuSem, HORIZONTAIS)
   assert.equal(hor.find(l => l.rotulo === 'HCM').previsto, 300)
   assert.equal(hor.at(-1).rotulo, SEM_HORIZONTAL)

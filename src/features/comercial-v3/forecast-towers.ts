@@ -7,12 +7,12 @@ import type { ImportedRecord } from './manual-import'
  * previsto por caminhos diferentes, nunca uma dentro da outra.
  *
  * A torre sai das colunas produto, módulo e modalidade da planilha. O que não
- * corresponde a nenhum segmento vai para Outros; o que não corresponde a
+ * corresponde a nenhum segmento vai para Demais Segmentos; o que não corresponde a
  * nenhuma horizontal fica "Sem horizontal", visível em vez de sumir.
  */
 
-export const SEGMENTOS = ['Indústria', 'Agronegócio', 'Construção', 'Outros'] as const
-export const HORIZONTAIS = ['HCM', 'Logística', 'GRS', 'Wiipo'] as const
+export const SEGMENTOS = ['Demais Segmentos', 'Agronegócio', 'Construção', 'Indústria'] as const
+export const HORIZONTAIS = ['ERP', 'HCM', 'Logística'] as const
 export const SEM_HORIZONTAL = 'Sem horizontal'
 export const SEM_FILIAL = 'Sem filial'
 
@@ -21,15 +21,15 @@ export type Horizontal = (typeof HORIZONTAIS)[number]
 
 const REGRAS_SEGMENTO: Array<[RegExp, Segmento]> = [
   [/ind[úu]stria|manufatura/i, 'Indústria'],
-  [/agro/i, 'Agronegócio'],
-  [/constru[çc][ãa]o/i, 'Construção'],
+  [/agro|gatec/i, 'Agronegócio'],
+  [/constru[çc][ãa]o|obra prima|hypnobox/i, 'Construção'],
 ]
 
+/** Organograma 2027: ERP + Senior Capital; HCM + GRS + Wiipo; Soluções de Logística. */
 const REGRAS_HORIZONTAL: Array<[RegExp, Horizontal]> = [
-  [/wiipo/i, 'Wiipo'],
-  [/\bGRS\b/i, 'GRS'],
-  [/\bHCM\b|gest[ãa]o de pessoas|folha/i, 'HCM'],
+  [/\bHCM\b|\bGRS\b|wiipo|konviva|jobconvo|gest[ãa]o de pessoas|folha|\bRH\b/i, 'HCM'],
   [/log[íi]stica|\bTMS\b|\bWMS\b|transporte|armaz[ée]m/i, 'Logística'],
+  [/\bERP\b|senior capital|gest[ãa]o empresarial/i, 'ERP'],
 ]
 
 const texto = (record: Pick<ImportedRecord, 'product' | 'module' | 'modality'>) =>
@@ -37,7 +37,7 @@ const texto = (record: Pick<ImportedRecord, 'product' | 'module' | 'modality'>) 
 
 export function segmentoDe(record: Pick<ImportedRecord, 'product' | 'module' | 'modality'>): Segmento {
   const alvo = texto(record)
-  return REGRAS_SEGMENTO.find(([padrao]) => padrao.test(alvo))?.[1] ?? 'Outros'
+  return REGRAS_SEGMENTO.find(([padrao]) => padrao.test(alvo))?.[1] ?? 'Demais Segmentos'
 }
 
 export function horizontalDe(record: Pick<ImportedRecord, 'product' | 'module' | 'modality'>): Horizontal | null {

@@ -8,6 +8,7 @@ import { buildPipelineOverview } from '../pipeline-model'
 import { formatarOportunidades, formatarPercentualInteiro, formatarRealCompacto, formatarSaldo, formatarValorExato } from '../format'
 import { TrajectoryChart, TrajectoryLegend } from '../components/trajectory-chart'
 import { FadeUp, Stagger, StaggerItem } from '../components/motion-primitives'
+import { DiretoriasSection } from '../components/diretorias-section'
 import { BarraProgressoAnimada, ImpactRing, MetricCard, MovementCard, PAINEL, Panel, PanelSection, Selo, formatarDataCurta, type RingGroup, type Tom } from '../components/executive-ui'
 import { DonutChart } from '../components/charts'
 import { NewNameSection } from '../components/new-name-section'
@@ -391,6 +392,8 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
           )}
         </div>
       </section>
+
+      <DiretoriasSection />
 
       {opportunities
         ? <ImportedForecastScreen batch={opportunities} previousBatch={previous?.opportunities ?? null} referenceDate={referenceDate} focus={pedidoFoco} />

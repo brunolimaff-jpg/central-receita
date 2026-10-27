@@ -16,6 +16,7 @@
  */
 export type CommercialView =
   | 'home'
+  | 'diretorias'
   | 'agent'
   | 'journey'
   | 'system'

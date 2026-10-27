@@ -29,6 +29,7 @@ export const KPI_LABELS: Record<KpiKey, string> = {
 
 export const VIEW_LABELS: Record<CommercialView, string> = {
   home: 'Visão Executiva',
+  diretorias: 'Diretorias',
   agent: 'Agente Comercial',
   journey: 'Jornada',
   system: 'Sistema de Receita',
@@ -54,6 +55,7 @@ export const PERIOD_LABELS: Record<CommercialPeriod, string> = {
  */
 export const VOLTAR_POR_ORIGEM: Record<CommercialView, string> = {
   home: 'Voltar à visão executiva',
+  diretorias: 'Voltar às diretorias',
   agent: 'Voltar ao agente',
   journey: 'Voltar à jornada',
   system: 'Voltar ao sistema de receita',
