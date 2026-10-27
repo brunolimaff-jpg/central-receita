@@ -5,8 +5,9 @@ import type { ImportedRecord } from '../manual-import'
 import { buildPipelineOverview, isOpenStage } from '../pipeline-model'
 import { formatarOportunidades, formatarPercentualInteiro, formatarRealCompacto } from '../format'
 import { groupMovements, pipelineMovementRows, type MovementLabel } from '../movement-rows'
-import { BarList, ImpactRing, MetricCard, MovementCard, Panel, PanelSection, type RingGroup } from './executive-ui'
+import { BarList, InfoTip, ImpactRing, MetricCard, MovementCard, Panel, PanelSection, type RingGroup } from './executive-ui'
 import { MovementTable } from './movement-table'
+import { ColumnChart } from './charts'
 
 /**
  * Seção Oportunidades da página corrida (docs/PLANO-VISAO-EXECUTIVA.md §Oportunidades).
@@ -59,8 +60,8 @@ export function PipelineSection({ records, previousRecords = null, referenceDate
       contexto={`Movimentos da carteira aberta, com cobertura até ${mesFinal}.`}
     >
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MetricCard rotulo="Pipeline · mês + 3" valor={formatarRealCompacto(horizonValue)} nota="Previsões no horizonte" tom="marca" />
-        <MetricCard rotulo="Abertas" valor={formatarOportunidades(overview.open.length)} nota="Carteira sem ganho ou perda" tom="info" />
+        <MetricCard rotulo="Pipeline" valor={formatarRealCompacto(horizonValue)} nota="Próximos 3 meses" info="Oportunidades abertas com previsão entre este mês e os três seguintes." tom="marca" />
+        <MetricCard rotulo="Abertas" valor={formatarOportunidades(overview.open.length)} nota="Ainda sem desfecho" tom="info" />
         <MetricCard rotulo="Sem previsão" valor={formatarOportunidades(overview.withoutForecast.length)} nota="Precisam de data de fechamento" tom="atencao" />
         <MetricCard rotulo="Previsão vencida" valor={formatarOportunidades(overview.overdue.length)} nota={`Antes de ${referenceDate.split('-').reverse().join('/')}`} tom="negativo" />
       </div>
@@ -80,12 +81,12 @@ export function PipelineSection({ records, previousRecords = null, referenceDate
             />
           ))}
         </div>
-        <ImpactRing titulo="Impacto na carteira" legenda="Peso de cada movimento; o centro traz o saldo líquido." grupos={anel} saldo={saldo} />
+        <ImpactRing titulo="Impacto na carteira" legenda="Peso de cada movimento no saldo." grupos={anel} saldo={saldo} />
       </div>
 
-      <Panel
+      {rows !== null && <Panel
         titulo={selecionado ? `${selecionado} · ${plural(linhas.length, 'oportunidade', 'oportunidades')}` : 'Principais movimentos da carteira'}
-        subtitulo="Maior impacto primeiro. Δ valor é o efeito no pipeline."
+        subtitulo="Maior impacto primeiro."
         acao={selecionado && (
           <button type="button" onClick={() => setSelecionado(null)} className="rounded-[8px] px-2.5 py-1.5 text-[12px] font-semibold text-brand-escuro transition-premium hover:bg-dado-positivo-suave">
             Mostrar todos
@@ -95,12 +96,12 @@ export function PipelineSection({ records, previousRecords = null, referenceDate
         <MovementTable
           linhas={linhas}
           legenda=""
-          vazio={rows === null ? 'A comparação começa na próxima importação.' : 'Nenhum movimento neste recorte.'}
+          vazio={rows === null ? 'Os movimentos aparecem a partir da segunda carga.' : 'Nenhum movimento neste recorte.'}
         />
-      </Panel>
+      </Panel>}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Panel titulo="Carteira por etapa" subtitulo="Barra proporcional ao maior valor da etapa.">
+        <Panel titulo="Carteira por etapa">
           <BarList
             itens={overview.byStage.map(stage => ({
               rotulo: stage.stage,
@@ -110,18 +111,8 @@ export function PipelineSection({ records, previousRecords = null, referenceDate
             vazio="Sem oportunidades abertas nesta carga."
           />
         </Panel>
-        <Panel titulo="Previsão por mês" subtitulo="Mês da referência e os três seguintes.">
-          <ul className="grid gap-2">
-            {overview.horizon.map(month => {
-              const share = horizonValue !== null && horizonValue > 0 && month.value !== null ? formatarPercentualInteiro(month.value / horizonValue) : '—'
-              return (
-                <li key={month.month} className="flex items-center justify-between gap-2 rounded-[10px] border border-hairline px-3.5 py-2.5 text-[13px]">
-                  <span className="font-medium capitalize text-ink-strong">{mesRotulo(month.month)}</span>
-                  <span className="num text-ink-muted">{month.count === 0 ? 'sem previsão' : `${formatarRealCompacto(month.value)} · ${share}`}</span>
-                </li>
-              )
-            })}
-          </ul>
+        <Panel titulo="Previsão por mês" acao={<InfoTip texto="Valor previsto das oportunidades abertas, do mês da carga aos três seguintes." />}>
+          <ColumnChart colunas={overview.horizon.map((month, indice) => ({ rotulo: mesRotulo(month.month).replace(/ de (\d{4})$/, " '$1").replace(/'20/, "'"), valor: month.value, destaque: indice === 0 }))} vazio="Sem previsão nos próximos meses." />
         </Panel>
       </div>
     </PanelSection>

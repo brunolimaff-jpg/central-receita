@@ -5,7 +5,8 @@ import type { ImportedRecord } from '../manual-import'
 import { calculateNewNameModel, type NewNamePeriod, type OrderSubstatus } from '../new-name-model'
 import { formatarRealCompacto } from '../format'
 import { groupMovements, newNameMovementRows, type MovementLabel } from '../movement-rows'
-import { ImpactRing, MetricCard, MovementCard, Panel, PanelSection, type RingGroup } from './executive-ui'
+import { ImpactRing, InfoTip, MetricCard, MovementCard, Panel, PanelSection, type RingGroup } from './executive-ui'
+import { ColumnChart, type Coluna } from './charts'
 import { MovementTable } from './movement-table'
 import { SeletorPeriodo } from '../screens/import-forecast-screen'
 
@@ -59,6 +60,10 @@ export function NewNameSection({
   const grupo = (key: MovementLabel) => grupos.find(item => item.key === key)!
   const saldo = grupos.some(item => item.value === null) ? null : grupos.reduce((soma, item) => soma + (item.value ?? 0), 0)
   const anel: RingGroup[] = CARTOES.map(({ key }) => ({ rotulo: key, movimento: key, valor: grupo(key).value, peso: grupo(key).weight }))
+  // Maiores contas do período pelo valor do pedido novo.
+  const porConta = new Map<string, number>()
+  for (const row of rows) if (row.movement === 'Ganhou' && row.value !== null) porConta.set(row.account, (porConta.get(row.account) ?? 0) + row.value)
+  const contas: Coluna[] = [...porConta].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([conta, valor], indice) => ({ rotulo: conta, valor, destaque: indice === 0 }))
   const notas: Record<string, string> = {
     Entrou: 'Pedidos novos vs. carga anterior',
     Saiu: 'Deixaram a carteira de pedidos',
@@ -92,7 +97,8 @@ export function NewNameSection({
         <MetricCard
           rotulo="MRR informado"
           valor={formatarRealCompacto(indicators.maintenanceTotal)}
-          nota={indicators.maintenanceTotal === null ? 'Há pedidos sem valor' : 'Soma dos pedidos do período'}
+          nota={indicators.maintenanceTotal === null ? 'Há pedidos sem valor' : 'Recorrente mensal'}
+          info="Soma da manutenção mensal informada nos pedidos do período."
           tom="info"
         />
         <MetricCard
@@ -108,6 +114,10 @@ export function NewNameSection({
           tom="positivo"
         />
       </div>
+
+      <Panel titulo="Contas novas por valor" subtitulo="Pedidos novos do período, maiores primeiro.">
+        <ColumnChart colunas={contas} vazio="Nenhum pedido novo no período." />
+      </Panel>
 
       {indicators.sourceOnlyCount > 0 && (
         <p className="rounded-[10px] bg-[#eef2f6] px-4 py-3 text-[13px] leading-5 text-[#52677f]">
@@ -136,12 +146,12 @@ export function NewNameSection({
             />
           ))}
         </div>
-        <ImpactRing titulo="Impacto no New Name" legenda="Peso de cada movimento; o centro traz o saldo líquido." grupos={anel} saldo={saldo} />
+        <ImpactRing titulo="Impacto no New Name" legenda="Peso de cada movimento no saldo." grupos={anel} saldo={saldo} />
       </div>
 
       <Panel
         titulo={selecionado ? `${selecionado} · ${plural(linhas.length, 'registro', 'registros')}` : 'Principais movimentos do período'}
-        subtitulo="Maior impacto primeiro. Δ valor é o efeito no período."
+        subtitulo="Maior impacto primeiro."
         acao={selecionado && (
           <button type="button" onClick={() => setSelecionado(null)} className="rounded-[8px] px-2.5 py-1.5 text-[12px] font-semibold text-brand-escuro transition-premium hover:bg-dado-positivo-suave">
             Mostrar todos
@@ -151,13 +161,10 @@ export function NewNameSection({
         <MovementTable
           linhas={linhas}
           legenda=""
-          vazio="Nenhum registro neste recorte. A comparação depende da carga anterior."
+          vazio="Nenhum registro neste recorte."
         />
       </Panel>
 
-      <p className="px-1 text-[12px] leading-5 text-ink-muted">
-        Classificação “Novo” provisória, a validar com a Fabi. Realizado oficial só com pedido conferido.
-      </p>
     </PanelSection>
   )
 }

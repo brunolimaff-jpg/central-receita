@@ -7,7 +7,8 @@ import { ponteReconcilia } from '../trajectory-model'
 import { formatarOportunidades, formatarPercentualInteiro, formatarRealCompacto } from '../format'
 import { forecastFocusFromHash, forecastHashFor, HASH_FORECAST_GANHOU, type ForecastFocusMovement } from '../forecast-focus'
 import { forecastMovementRows, groupMovements, type MovementLabel } from '../movement-rows'
-import { BarraProgresso, ImpactRing, MetricCard, MovementCard, Panel, PanelSection, type RingGroup } from '../components/executive-ui'
+import { ImpactRing, InfoTip, MovementCard, Panel, PanelSection, type RingGroup } from '../components/executive-ui'
+import { ColumnChart, type Coluna } from '../components/charts'
 import { MovementTable } from '../components/movement-table'
 
 /** Cartões do Forecast: Saiu junta as postergadas (ver docs/PLANO-VISAO-EXECUTIVA.md §Forecast). */
@@ -150,6 +151,13 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
     { rotulo: 'Alterou valor', movimento: 'Alterou valor', valor: result.bridge?.alterou ?? null, peso: Math.abs(result.bridge?.alterou ?? 0) },
   ]
   const mesLabel = mesPorExtenso(month)
+  // Semanas do mês (1–7, 8–14…) somando o valor das oportunidades ganhas.
+  const ganhosPorSemana: Coluna[] = [0, 1, 2, 3, 4].map(semana => ({
+    rotulo: `Sem ${semana + 1}`,
+    valor: batch.records
+      .filter(record => record.closingDate?.startsWith(month) && /ganh/i.test(`${record.stage} ${record.status}`) && Math.min(4, Math.floor((Number(record.closingDate.slice(8, 10)) - 1) / 7)) === semana)
+      .reduce((soma, record) => soma + (record.closedValue ?? record.predictedValue ?? 0), 0),
+  })).filter((coluna, indice) => indice < 4 || (coluna.valor ?? 0) > 0)
 
   return (
     <PanelSection
@@ -167,25 +175,8 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
     >
       <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="grid min-w-0 content-start gap-4">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <MetricCard rotulo="Previsto para o mês" valor={formatarRealCompacto(projetado)} nota="Ganhos no CRM + aberto elegível" tom="marca" />
-            <MetricCard rotulo="Ganhos no CRM" valor={formatarRealCompacto(realizado)} nota={percentual === null ? 'Ganho no mês' : `${formatarPercentualInteiro(percentual / 100)} do previsto`} tom="positivo" />
-            <MetricCard rotulo="Em aberto" valor={formatarRealCompacto(monthResult.open)} nota="Previsto menos ganhos no CRM" tom="info" />
-          </div>
-
-          <Panel>
-            <div className="flex items-center gap-3">
-              <BarraProgresso valor={percentual ?? 0} rotulo="Ganhos no CRM sobre previsto" />
-              <span className="num shrink-0 text-[13px] font-semibold text-ink-strong">
-                {percentual === null ? '—' : `${formatarPercentualInteiro(percentual / 100)} em ganhos no CRM`}
-              </span>
-            </div>
-            <p className="mt-2.5 text-[12px] text-ink-muted">
-              {period === 'semana'
-                ? 'Semana: entradas, saídas e saldo comparam as carteiras elegíveis na semana nas duas cargas. Ganhos e perdas usam a data de efetivação; previsto, ganhos e em aberto seguem o mês. '
-                : 'Mês da data de referência: cartões, lista e indicadores no mês. '}
-              Meta indisponível na carga.
-            </p>
+          <Panel titulo="Ganhos por semana" subtitulo={`Valor fechado como ganho em ${mesLabel}.`} acao={<InfoTip texto={monthResult.probabilityAvailable ? 'Entram no previsto as oportunidades em Proposta ou Negociação, com chance de 75% ou mais e previsão no mês.' : 'A carga não traz probabilidade: o critério de 75% não foi aplicado.'} />}>
+            <ColumnChart colunas={ganhosPorSemana} vazio="Nenhum ganho registrado no mês." />
           </Panel>
 
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -226,14 +217,14 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
           </div>
         </div>
 
-        <ImpactRing titulo={period === 'semana' ? 'Impacto no forecast da semana' : 'Impacto no forecast do mês'} legenda="Peso de cada movimento; o centro traz o saldo líquido." grupos={anel} saldo={saldo} rotuloSaldo={period === 'semana' ? 'Saldo da semana' : 'Saldo no mês'} />
+        <ImpactRing titulo={period === 'semana' ? 'Impacto no forecast da semana' : 'Impacto no forecast do mês'} legenda="Peso de cada movimento no saldo." grupos={anel} saldo={saldo} rotuloSaldo={period === 'semana' ? 'Saldo da semana' : 'Saldo no mês'} />
       </div>
 
       <Panel
         titulo={selecionado ? `${selecionado} · ${formatarOportunidades(linhas.length)}` : period === 'semana' ? 'Principais movimentos da semana' : 'Principais movimentos do mês'}
         subtitulo={period === 'semana'
-          ? 'Maior impacto primeiro. Δ valor é a variação de valor na janela; Ganhou e Perdeu são desfecho, fora do saldo.'
-          : 'Maior impacto primeiro. Δ valor é a variação de valor no mês; Ganhou e Perdeu são desfecho, fora do saldo.'}
+          ? 'Maior impacto primeiro.'
+          : 'Maior impacto primeiro.'}
         acao={selecionado && (
           <button type="button" onClick={() => { setSelecionado(null); marcarHash(null) }} className="rounded-[8px] px-2.5 py-1.5 text-[12px] font-semibold text-brand-escuro transition-premium hover:bg-dado-positivo-suave">
             Mostrar todos
@@ -243,8 +234,11 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
         <MovementTable
           linhas={linhas}
           legenda=""
-          vazio="Nenhum movimento neste grupo. A comparação depende da carga anterior."
+          vazio="Nenhum movimento neste grupo."
         />
+        <p className="mt-3 text-[12px] text-ink-muted">
+          {' '}Previsão de {dataCurta(result.period.start)} a {dataCurta(result.period.end)}.
+        </p>
       </Panel>
 
       {monthResult.notice && (
@@ -253,13 +247,6 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
         </p>
       )}
 
-      <p className="px-1 text-[12px] leading-5 text-ink-muted">
-        {monthResult.probabilityAvailable
-          ? 'Critério: Proposta ou Negociação, chance de 75% ou mais, previsão no mês.'
-          : 'Probabilidade ausente na carga: o critério de 75% não foi aplicado.'}
-        {outsideRule > 0 && ` ${outsideRule} ${outsideRule === 1 ? 'oportunidade do mês está' : 'oportunidades do mês estão'} fora da régua.`}
-        {' '}Previsão de {dataCurta(result.period.start)} a {dataCurta(result.period.end)}.
-      </p>
     </PanelSection>
   )
 }

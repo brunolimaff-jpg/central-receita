@@ -293,7 +293,7 @@ export function CommercialV3App() {
       executiveMode={executiveView}
       dataCarga={cargaNaPagina ? dataCarga : null}
     >
-      {visualPreviewEnabled && <p role="status" className="mb-4 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-700">Homologação visual · dados fictícios · importação e armazenamento desativados.</p>}
+      {visualPreviewEnabled && <p role="status" className="mb-3 inline-flex rounded-full bg-white/70 px-3 py-1 text-[12px] text-ink-muted">Homologação · dados fictícios</p>}
       {sharedImportEnabled && view !== 'config' && !executiveView && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#dfe8ef] bg-white px-4 py-3 text-sm text-[#33466c]">
         <p><strong>Cenário demonstrativo.</strong> As cargas CSV/XLSX são consultadas em Forecast e New Name. Esta visão usa o cenário fixo, com agregados por filial identificados na tela.</p>
         <Link href={nav.href('config')} className="font-semibold text-[#086b6b] underline">Consultar cargas</Link>

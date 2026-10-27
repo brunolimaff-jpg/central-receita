@@ -3,7 +3,7 @@ name: Homologacao visual (Workers)
 on:
   workflow_dispatch:
   push:
-    branches: [fix/p3-forecast-e-importacao]
+    branches: [fix/p3-forecast-e-importacao, claude/gifted-mccarthy-odjru5]
     paths-ignore:
       - ".scratch/**"
       - "**/*.md"

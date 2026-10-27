@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowDownRight, ArrowUpRight, CheckCircle2, Clock3, Pencil, XCircle, type LucideIcon } from 'lucide-react'
+import { ArrowDownRight, ArrowUpRight, CheckCircle2, Clock3, Info, Pencil, XCircle, type LucideIcon } from 'lucide-react'
 import { BarraAnimada } from './motion-primitives'
 import { formatarRealComSinal, formatarSaldo } from '../format'
 import type { MovementLabel } from '../movement-rows'
@@ -20,10 +20,26 @@ export type Tom = 'marca' | 'positivo' | 'info' | 'atencao' | 'negativo'
 export const PAINEL = 'revenue-panel vidro min-w-0'
 
 /** Cartão de indicador com rótulo, valor, nota e mini-gráfico decorativo. */
-export function MetricCard({ rotulo, valor, nota, tom = 'marca', href, onActivate }: {
+/** Botão de informação: guarda a regra de cálculo fora do texto do cartão. */
+export function InfoTip({ texto }: { texto: string }) {
+  return (
+    <span className="revenue-info relative inline-flex">
+      <button type="button" aria-label={`Como é calculado: ${texto}`} onClick={evento => { evento.preventDefault(); evento.stopPropagation() }} className="peer grid h-5 w-5 place-items-center rounded-full text-ink-subtle transition-colors hover:text-brand-escuro focus-visible:outline-2 focus-visible:outline-brand-escuro">
+        <Info aria-hidden className="h-3.5 w-3.5" strokeWidth={2} />
+      </button>
+      <span role="tooltip" className="pointer-events-none absolute right-0 top-6 z-20 w-56 rounded-[10px] bg-ink-strong px-3 py-2 text-[12px] font-normal leading-4 text-white opacity-0 shadow-lg transition-opacity peer-hover:opacity-100 peer-focus-visible:opacity-100">
+        {texto}
+      </span>
+    </span>
+  )
+}
+
+export function MetricCard({ rotulo, valor, nota, info, tom = 'marca', href, onActivate }: {
   rotulo: string
   valor: string
   nota?: string
+  /** Regra de cálculo, mostrada no botão de informação. */
+  info?: string
   tom?: Tom
   href?: string
   /**
@@ -36,7 +52,10 @@ export function MetricCard({ rotulo, valor, nota, tom = 'marca', href, onActivat
     <>
       <span aria-hidden className="revenue-metric-dot" />
       <div className="min-w-0">
-        <span className="revenue-metric-label block truncate">{rotulo}</span>
+        <span className="flex items-center justify-between gap-2">
+          <span className="revenue-metric-label block truncate">{rotulo}</span>
+          {info && <InfoTip texto={info} />}
+        </span>
         <strong className="revenue-metric-value num block tabular-nums text-ink-strong">{valor}</strong>
         {nota && <small className="revenue-metric-note block truncate">{nota}</small>}
       </div>
@@ -150,6 +169,8 @@ type MovementCardProps = {
 const SEM_CARGA_ANTERIOR = { contagem: 'Sem carga anterior', nota: 'A comparação começa na próxima importação' } as const
 
 export function MovementCard({ movimento, titulo, valor, contagem, nota, disponivel, motivoIndisponivel = SEM_CARGA_ANTERIOR, href, selecionado = false, onSelecionar }: MovementCardProps) {
+  // Sem base de comparação o cartão não tem o que dizer: some em vez de mostrar "—".
+  if (!disponivel) return null
   const visual = MOVIMENTO[movimento]
   const Icone = visual.icon
   const corValor = !disponivel || valor === null || valor === 0
@@ -207,6 +228,7 @@ const COR_ANEL: Record<MovementLabel, string> = {
 export function ImpactRing({ titulo, legenda, grupos, saldo, rotuloSaldo = 'Saldo no mês' }: { titulo: string; legenda: string; grupos: RingGroup[]; saldo: number | null; rotuloSaldo?: string }) {
   const maior = grupos.reduce((maximo, grupo) => Math.max(maximo, grupo.peso), 0)
   const comValor = grupos.some(grupo => grupo.valor !== null)
+  if (!comValor) return null
   return (
     <Panel titulo={titulo} subtitulo={legenda} className="self-start">
       {comValor ? (

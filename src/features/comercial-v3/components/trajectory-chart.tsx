@@ -484,7 +484,7 @@ export function TrajectoryChart({ model, altura = ALTURA }: { model: TrajectoryM
         )}
       </div>
 
-      <div className="mt-1 flex min-w-0 gap-1 overflow-x-auto scroll-discreta" aria-label="Inspecionar datas da trajetória">
+      <div className="sr-only focus-within:not-sr-only focus-within:mt-1 focus-within:flex focus-within:min-w-0 focus-within:gap-1 focus-within:overflow-x-auto" aria-label="Inspecionar datas da trajetória">
         {colunas.map((coluna, indice) => {
           const resumo = lerColuna(indice).map(item => descrever(item.rotulo, item.valor)).join(', ')
           return (
@@ -508,10 +508,8 @@ export function TrajectoryChart({ model, altura = ALTURA }: { model: TrajectoryM
         })}
       </div>
 
-      <div role="status" aria-live="polite" className="mt-2 min-h-9 rounded-[8px] border border-hairline bg-white/75 px-3 py-2 text-[12px]">
-        {colunaAtiva && leitura.length > 0
-          ? <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1"><span className="text-ink-muted">{colunaAtiva.label}</span>{leitura.map(item => <strong key={item.rotulo} className="num font-bold" style={{ color: item.cor }}>{item.rotulo} {formatarRealCompacto(item.valor)}</strong>)}</span>
-          : <span className="text-ink-muted">Passe o mouse ou use Tab e as setas para inspecionar o acumulado de cada data.</span>}
+      <div role="status" aria-live="polite" className={colunaAtiva && leitura.length > 0 ? 'mt-2 rounded-[8px] border border-hairline bg-white/75 px-3 py-2 text-[12px]' : 'sr-only'}>
+        {colunaAtiva && leitura.length > 0 && <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1"><span className="text-ink-muted">{colunaAtiva.label}</span>{leitura.map(item => <strong key={item.rotulo} className="num font-bold" style={{ color: item.cor }}>{item.rotulo} {formatarRealCompacto(item.valor)}</strong>)}</span>}
       </div>
 
       <footer className="mt-3 flex flex-wrap items-baseline gap-x-6 gap-y-1 border-t border-hairline pt-3 text-[12px]">
