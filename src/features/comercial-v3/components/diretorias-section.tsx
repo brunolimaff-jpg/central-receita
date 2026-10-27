@@ -9,6 +9,16 @@ import { ProductIcon } from './product-icon'
 
 const pct = (razao: number) => `${Math.round(razao * 100)}%`
 const grupos = (n: number) => n.toLocaleString('pt-BR')
+/** Marcas do grupo com arquivo oficial no design system; as demais seguem por nome. */
+const LOGO_MARCA: Record<string, string> = {
+  Konviva: '/brand/marcas/konviva.png',
+  Jobconvo: '/brand/marcas/jobconvo.png',
+  Hypnobox: '/brand/marcas/hypnobox.png',
+  GATEC: '/brand/marcas/gatec.png',
+  Novasoft: '/brand/marcas/novasoft.png',
+  Wiipo: '/brand/marcas/wiipo.png',
+  'Senior Capital': '/brand/marcas/senior-capital.png',
+}
 const TOTAL_GRUPOS = VERTICAIS.reduce((soma, v) => soma + v.grupos, 0)
 
 /** Avatar por iniciais na cor da vertical; vaga aberta vira contorno tracejado. */
@@ -53,8 +63,28 @@ function ColunaVertical({ vertical, indice }: { vertical: Vertical; indice: numb
       transition={{ ...SPRING_SUAVE, delay: indice * 0.07 }}
       className="vidro relative flex min-w-0 flex-col overflow-hidden rounded-[18px]"
     >
-      <header className="relative overflow-hidden px-4 pb-4 pt-4 text-white" style={{ background: `radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, ${cor} 70%, white), transparent 60%), ${cor}` }}>
-        <span aria-hidden className="absolute -right-6 -top-8 h-28 w-28 rounded-full bg-white/15 blur-xl" />
+      <header className="relative overflow-hidden px-4 pb-4 pt-4 text-white" style={{ background: cor }}>
+        {/*
+          Fundo oficial do design system (malha com granulado, grupo Fundos),
+          tingido com a cor da vertical; ícone branco do segmento em marca
+          d'água e a malha de pontos como elemento de apoio.
+        */}
+        <span aria-hidden className="pointer-events-none absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url(/brand/apoio/fundo-gradiente-verde-roxo.jpg)' }} />
+        <span aria-hidden className="pointer-events-none absolute inset-0 mix-blend-color" style={{ background: cor }} />
+        <span aria-hidden className="pointer-events-none absolute inset-0" style={{ background: `linear-gradient(180deg, color-mix(in srgb, ${cor} 35%, transparent), color-mix(in srgb, ${cor} 75%, black) 120%)` }} />
+        <span aria-hidden className="pointer-events-none absolute -left-6 -top-6 h-24 w-24 bg-contain bg-no-repeat opacity-25" style={{ backgroundImage: 'url(/brand/apoio/pontos-branco.png)' }} />
+        {vertical.icone && (
+          <motion.img
+            aria-hidden
+            alt=""
+            src={`/brand/produtos/${vertical.icone}-branco.png`}
+            className="pointer-events-none absolute -bottom-5 -right-3 h-28 w-auto"
+            initial={{ opacity: 0, scale: 0.85, rotate: -6 }}
+            whileInView={{ opacity: 0.22, scale: 1, rotate: -6 }}
+            viewport={{ once: true }}
+            transition={{ type: 'spring', stiffness: 80, damping: 18, delay: 0.15 + indice * 0.07 }}
+          />
+        )}
         <div className="relative flex min-h-9 items-center justify-between gap-2">
           <h3 className="text-[16px] font-bold tracking-[-0.02em]">{vertical.nome}</h3>
           {vertical.icone && (
@@ -165,7 +195,11 @@ export function DiretoriasSection() {
             </div>
             <div className="grid min-w-0 gap-2">
               <ul className="flex flex-wrap gap-1.5">
-                {h.produtos.map(p => <li key={p} className="rounded-full border border-hairline bg-white/80 px-2.5 py-0.5 text-[12px] font-semibold text-ink-strong">{p}</li>)}
+                {h.produtos.map(p => (
+                  <li key={p} className="inline-flex h-7 items-center rounded-full border border-hairline bg-white/85 px-2.5 text-[12px] font-semibold text-ink-strong">
+                    {LOGO_MARCA[p] ? <img src={LOGO_MARCA[p]} alt={p} className="h-3.5 w-auto" /> : p}
+                  </li>
+                ))}
               </ul>
               <ul aria-label={`${h.nome} atua em todas as verticais`} className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
                 {VERTICAIS.map(v => (
@@ -230,9 +264,17 @@ export function DiretoriasSection() {
 
       <div className="flex flex-wrap items-center gap-2 text-[12px]">
         <span className="font-semibold text-ink-muted">Aquisições no modelo</span>
-        {AQUISICOES.contempla.map(n => <span key={n} className="rounded-full bg-dado-positivo-suave px-2.5 py-1 font-semibold text-brand-escuro">✓ {n}</span>)}
+        {AQUISICOES.contempla.map(n => (
+          <span key={n} className="inline-flex h-9 items-center rounded-[10px] border border-white bg-white/85 px-2.5 shadow-sm">
+            {LOGO_MARCA[n] ? <img src={LOGO_MARCA[n]} alt={n} className="h-5 w-auto" /> : <span className="font-semibold text-ink-strong">{n}</span>}
+          </span>
+        ))}
         <span className="ml-2 font-semibold text-ink-muted">Fora do modelo</span>
-        {AQUISICOES.naoContempla.map(n => <span key={n} className="rounded-full bg-surface-sunken px-2.5 py-1 text-ink-muted">{n}</span>)}
+        {AQUISICOES.naoContempla.map(n => (
+          <span key={n} className="inline-flex h-9 items-center rounded-[10px] bg-surface-sunken px-2.5 opacity-60 grayscale">
+            {LOGO_MARCA[n] ? <img src={LOGO_MARCA[n]} alt={n} className="h-5 w-auto" /> : <span className="text-ink-muted">{n}</span>}
+          </span>
+        ))}
       </div>
     </PanelSection>
   )
