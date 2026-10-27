@@ -2,7 +2,9 @@
 
 ## Estado em 27/10/2026 — esta worktree
 
-Branch `claude/gifted-mccarthy-odjru5`, que é a que publica a homologação. Três commits nesta data, todos no ar: `1ed4bac` (tipografia da assinatura na sidebar volta a caixa normal, 11px, peso 500), `9fc8789` e `816f8ef` (foto no avatar de cinco executivos, como camada de fundo sobre as iniciais).
+Narrativa completa no Vault: `Bruno Vault/Sessões/2026-10/2026-10-27T14-30-00-central-receita-fotos-organograma-tipografia.md`.
+
+Branch `claude/gifted-mccarthy-odjru5`, que é a que publica a homologação. Quatro commits nesta data (o último só documentação): `1ed4bac` (tipografia da assinatura na sidebar volta a caixa normal, 11px, peso 500), `9fc8789` e `816f8ef` (foto no avatar de cinco executivos, como camada de fundo sobre as iniciais).
 
 - Fotos em `public/pessoas/<slug>.jpg`, 320x320, ~16 KB cada. Slug vem de `slugPessoa()` em `org-2027.ts`. Quem não tem arquivo mostra as iniciais — não existe lista de fotos em código.
 - Publicados: Hermínio Gastaldi, Giovanne Farias, Fernando Silva, Alexandre Mancini, Marcos Paulo Malagola. Bruno decidiu parar nos cinco.
