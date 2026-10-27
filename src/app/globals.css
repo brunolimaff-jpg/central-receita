@@ -139,9 +139,9 @@
   --dado-info-suave: #eaf2fb;
 
   /* ---------- Superfície de vidro (glassmorphism) ---------- */
-  --vidro: rgb(255 255 255 / 88%);
-  --vidro-forte: rgb(255 255 255 / 95%);
-  --vidro-borda: rgb(255 255 255 / 82%);
+  --vidro: rgb(255 255 255 / 70%);
+  --vidro-forte: rgb(255 255 255 / 86%);
+  --vidro-borda: rgb(255 255 255 / 72%);
   --vidro-borda-suave: rgb(14 63 88 / 10%);
   /*
    * Sombra em três camadas, emprestada do pack Aurora do Scout 360.
@@ -158,7 +158,7 @@
   --vidro-sombra-hover:
     0 4px 10px rgb(8 107 107 / 7%),
     0 22px 56px rgb(8 107 107 / 14%);
-  --vidro-brilho: inset 0 1px 0 rgb(255 255 255 / 90%);
+  --vidro-brilho: inset 0 1px 0 rgb(255 255 255 / 95%), inset 0 -1px 0 rgb(255 255 255 / 30%);
 
   /*
    * ---------- Aurora ----------
@@ -390,7 +390,7 @@
   .revenue-blob-1 {
     width: 680px; height: 680px;
     top: -240px; left: -160px;
-    background: radial-gradient(circle at 30% 30%, rgb(0 175 155 / 40%), rgb(0 175 155 / 0) 70%);
+    background: radial-gradient(circle at 30% 30%, rgb(0 175 155 / 48%), rgb(0 175 155 / 0) 70%);
     animation: revenue-drift-1 46s ease-in-out infinite alternate;
   }
 
@@ -404,14 +404,14 @@
   .revenue-blob-3 {
     width: 620px; height: 620px;
     bottom: -280px; left: 30%;
-    background: radial-gradient(circle at 50% 50%, rgb(0 150 140 / 22%), rgb(0 150 140 / 0) 70%);
+    background: radial-gradient(circle at 50% 50%, rgb(0 150 140 / 34%), rgb(0 150 140 / 0) 70%);
     animation: revenue-drift-3 64s ease-in-out infinite alternate;
   }
 
   .revenue-blob-4 {
     width: 460px; height: 460px;
     bottom: 6%; right: -120px;
-    background: radial-gradient(circle at 50% 50%, rgb(42 196 170 / 12%), rgb(42 196 170 / 0) 70%);
+    background: radial-gradient(circle at 50% 50%, rgb(42 196 170 / 30%), rgb(42 196 170 / 0) 70%);
     animation: revenue-drift-2 72s ease-in-out infinite alternate-reverse;
   }
 
@@ -479,17 +479,45 @@
   }
 
 
+  /*
+   * Vidro mais translúcido: o painel deixa a aurora aparecer e a borda
+   * clara em diagonal faz o reflexo. O degradê nunca desce de 62% de branco,
+   * para o texto `ink-muted` continuar no AA sobre o fundo claro.
+   */
   .vidro,
   .vidro-forte {
-    background: var(--vidro);
+    position: relative;
+    background:
+      linear-gradient(145deg, rgb(255 255 255 / 84%) 0%, var(--vidro) 45%, rgb(255 255 255 / 62%) 100%);
     border: 1px solid var(--vidro-borda);
     box-shadow: var(--vidro-sombra), var(--vidro-brilho);
-    -webkit-backdrop-filter: blur(18px) saturate(118%);
-    backdrop-filter: blur(18px) saturate(118%);
+    -webkit-backdrop-filter: blur(26px) saturate(165%);
+    backdrop-filter: blur(26px) saturate(165%);
+  }
+
+  .vidro::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(140deg, rgb(255 255 255 / 95%), rgb(255 255 255 / 0) 38%, rgb(0 175 155 / 0) 70%, rgb(0 175 155 / 28%));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
   }
 
   .vidro-forte {
     background: var(--vidro-forte);
+  }
+
+  /* Blob extra no meio da página: sem ele, o vidro abaixo da dobra não tem o que refratar. */
+  .revenue-blob-5 {
+    width: 560px; height: 560px;
+    top: 42%; left: 12%;
+    background: radial-gradient(circle at 50% 50%, rgb(18 200 180 / 22%), rgb(18 200 180 / 0) 70%);
+    animation: revenue-drift-1 80s ease-in-out infinite alternate-reverse;
   }
 
   /* ---------- Marca na coluna ---------- */
@@ -691,11 +719,23 @@
    */
   .revenue-app .revenue-panel {
     min-width: 0;
-    border-radius: 10px;
-    padding: 16px;
-    background: var(--vidro);
+    border-radius: 16px;
+    padding: 18px;
+  }
+
+  /* Painel sem a classe de vidro continua com a superfície chapada. */
+  .revenue-app .revenue-panel:not(.vidro) {
+    background: var(--vidro-forte);
     border: 1px solid var(--vidro-borda-suave);
     box-shadow: var(--sombra-painel);
+  }
+
+  .revenue-app .revenue-panel.vidro {
+    transition: box-shadow 220ms cubic-bezier(0.2, 0, 0, 1), transform 220ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  .revenue-app .revenue-panel.vidro:hover {
+    box-shadow: var(--vidro-sombra-hover), var(--vidro-brilho);
   }
 
   /* ---------- Cabeçalho de página das telas internas ---------- */

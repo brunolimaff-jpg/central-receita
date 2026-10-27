@@ -14,7 +14,7 @@ import { AGENT_DEMO_FOOTER, AGENT_DEMO_SNAPSHOT } from './demo-display'
 export const HOME_COPY = {
   greeting: 'Visão Executiva',
   greetingEmoji: '👋',
-  briefingTitle: 'Briefing de hoje',
+  briefingTitle: 'Resumo de hoje',
   briefingSubtitle: 'Principais movimentos e sinais do período.',
   agentCta: 'Abrir agente comercial',
 } as const

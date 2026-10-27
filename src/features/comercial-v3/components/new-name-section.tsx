@@ -95,10 +95,10 @@ export function NewNameSection({
           tom="marca"
         />
         <MetricCard
-          rotulo="MRR informado"
+          rotulo="Mensalidade nova"
           valor={formatarRealCompacto(indicators.maintenanceTotal)}
           nota={indicators.maintenanceTotal === null ? 'Há pedidos sem valor' : 'Recorrente mensal'}
-          info="Soma da manutenção mensal informada nos pedidos do período."
+          info="Soma da manutenção mensal (MRR) informada nos pedidos do período."
           tom="info"
         />
         <MetricCard
@@ -117,7 +117,7 @@ export function NewNameSection({
 
       {indicators.sourceOnlyCount > 0 && (
         <p className="rounded-[10px] bg-[#eef2f6] px-4 py-3 text-[13px] leading-5 text-[#52677f]">
-          New Name pela fonte: {plural(indicators.sourceOnlyCount, 'pedido', 'pedidos')} com classificação “NOVO” vinda da exportação, ainda sem confirmação institucional.
+          {plural(indicators.sourceOnlyCount, 'pedido marcado', 'pedidos marcados')} como novo na planilha ainda sem confirmação. Eles já entram nos números acima.
         </p>
       )}
 

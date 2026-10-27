@@ -275,7 +275,7 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
                   <TrajectoryLegend model={trajectory} />
                 </header>
               )}
-              <TrajectoryChart model={trajectory} altura={200} />
+              <TrajectoryChart model={trajectory} altura={250} />
             </section>
             {/* Três por linha no desktop: cinco colunas deixavam cada número
                 com menos de 200px e truncavam "R$ 29,3 mi" em "R$ 2…". */}
@@ -291,6 +291,24 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
 
             {temCarga && (
               <>
+                  {/* Base de pedidos: valor absoluto, não fatia dos ganhos no CRM. */}
+                  <Panel className="flex flex-wrap items-center justify-between gap-3">
+                    <span className="text-[13px] font-semibold text-ink-strong">Pedidos conferidos</span>
+                    <div className="min-w-0">
+                      <strong className="num block text-[26px] font-bold leading-none tracking-[-0.035em] text-ink-strong">
+                        {newName ? formatarRealCompacto(newName.indicators.realizedValue) : '—'}
+                      </strong>
+                      <small className="mt-1.5 block text-[12px] text-ink-muted">
+                        {newName
+                          ? `${umOuVarios(newName.indicators.realizedCount, 'pedido conferido', 'pedidos conferidos')} · ${umOuVarios(newName.indicators.realizedAccounts, 'conta', 'contas')}`
+                          : 'Sem carga de pedidos'}
+                      </small>
+                      {newName && newName.indicators.realizedValue === null && (
+                        <small className="mt-1 block text-[12px] text-dado-atencao">Há pedido conferido sem valor de manutenção</small>
+                      )}
+                    </div>
+                  </Panel>
+
                   {saldo !== null && <Panel className="grid content-center gap-3">
                     <span className="text-[13px] font-semibold text-ink-strong">Saldo do mês</span>
                     <strong className={`num text-[26px] font-bold leading-none tracking-[-0.035em] ${saldo === null ? 'text-ink-strong' : saldo > 0 ? 'text-dado-positivo' : saldo < 0 ? 'text-dado-negativo' : 'text-ink-strong'}`}>
@@ -309,7 +327,7 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
 
           {temCarga && (
             <aside className="grid content-start gap-4">
-              <Panel titulo="Briefing de hoje">
+              <Panel titulo="Resumo de hoje">
                 <div className="grid gap-2.5">
                   {(saldo !== null || (ponte && !ponte.comparavel)) && <Sinal
                     icone={TrendingUp}
@@ -366,23 +384,6 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
                     />
                   </Panel>
 
-                  {/* Base de pedidos: valor absoluto, não fatia dos ganhos no CRM. */}
-                  <Panel className="grid content-center gap-3">
-                    <span className="text-[13px] font-semibold text-ink-strong">Pedidos conferidos</span>
-                    <div className="min-w-0">
-                      <strong className="num block text-[26px] font-bold leading-none tracking-[-0.035em] text-ink-strong">
-                        {newName ? formatarRealCompacto(newName.indicators.realizedValue) : '—'}
-                      </strong>
-                      <small className="mt-1.5 block text-[12px] text-ink-muted">
-                        {newName
-                          ? `${umOuVarios(newName.indicators.realizedCount, 'pedido conferido', 'pedidos conferidos')} · ${umOuVarios(newName.indicators.realizedAccounts, 'conta', 'contas')}`
-                          : 'Sem carga de pedidos'}
-                      </small>
-                      {newName && newName.indicators.realizedValue === null && (
-                        <small className="mt-1 block text-[12px] text-dado-atencao">Há pedido conferido sem valor de manutenção</small>
-                      )}
-                    </div>
-                  </Panel>
               {forecast && saldo !== null && (
                 <ImpactRing titulo="Impacto no mês" legenda="Peso de cada movimento no saldo." grupos={anelForecast} saldo={saldo} />
               )}
