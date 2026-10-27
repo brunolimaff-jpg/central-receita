@@ -831,8 +831,9 @@
     align-items: center;
     gap: 10px;
     min-height: 96px;
-    border-radius: 10px;
-    padding: 12px;
+    border-radius: 16px;
+    padding: 14px 16px;
+    overflow: hidden;
   }
 
   .revenue-app .revenue-metric-dot {
@@ -840,7 +841,24 @@
     height: 8px;
     border-radius: 999px;
     background: var(--tom, var(--verde-institucional));
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--tom, var(--verde-institucional)) 16%, transparent);
   }
+
+  /* Brilho do tom atrás do número: dá a cor do cartão sem pintar o fundo. */
+  .revenue-app .revenue-metric::after,
+  .revenue-app .revenue-glow::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(90% 120% at 100% 0%, color-mix(in srgb, var(--tom, var(--verde-institucional)) 16%, transparent) 0%, transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .revenue-app .revenue-metric > *,
+  .revenue-app .revenue-glow > * { position: relative; z-index: 1; }
+  .revenue-app .revenue-glow { overflow: hidden; border-radius: 16px; }
 
   .revenue-app .revenue-metric-value {
     display: block;
@@ -855,7 +873,7 @@
 
   .revenue-app .revenue-metric-label {
     color: var(--ink-muted);
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 500;
     letter-spacing: 0.01em;
   }
@@ -917,23 +935,29 @@
   .revenue-app .revenue-table table {
     width: 100%;
     min-width: 920px;
-    border-collapse: collapse;
-    font-size: 12.5px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
   }
 
+  /* Cabeçalho numa faixa única de vidro, não uma pílula por coluna. */
   .revenue-app .revenue-table th {
-    padding: 8px 10px;
-    border-radius: 8px;
-    background: rgb(229 239 245 / 72%);
-    color: var(--azul-escuro);
-    font-size: 10.5px;
+    padding: 9px 12px;
+    border: 0;
+    background: rgb(0 150 140 / 7%);
+    color: var(--ink-muted);
+    font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
     text-align: left;
   }
 
+  .revenue-app .revenue-table th:first-child { border-radius: 10px 0 0 10px; }
+  .revenue-app .revenue-table th:last-child { border-radius: 0 10px 10px 0; }
+
   .revenue-app .revenue-table td {
-    padding: 9px 10px;
+    padding: 11px 12px;
     border-bottom: 1px solid rgb(25 59 80 / 8%);
     white-space: nowrap;
   }

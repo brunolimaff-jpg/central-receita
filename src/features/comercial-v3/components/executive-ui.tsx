@@ -193,7 +193,7 @@ export function MovementCard({ movimento, titulo, valor, contagem, nota, disponi
       <span className="mt-2 block text-[11px] leading-4 text-ink-muted">{disponivel ? nota : motivoIndisponivel.nota}</span>
     </>
   )
-  const base = `revenue-panel vidro flex min-h-[132px] min-w-0 flex-col justify-between text-left transition-premium ${selecionado ? 'ring-2 ring-brand' : 'hover:-translate-y-px'}`
+  const base = `revenue-panel vidro revenue-glow tone-${visual.tom} flex min-h-[132px] min-w-0 flex-col justify-between text-left transition-premium ${selecionado ? 'ring-2 ring-brand' : 'hover:-translate-y-px'}`
   if (href) return <Link href={href} className={base}>{conteudo}</Link>
   if (onSelecionar) {
     return (

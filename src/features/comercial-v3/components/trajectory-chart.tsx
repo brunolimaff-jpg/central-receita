@@ -204,7 +204,9 @@ export function TrajectoryChart({ model, altura = ALTURA }: { model: TrajectoryM
     })
     observador.observe(elemento)
     return () => observador.disconnect()
-  }, [])
+    // O gráfico nasce vazio enquanto a carga chega: sem refazer a medida
+    // quando os dados aparecem, o SVG ficava em 960px encolhido na tela.
+  }, [model.regime === 'vazio'])
 
   const direita = Math.max(ESQUERDA + 120, largura - MARGEM_DIREITA)
   const base = altura - ESPACO_ROTULOS_X
@@ -329,12 +331,22 @@ export function TrajectoryChart({ model, altura = ALTURA }: { model: TrajectoryM
   // do eixo continua presente, porque a primeira ocorrência dela é ela mesma.
   const marcas = (() => {
     const vistos = new Set<number>()
-    return thinAxisPositions(colunas.length).filter(indice => {
+    const unicas = thinAxisPositions(colunas.length).filter(indice => {
       const x = xPorColuna[indice]
       if (vistos.has(x)) return false
       vistos.add(x)
       return true
     })
+    // Datas a menos de 56px da anterior encavalam ("20/10 21/10"); a última
+    // data do eixo sempre fica, e quem sai é a vizinha.
+    const espacadas: number[] = []
+    unicas.forEach((indice, posicao) => {
+      const anterior = espacadas.at(-1)
+      const perto = anterior !== undefined && xPorColuna[indice] - xPorColuna[anterior] < 56
+      if (!perto) espacadas.push(indice)
+      else if (posicao === unicas.length - 1 && espacadas.length > 1) espacadas[espacadas.length - 1] = indice
+    })
+    return espacadas
   })()
   const ultimaMarca = marcas[marcas.length - 1]
   /*
@@ -433,7 +445,7 @@ export function TrajectoryChart({ model, altura = ALTURA }: { model: TrajectoryM
 
           {rotulos.map(rotulo => {
             const ativo = rotulo.coluna === indiceAtivo
-            if (!rotulosVisiveis.has(rotulo.id) && !ativo) return null
+            if (!ativo) return null
             const ancoradoFim = rotulo.x > direita - 130
             const x = Math.min(Math.max(rotulo.x + (ancoradoFim ? -9 : 9), ESQUERDA + 4), direita - 4)
             return (

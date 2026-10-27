@@ -180,7 +180,7 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
           </Panel>
         </div>
 
-        <div className="grid min-w-0 content-start gap-4">
+        <div className="grid min-w-0 gap-4">
           <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-3">
             {CARTOES_FORECAST.map(({ key }) => {
               const item = grupo(key)
