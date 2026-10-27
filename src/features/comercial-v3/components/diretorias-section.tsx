@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { formatarRealCompacto } from '../format'
-import { AQUISICOES, CSO, HORIZONTAIS_2027, iniciais, MRR_TOTAL, TERRITORIOS, VERTICAIS, type Pessoa, type Vertical } from '../org-2027'
+import { AQUISICOES, CSO, HORIZONTAIS_2027, iniciais, MRR_TOTAL, slugPessoa, TERRITORIOS, VERTICAIS, type Pessoa, type Vertical } from '../org-2027'
 import { InfoTip, PanelSection } from './executive-ui'
 import { SPRING_SUAVE } from './motion-primitives'
 import { ProductIcon } from './product-icon'
@@ -22,12 +22,18 @@ const LOGO_MARCA: Record<string, string> = {
 const TOTAL_GRUPOS = VERTICAIS.reduce((soma, v) => soma + v.grupos, 0)
 
 /** Avatar por iniciais na cor da vertical; vaga aberta vira contorno tracejado. */
+/**
+ * Foto oficial da pessoa em `public/pessoas/<slug>.jpg`, desenhada sobre as
+ * iniciais. Quem não tem arquivo simplesmente deixa as iniciais aparecerem:
+ * não há lista de fotos em código nem estado de "já falhou", que prendia o
+ * avatar nas iniciais depois de um 404 transitório.
+ */
 function Avatar({ pessoa, cor, tamanho = 36 }: { pessoa: Pessoa; cor: string; tamanho?: number }) {
   const vaga = !pessoa.nome
   return (
     <span
       aria-hidden
-      className="grid shrink-0 place-items-center rounded-full font-bold"
+      className="relative grid shrink-0 place-items-center overflow-hidden rounded-full font-bold"
       style={{
         width: tamanho, height: tamanho, fontSize: tamanho * 0.36,
         color: vaga ? cor : '#fff',
@@ -37,6 +43,14 @@ function Avatar({ pessoa, cor, tamanho = 36 }: { pessoa: Pessoa; cor: string; ta
       }}
     >
       {vaga ? '+' : iniciais(pessoa.nome)}
+      {!vaga && (
+        <img
+          src={`/pessoas/${slugPessoa(pessoa.nome!)}.jpg`}
+          alt=""
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      )}
     </span>
   )
 }
