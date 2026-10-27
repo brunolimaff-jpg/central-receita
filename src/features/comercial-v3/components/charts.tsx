@@ -108,3 +108,29 @@ export function ColumnChart({ colunas, altura = 150, vazio = 'Sem valores nesta 
     </div>
   )
 }
+
+/** Granularidade das barras (semana, mês ou trimestre) dentro do cartão do gráfico; compacto para caber na ação do painel. */
+export function SeletorGranularidade({ valor, onChange, rotulo, textos }: {
+  valor: 'semana' | 'mês' | 'tri'
+  onChange: (valor: 'semana' | 'mês' | 'tri') => void
+  rotulo: string
+  /** O que cada barra vale nesse modo ("Dias", "Semanas"…); evita repetir o "Semana" do período. */
+  textos: Record<'semana' | 'mês' | 'tri', string>
+}) {
+  const opcoes = (['semana', 'mês', 'tri'] as const).map(chave => ({ valor: chave, texto: textos[chave] }))
+  return (
+    <div role="group" aria-label={rotulo} className="inline-flex rounded-[9px] bg-surface-sunken/80 p-0.5">
+      {opcoes.map(opcao => (
+        <button
+          key={opcao.valor}
+          type="button"
+          aria-pressed={valor === opcao.valor}
+          onClick={() => onChange(opcao.valor)}
+          className={`h-7 rounded-[7px] px-2.5 text-[12px] font-semibold transition-premium ${valor === opcao.valor ? 'bg-white text-brand-escuro shadow-sm' : 'text-ink-muted hover:text-ink-strong'}`}
+        >
+          {opcao.texto}
+        </button>
+      ))}
+    </div>
+  )
+}

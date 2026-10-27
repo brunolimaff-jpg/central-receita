@@ -7,7 +7,8 @@ import { formatarOportunidades, formatarPercentualInteiro, formatarRealCompacto 
 import { groupMovements, pipelineMovementRows, type MovementLabel } from '../movement-rows'
 import { InfoTip, ImpactRing, MetricCard, MovementCard, Panel, PanelSection, type RingGroup } from './executive-ui'
 import { MovementTable } from './movement-table'
-import { ColumnChart, DonutChart } from './charts'
+import { ColumnChart, DonutChart, SeletorGranularidade } from './charts'
+import { fatiasAFrente, somarPorFatia, type Granularidade } from '../time-buckets'
 
 /**
  * Seção Oportunidades da página corrida (docs/PLANO-VISAO-EXECUTIVA.md §Oportunidades).
@@ -41,6 +42,7 @@ const NOTAS: Record<string, string> = {
 
 export function PipelineSection({ records, previousRecords = null, referenceDate }: PipelineSectionProps) {
   const [selecionado, setSelecionado] = useState<MovementLabel | null>(null)
+  const [granPrevisao, setGranPrevisao] = useState<Granularidade>('mês')
   const overview = useMemo(() => buildPipelineOverview(records, referenceDate), [records, referenceDate])
   const rows = useMemo(() => pipelineMovementRows(records, previousRecords, isOpenStage), [records, previousRecords])
   const grupos = useMemo(() => groupMovements(rows ?? [], CARTOES), [rows])
@@ -112,8 +114,17 @@ export function PipelineSection({ records, previousRecords = null, referenceDate
             }))}
           />
         </Panel>
-        <Panel titulo="Previsão por mês" acao={<InfoTip texto="Valor previsto das oportunidades abertas, do mês da carga aos três seguintes." />}>
-          <ColumnChart colunas={overview.horizon.map((month, indice) => ({ rotulo: mesRotulo(month.month).replace(/ de (\d{4})$/, " '$1").replace(/'20/, "'"), valor: month.value, destaque: indice === 0 }))} vazio="Sem previsão nos próximos meses." />
+        <Panel
+          titulo={granPrevisao === 'semana' ? 'Previsão por semana' : granPrevisao === 'mês' ? 'Previsão por mês' : 'Previsão por trimestre'}
+          acao={<span className="flex items-center gap-1.5"><SeletorGranularidade rotulo="Agrupar previsão por" valor={granPrevisao} onChange={setGranPrevisao} textos={{ semana: 'Semanas', mês: 'Meses', tri: 'Trimestres' }} /><InfoTip texto="Valor previsto das oportunidades abertas: as próximas 4 semanas, o mês da carga e os três seguintes, ou o trimestre da carga e os três seguintes." /></span>}
+        >
+          <ColumnChart
+            colunas={granPrevisao === 'mês'
+              ? overview.horizon.map((month, indice) => ({ rotulo: mesRotulo(month.month).replace(/ de (\d{4})$/, " '$1").replace(/'20/, "'"), valor: month.value, destaque: indice === 0 }))
+              : somarPorFatia(overview.open, fatiasAFrente(referenceDate, granPrevisao), record => record.forecastDate, record => record.predictedValue)
+                  .map(fatia => ({ rotulo: fatia.rotulo, valor: fatia.valor, destaque: fatia.atual }))}
+            vazio="Sem previsão no horizonte."
+          />
         </Panel>
       </div>
     </PanelSection>

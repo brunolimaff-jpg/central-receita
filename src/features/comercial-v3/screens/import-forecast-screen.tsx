@@ -8,7 +8,8 @@ import { formatarOportunidades, formatarPercentualInteiro, formatarRealCompacto 
 import { forecastFocusFromHash, forecastHashFor, HASH_FORECAST_GANHOU, type ForecastFocusMovement } from '../forecast-focus'
 import { forecastMovementRows, groupMovements, type MovementLabel } from '../movement-rows'
 import { ImpactRing, InfoTip, MovementCard, Panel, PanelSection, type RingGroup } from '../components/executive-ui'
-import { ColumnChart, type Coluna } from '../components/charts'
+import { ColumnChart, SeletorGranularidade, type Coluna } from '../components/charts'
+import { fatiasDoPeriodo, somarPorFatia, type Granularidade } from '../time-buckets'
 import { MovementTable } from '../components/movement-table'
 import { ForecastTowersPanel, type ModoRecorte } from '../components/forecast-towers-panel'
 
@@ -71,6 +72,7 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
   const [period, setPeriod] = useState<ForecastPeriod>('mês')
   const [selecionado, setSelecionado] = useState<string | null>(null)
   const [recorte, setRecorte] = useState<ModoRecorte>('agora')
+  const [granGanhos, setGranGanhos] = useState<Granularidade>('mês')
   const previous = previousBatch?.records ?? null
 
   useEffect(() => {
@@ -153,13 +155,12 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
     { rotulo: 'Alterou valor', movimento: 'Alterou valor', valor: result.bridge?.alterou ?? null, peso: Math.abs(result.bridge?.alterou ?? 0) },
   ]
   const mesLabel = mesPorExtenso(month)
-  // Semanas do mês (1–7, 8–14…) somando o valor das oportunidades ganhas.
-  const ganhosPorSemana: Coluna[] = [0, 1, 2, 3, 4].map(semana => ({
-    rotulo: `Sem ${semana + 1}`,
-    valor: batch.records
-      .filter(record => record.closingDate?.startsWith(month) && /ganh/i.test(`${record.stage} ${record.status}`) && Math.min(4, Math.floor((Number(record.closingDate.slice(8, 10)) - 1) / 7)) === semana)
-      .reduce((soma, record) => soma + (record.closedValue ?? record.predictedValue ?? 0), 0),
-  })).filter((coluna, indice) => indice < 4 || (coluna.valor ?? 0) > 0)
+  // Valor fechado como ganho: dias da semana, semanas do mês (1–7, 8–14…) ou meses do trimestre.
+  const ganhos = batch.records.filter(record => /ganh/i.test(`${record.stage} ${record.status}`))
+  const ganhosPorFatia: Coluna[] = somarPorFatia(ganhos, fatiasDoPeriodo(referenceDate, granGanhos), record => record.closingDate, record => record.closedValue ?? record.predictedValue ?? 0)
+    .filter((fatia, indice) => granGanhos !== 'mês' || indice < 4 || (fatia.valor ?? 0) > 0)
+    .map(fatia => ({ rotulo: fatia.rotulo, valor: fatia.valor, destaque: fatia.atual }))
+  const recorteGanhos = granGanhos === 'semana' ? 'na semana da carga' : granGanhos === 'mês' ? `em ${mesLabel}` : 'no trimestre'
 
   return (
     <PanelSection
@@ -185,8 +186,8 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
     >
       <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="grid min-w-0 gap-4">
-          <Panel className="h-full" titulo="Ganhos por semana" subtitulo={`Valor fechado como ganho em ${mesLabel}.`} acao={<InfoTip texto={monthResult.probabilityAvailable ? 'Entram no previsto as oportunidades em Proposta ou Negociação, com chance de 75% ou mais e previsão no mês.' : 'A carga não traz probabilidade: o critério de 75% não foi aplicado.'} />}>
-            <ColumnChart colunas={ganhosPorSemana} vazio="Nenhum ganho registrado no mês." />
+          <Panel className="h-full" titulo={granGanhos === 'semana' ? 'Ganhos por dia' : granGanhos === 'mês' ? 'Ganhos por semana' : 'Ganhos por mês'} subtitulo={`Valor fechado como ganho ${recorteGanhos}.`} acao={<span className="flex items-center gap-1.5"><SeletorGranularidade rotulo="Agrupar ganhos por" valor={granGanhos} onChange={setGranGanhos} textos={{ semana: 'Dias', mês: 'Semanas', tri: 'Meses' }} /><InfoTip texto={monthResult.probabilityAvailable ? 'Entram no previsto as oportunidades em Proposta ou Negociação, com chance de 75% ou mais e previsão no mês.' : 'A carga não traz probabilidade: o critério de 75% não foi aplicado.'} /></span>}>
+            <ColumnChart colunas={ganhosPorFatia} vazio="Nenhum ganho registrado no mês." />
           </Panel>
         </div>
 
