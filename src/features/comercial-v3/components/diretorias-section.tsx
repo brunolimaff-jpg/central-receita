@@ -125,6 +125,26 @@ function ColunaVertical({ vertical, indice }: { vertical: Vertical; indice: numb
   )
 }
 
+/** Logo da marca; o selo NN marca quem reporta a Novos Negócios. */
+function Marca({ nome, fora = false }: { nome: string; fora?: boolean }) {
+  const nn = AQUISICOES.novosNegocios.includes(nome)
+  return (
+    <span
+      title={nn ? `${nome} · reporta à Diretoria de Novos Negócios e RI` : nome}
+      className={`relative inline-flex h-9 items-center rounded-[10px] px-2.5 ${fora ? 'bg-surface-sunken' : 'border border-white bg-white/85 shadow-sm'}`}
+    >
+      <span className={fora ? 'opacity-60 grayscale' : ''}>
+        {LOGO_MARCA[nome] ? <img src={LOGO_MARCA[nome]} alt={nome} className="h-5 w-auto" /> : <span className={fora ? 'text-ink-muted' : 'font-semibold text-ink-strong'}>{nome}</span>}
+      </span>
+      {nn && (
+        <span className="absolute -right-1.5 -top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-[#1c3a63] px-1 text-[9px] font-bold text-white ring-2 ring-white">
+          NN<span className="sr-only"> (reporta a Novos Negócios)</span>
+        </span>
+      )}
+    </span>
+  )
+}
+
 /**
  * Diretorias 2027: quem responde por cada vertical, quanto de MRR ela carrega
  * e as horizontais de produto que atravessam todas. Leitura de liderança —
@@ -265,19 +285,17 @@ export function DiretoriasSection() {
         ))}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 text-[12px]">
-        <span className="font-semibold text-ink-muted">Aquisições no modelo</span>
-        {AQUISICOES.contempla.map(n => (
-          <span key={n} className="inline-flex h-9 items-center rounded-[10px] border border-white bg-white/85 px-2.5 shadow-sm">
-            {LOGO_MARCA[n] ? <img src={LOGO_MARCA[n]} alt={n} className="h-5 w-auto" /> : <span className="font-semibold text-ink-strong">{n}</span>}
-          </span>
-        ))}
-        <span className="ml-2 font-semibold text-ink-muted">Fora do modelo</span>
-        {AQUISICOES.naoContempla.map(n => (
-          <span key={n} className="inline-flex h-9 items-center rounded-[10px] bg-surface-sunken px-2.5 opacity-60 grayscale">
-            {LOGO_MARCA[n] ? <img src={LOGO_MARCA[n]} alt={n} className="h-5 w-auto" /> : <span className="text-ink-muted">{n}</span>}
-          </span>
-        ))}
+      <div className="grid gap-2">
+        <div className="flex flex-wrap items-center gap-2 text-[12px]">
+          <span className="font-semibold text-ink-muted">Aquisições no modelo</span>
+          {AQUISICOES.contempla.map(n => <Marca key={n} nome={n} />)}
+          <span className="ml-2 font-semibold text-ink-muted">Fora do modelo</span>
+          {AQUISICOES.naoContempla.map(n => <Marca key={n} nome={n} fora />)}
+        </div>
+        <p className="flex items-center gap-1.5 text-[11px] text-ink-muted">
+          <span aria-hidden className="grid h-4 w-4 place-items-center rounded-full bg-[#1c3a63] text-[9px] font-bold text-white">NN</span>
+          Reporta à Diretoria de Novos Negócios e RI, não a Mercado. Estar no portfólio comercial não é subordinação.
+        </p>
       </div>
     </PanelSection>
   )

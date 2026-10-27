@@ -98,6 +98,12 @@ export const HORIZONTAIS_2027: Horizontal[] = [
 export const AQUISICOES = {
   contempla: ['Forbiz', 'Konviva', 'Jobconvo', 'Hypnobox'],
   naoContempla: ['GATEC', 'CIGAM', 'Novasoft', 'Salú'],
+  /**
+   * Portfólio comercial não é subordinação: estas marcas reportam formalmente
+   * à Diretoria de Novos Negócios e RI, não à Diretoria de Mercado
+   * (diretório corporativo, out/2026).
+   */
+  novosNegocios: ['Konviva', 'Hypnobox', 'GATEC', 'Jobconvo'],
 }
 
 export type Territorio = {
