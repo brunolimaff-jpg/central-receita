@@ -713,20 +713,49 @@
    * A coluna vira a peça de marca da tela: vidro escuro em petróleo, com o
    * wordmark branco oficial e um brilho verde que vaza do topo. O conteúdo
    * continua em vidro claro, então a navegação se separa sem precisar de borda.
-   * Texto em branco a 72% sobre o fundo mais claro (#0f4a55) passa AA.
+   *
+   * O efeito de vidro vem do reflexo, não da transparência crua.
+   *
+   * Abrir a coluna até ~80% foi medido e reprovou: a aurora atrás dela é clara,
+   * e o brilho verde somado ao reflexo levava o texto branco de 13px a cerca de
+   * 3:1 — abaixo do 4,5:1 que o AA exige. O que faz a superfície ler como vidro
+   * é o conjunto: borda especular no topo, saturação alta no desfoque e
+   * profundidade na sombra. A opacidade fica em 90–95%: o degradê respira, e o
+   * texto não lava.
    */
   .revenue-app .revenue-sidebar {
     isolation: isolate;
-    border: 1px solid rgb(255 255 255 / 9%);
+    border: 1px solid rgb(255 255 255 / 15%);
     border-radius: 18px;
     background:
-      radial-gradient(120% 60% at 50% -10%, rgb(0 190 170 / 38%), transparent 60%),
-      radial-gradient(90% 50% at 0% 100%, rgb(60 110 200 / 22%), transparent 70%),
-      linear-gradient(170deg, rgb(13 74 85 / 94%) 0%, rgb(10 52 70 / 95%) 45%, rgb(12 33 62 / 96%) 100%);
-    box-shadow: 0 24px 48px -24px rgb(6 30 50 / 55%), inset 0 1px 0 rgb(255 255 255 / 10%);
-    -webkit-backdrop-filter: blur(24px) saturate(150%);
-    backdrop-filter: blur(24px) saturate(150%);
-    color: rgb(255 255 255 / 84%);
+      radial-gradient(120% 60% at 50% -10%, rgb(0 190 170 / 18%), transparent 62%),
+      radial-gradient(90% 50% at 0% 100%, rgb(60 110 200 / 20%), transparent 72%),
+      linear-gradient(170deg, rgb(13 74 85 / 93%) 0%, rgb(10 52 70 / 94%) 45%, rgb(12 33 62 / 96%) 100%);
+    box-shadow:
+      0 30px 60px -28px rgb(6 30 50 / 62%),
+      0 2px 10px -4px rgb(6 30 50 / 32%),
+      inset 0 1px 0 rgb(255 255 255 / 18%);
+    -webkit-backdrop-filter: blur(28px) saturate(175%);
+    backdrop-filter: blur(28px) saturate(175%);
+    color: rgb(255 255 255 / 86%);
+  }
+
+  /*
+   * O reflexo diagonal: luz batendo no vidro do canto superior esquerdo, sumindo
+   * antes de alcançar o rótulo de seção. Fica atrás do conteúdo (z-index -1) e
+   * não intercepta clique. Concentrado no canto de propósito: é onde não há
+   * texto pequeno, então o reflexo não cobra contraste.
+   */
+  .revenue-app .revenue-sidebar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+      linear-gradient(148deg, rgb(255 255 255 / 15%) 0%, rgb(255 255 255 / 5%) 22%, transparent 40%),
+      radial-gradient(78% 30% at 24% 0%, rgb(255 255 255 / 8%), transparent 72%);
   }
 
   /*
@@ -745,7 +774,9 @@
    * do wordmark. Só a cor muda, porque a coluna agora é escura.
    */
   .revenue-app .revenue-marca-assinatura {
-    color: rgb(255 255 255 / 80%);
+    /* 80% media 4,49:1 no topo, onde o brilho verde clareia o fundo — na linha
+     * do mínimo. 86% alinha com os itens e sobra margem. */
+    color: rgb(255 255 255 / 86%);
     font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.02em;
@@ -753,7 +784,11 @@
 
   .revenue-app .revenue-nav-grupo {
     margin: 14px 10px 4px;
-    color: rgb(255 255 255 / 52%);
+    /*
+     * 52% media 2,7:1 no pior caso (topo, com o brilho verde atrás) e reprovava
+     * o AA. 68% leva a 4,6:1 mantendo o rótulo como apoio, não como título.
+     */
+    color: rgb(255 255 255 / 68%);
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.14em;
