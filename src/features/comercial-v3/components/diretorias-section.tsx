@@ -1,9 +1,12 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { useEffect, useId, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { formatarRealCompacto } from '../format'
 import { AQUISICOES, CSO, HORIZONTAIS_2027, iniciais, MRR_TOTAL, slugPessoa, TERRITORIOS, VERTICAIS, type Pessoa, type Vertical } from '../org-2027'
 import { InfoTip, PanelSection } from './executive-ui'
+import { MiniMapa } from './mini-mapa'
 import { SPRING_SUAVE } from './motion-primitives'
 import { ProductIcon } from './product-icon'
 
@@ -20,6 +23,19 @@ const LOGO_MARCA: Record<string, string> = {
   'Senior Capital': '/brand/marcas/senior-capital.png',
 }
 const TOTAL_GRUPOS = VERTICAIS.reduce((soma, v) => soma + v.grupos, 0)
+
+/**
+ * UFs de cada território, na mesma leitura do campo `ufs` do organograma:
+ * "MT + MS · DF · GO / TO" vira MT, MS, DF, GO e TO. A lista alimenta o mini
+ * mapa; o numeral do território é a chave.
+ */
+const UFS_TERRITORIO: Record<number, string[]> = {
+  1: ['RS', 'SC', 'PR'],
+  2: ['MT', 'MS', 'DF', 'GO', 'TO'],
+  3: ['SP'],
+  4: ['MA', 'PI', 'CE', 'RN', 'PB', 'PE', 'AL', 'SE', 'BA', 'MG', 'RJ', 'ES'],
+  5: ['RO', 'AC', 'AM', 'RR', 'PA', 'AP'],
+}
 
 /**
  * Foto oficial da pessoa em `public/pessoas/<slug>.jpg`, pintada como fundo do
@@ -57,6 +73,128 @@ function Avatar({ pessoa, cor, tamanho = 36 }: { pessoa: Pessoa; cor: string; ta
         />
       )}
     </span>
+  )
+}
+
+const MENSAGENS_VAGA: Record<string, [string, string]> = {
+  industria: ['Boas ideias também movem a indústria.', 'Tem espaço para um novo talento nessa jornada.'],
+  erp: ['Uma boa equipe conecta possibilidades.', 'O próximo capítulo de ERP ainda está por vir.'],
+  hcm: ['São as pessoas que fazem a diferença.', 'O próximo talento pode ajudar a escrever essa história.'],
+}
+
+const CORES_CONFETE = ['var(--verde-institucional)', 'var(--verde-medio)', 'var(--laranja)', 'var(--amarelo)', 'var(--roxo)', 'var(--verde-claro)']
+const LARGURA_BALAO = 208
+const DURACAO_BALAO = 5000
+
+type Balao = { x: number; y: number; lado: 'direita' | 'esquerda' }
+
+/**
+ * Vaga sem nome: o "+" tracejado é o convite. Clicar abre um balão que nasce
+ * encostado no próprio botão — com rabicho apontando para ele — solta um
+ * confete curto e some sozinho depois de alguns segundos. O balão vive em
+ * portal porque a coluna da vertical recorta o conteúdo (`overflow-hidden`);
+ * a posição vem do retângulo do botão, escolhendo o lado que cabe na tela.
+ */
+function VagaAvatar({ cor, tamanho, cargo, contexto }: { cor: string; tamanho: number; cargo: string; contexto?: string }) {
+  const [balao, mudarBalao] = useState<Balao | null>(null)
+  const [montado, mudarMontado] = useState(false)
+  const botaoRef = useRef<HTMLButtonElement>(null)
+  const idBalao = useId()
+  const [titulo, mensagem] = MENSAGENS_VAGA[contexto ?? ''] ?? ['Toda grande equipe tem espaço para crescer.', 'Um novo talento pode fazer parte dessa história.']
+  const movimentoReduzido = useReducedMotion()
+
+  useEffect(() => { mudarMontado(true) }, [])
+
+  useEffect(() => {
+    if (!balao) return
+    const fechar = () => mudarBalao(null)
+    const tempo = setTimeout(fechar, DURACAO_BALAO)
+    window.addEventListener('scroll', fechar, { passive: true })
+    return () => {
+      clearTimeout(tempo)
+      window.removeEventListener('scroll', fechar)
+    }
+  }, [balao])
+
+  function abrir() {
+    const botao = botaoRef.current
+    if (!botao) return
+    const r = botao.getBoundingClientRect()
+    const cabeDireita = r.right + 14 + LARGURA_BALAO < window.innerWidth - 12
+    mudarBalao({
+      x: cabeDireita ? r.right + 12 : r.left - 12 - LARGURA_BALAO,
+      y: Math.min(Math.max(r.top - 6, 12), window.innerHeight - 150),
+      lado: cabeDireita ? 'direita' : 'esquerda',
+    })
+  }
+
+  return (
+    <>
+      <button
+        ref={botaoRef}
+        type="button"
+        aria-label={`Descobrir surpresa da vaga: ${cargo}`}
+        aria-expanded={!!balao}
+        aria-controls={balao ? idBalao : undefined}
+        onClick={() => (balao ? mudarBalao(null) : abrir())}
+        className="grid shrink-0 cursor-pointer place-items-center rounded-full font-bold transition-transform duration-200 hover:scale-110 focus-visible:scale-110 active:scale-95"
+        style={{ width: tamanho, height: tamanho, fontSize: tamanho * 0.36, color: cor, border: `1.5px dashed ${cor}` }}
+      >
+        <span aria-hidden>+</span>
+      </button>
+
+      {montado && createPortal(
+        <AnimatePresence>
+          {balao && (
+            <motion.div
+              key={`${balao.x}-${balao.y}`}
+              id={idBalao}
+              role="status"
+              className="pointer-events-none fixed z-50"
+              style={{ left: balao.x, top: balao.y, width: LARGURA_BALAO }}
+              initial={movimentoReduzido ? { opacity: 0 } : { opacity: 0, scale: 0.9, y: 4 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: -3 }}
+              transition={movimentoReduzido ? { duration: 0.15 } : { type: 'spring', stiffness: 460, damping: 30 }}
+            >
+              <span
+                aria-hidden
+                className="absolute top-4 h-2.5 w-2.5 rotate-45 rounded-[2px]"
+                style={{
+                  [balao.lado === 'direita' ? 'left' : 'right']: -4,
+                  background: 'color-mix(in srgb, var(--verde-escuro) 92%, white)',
+                }}
+              />
+              <div
+                className="relative overflow-hidden rounded-[12px] px-3.5 py-2.5 text-white shadow-[0_18px_40px_-14px_rgba(6,30,50,0.55)]"
+                style={{ background: 'linear-gradient(150deg, color-mix(in srgb, var(--verde-escuro) 92%, white), var(--verde-escuro))' }}
+              >
+                {!movimentoReduzido && CORES_CONFETE.map((corConfete, i) => (
+                  <motion.span
+                    aria-hidden
+                    key={corConfete}
+                    className="absolute left-0 top-1/2 h-1.5 w-1.5 rounded-[1px]"
+                    style={{ background: corConfete }}
+                    initial={{ x: balao.lado === 'direita' ? -6 : '100%', y: 0, opacity: 1, rotate: 0 }}
+                    animate={{ x: balao.lado === 'direita' ? 30 + i * 30 : 180 - i * 30, y: -26 + (i % 3) * 22, rotate: i * 80, opacity: 0 }}
+                    transition={{ duration: 1.15, delay: 0.08 + i * 0.04, ease: 'easeOut' }}
+                  />
+                ))}
+                <strong className="relative block text-[12px] font-semibold leading-snug">{titulo}</strong>
+                <span className="relative mt-0.5 block text-[11px] leading-snug text-white/75">{mensagem}</span>
+                <motion.span
+                  aria-hidden
+                  className="absolute inset-x-0 bottom-0 h-0.5 origin-left bg-[var(--verde-neon)]"
+                  initial={{ scaleX: 1 }}
+                  animate={{ scaleX: 0 }}
+                  transition={{ duration: DURACAO_BALAO / 1000, ease: 'linear' }}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>, document.body,
+      )}
+    </>
   )
 }
 
@@ -144,11 +282,23 @@ function ColunaVertical({ vertical, indice }: { vertical: Vertical; indice: numb
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="flex items-center gap-3 rounded-[12px] bg-white/70 p-2.5 ring-1 ring-white">
-          <Avatar pessoa={vertical.diretor} cor={cor} tamanho={42} />
-          <span className="min-w-0 leading-tight">
-            <small className="block text-[10px] font-bold uppercase tracking-[0.08em]" style={{ color: cor }}>Diretor de segmento</small>
-            <strong className={`block truncate text-[14px] font-bold ${vertical.diretor.nome ? 'text-ink-strong' : 'text-ink-muted'}`}>{vertical.diretor.nome ?? 'Vaga nova'}</strong>
-          </span>
+          {vertical.diretor.nome ? (
+            <>
+              <Avatar pessoa={vertical.diretor} cor={cor} tamanho={42} />
+              <span className="min-w-0 leading-tight">
+                <small className="block text-[10px] font-bold uppercase tracking-[0.08em]" style={{ color: cor }}>Diretor de segmento</small>
+                <strong className="block truncate text-[14px] font-bold text-ink-strong">{vertical.diretor.nome}</strong>
+              </span>
+            </>
+          ) : (
+            <>
+              <VagaAvatar cor={cor} tamanho={42} cargo={vertical.diretor.cargo} contexto={vertical.id} />
+              <span className="min-w-0 leading-tight">
+                <small className="block text-[10px] font-bold uppercase tracking-[0.08em]" style={{ color: cor }}>Diretor de segmento</small>
+                <strong className="block truncate text-[14px] font-bold text-ink-muted">Vaga nova</strong>
+              </span>
+            </>
+          )}
         </div>
         <ul className="grid gap-2.5">
           {vertical.gerentes.map(pessoa => <LinhaPessoa key={`${pessoa.nome}-${pessoa.escopo}`} pessoa={pessoa} cor={cor} />)}
@@ -275,11 +425,23 @@ export function DiretoriasSection() {
               </ul>
             </div>
             <div className="flex items-center gap-2.5 lg:border-l lg:border-hairline lg:pl-4">
-              <Avatar pessoa={h.lider} cor="#1c3a63" tamanho={34} />
-              <span className="leading-tight">
-                <strong className={`block text-[13px] font-semibold ${h.lider.nome ? 'text-ink-strong' : 'text-ink-muted'}`}>{h.lider.nome ?? 'Vaga nova'}</strong>
-                <small className="block text-[11px] text-ink-muted">{h.lider.cargo}{h.lider.escopo ? ` · ${h.lider.escopo}` : ''}</small>
-              </span>
+              {h.lider.nome ? (
+                <>
+                  <Avatar pessoa={h.lider} cor="#1c3a63" tamanho={34} />
+                  <span className="leading-tight">
+                    <strong className="block text-[13px] font-semibold text-ink-strong">{h.lider.nome}</strong>
+                    <small className="block text-[11px] text-ink-muted">{h.lider.cargo}{h.lider.escopo ? ` · ${h.lider.escopo}` : ''}</small>
+                  </span>
+                </>
+              ) : (
+                <>
+                  <VagaAvatar cor="#1c3a63" tamanho={34} cargo={`${h.lider.cargo}${h.lider.escopo ? ` · ${h.lider.escopo}` : ''}`} contexto={h.id} />
+                  <span className="leading-tight">
+                    <strong className="block text-[13px] font-semibold text-ink-muted">Vaga nova</strong>
+                    <small className="block text-[11px] text-ink-muted">{h.lider.cargo}{h.lider.escopo ? ` · ${h.lider.escopo}` : ''}</small>
+                  </span>
+                </>
+              )}
             </div>
           </motion.div>
         ))}
@@ -294,17 +456,21 @@ export function DiretoriasSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-30px' }}
             transition={{ ...SPRING_SUAVE, delay: i * 0.06 }}
-            className="vidro revenue-glow rounded-[16px] p-4"
+            className="vidro revenue-glow relative overflow-hidden rounded-[16px] p-4"
             style={{ ['--tom' as string]: t.cor }}
           >
-            <div className="flex items-center gap-3">
+            {/* O mapa ancora a geografia no canto: o leitor vê antes de ler a lista de UFs. */}
+            <div className="pointer-events-none absolute -right-1 -top-1 w-[108px] opacity-90">
+              <MiniMapa ufs={UFS_TERRITORIO[t.numero] ?? []} cor={t.cor} rotulo={`Território ${t.numero}: ${t.ufs}`} />
+            </div>
+            <div className="relative flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-full text-[17px] font-bold text-white" style={{ background: t.cor, boxShadow: `0 8px 18px -8px ${t.cor}` }}>{t.numero}</span>
               <span className="min-w-0 leading-tight">
                 <strong className="block text-[14px] font-bold text-ink-strong">{t.nome}</strong>
                 <small className="block truncate text-[12px]" style={{ color: t.cor }}>{t.ufs}</small>
               </span>
             </div>
-            <div className="mt-3">
+            <div className="relative mt-3">
               <strong className="num block whitespace-nowrap text-[24px] font-bold leading-none tracking-[-0.03em] text-ink-strong">{formatarRealCompacto(t.mrr)}</strong>
               <span className="mt-1 block text-[12px] text-ink-muted">{grupos(t.grupos)} grupos · {pct(t.mrr / MRR_TOTAL)} do MRR</span>
             </div>
