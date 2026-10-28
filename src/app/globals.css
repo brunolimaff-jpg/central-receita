@@ -472,7 +472,7 @@
         rgb(237 248 245 / 90%) 84%,
         var(--aurora-base) 100%
       ),
-      url('/revenue/senior-hq.jpeg') center 58% / cover no-repeat;
+      url('/revenue/senior-hq.webp') center 58% / cover no-repeat;
     filter: blur(30px) saturate(1.25);
     -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 72%, transparent 100%);
     mask-image: linear-gradient(180deg, #000 0%, #000 72%, transparent 100%);

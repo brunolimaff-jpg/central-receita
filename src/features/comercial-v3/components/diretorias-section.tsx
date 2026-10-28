@@ -248,7 +248,7 @@ function ColunaVertical({ vertical, indice }: { vertical: Vertical; indice: numb
           tingido com a cor da vertical; ícone branco do segmento em marca
           d'água e a malha de pontos como elemento de apoio.
         */}
-        <span aria-hidden className="pointer-events-none absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url(/brand/apoio/fundo-gradiente-verde-roxo.jpg)' }} />
+        <span aria-hidden className="pointer-events-none absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url(/brand/apoio/fundo-gradiente-verde-roxo.webp)' }} />
         <span aria-hidden className="pointer-events-none absolute inset-0 mix-blend-color" style={{ background: cor }} />
         <span aria-hidden className="pointer-events-none absolute inset-0" style={{ background: `linear-gradient(180deg, color-mix(in srgb, ${cor} 35%, transparent), color-mix(in srgb, ${cor} 75%, black) 120%)` }} />
         <span aria-hidden className="pointer-events-none absolute -left-6 -top-6 h-24 w-24 bg-contain bg-no-repeat opacity-25" style={{ backgroundImage: 'url(/brand/apoio/pontos-branco.png)' }} />
