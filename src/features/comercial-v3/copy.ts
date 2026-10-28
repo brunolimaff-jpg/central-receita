@@ -40,6 +40,7 @@ export const VIEW_LABELS: Record<CommercialView, string> = {
   branch: 'Filiais',
   opportunity: 'Oportunidade',
   config: 'Configurações',
+  regional: 'Visão Regional',
 }
 
 export const PERIOD_LABELS: Record<CommercialPeriod, string> = {
@@ -65,6 +66,7 @@ export const VOLTAR_POR_ORIGEM: Record<CommercialView, string> = {
   branch: 'Voltar à filial',
   opportunity: 'Voltar à visão executiva',
   config: 'Voltar às configurações',
+  regional: 'Voltar à visão regional',
 }
 
 export const FILTER_LABELS = {

@@ -27,6 +27,7 @@ export type CommercialView =
   | 'branch'
   | 'opportunity'
   | 'config'
+  | 'regional'
 export type CommercialPeriod = 'month' | 'quarter' | 'threeMonths'
 
 export type CommercialContext = {
@@ -64,6 +65,7 @@ export const COMMERCIAL_VIEWS = [
   'branch',
   'opportunity',
   'config',
+  'regional',
 ] as const
 export const COMMERCIAL_PERIODS = ['month', 'quarter', 'threeMonths'] as const
 

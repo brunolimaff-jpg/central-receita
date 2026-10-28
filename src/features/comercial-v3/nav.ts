@@ -8,7 +8,7 @@
 
 import type { CommercialPeriod, CommercialView, ForecastMovement } from './types'
 
-const SIDEBAR_VIEWS = ['home', 'journey', 'system', 'opportunities', 'accounts', 'new-name', 'cross', 'forecast', 'config'] as const
+const SIDEBAR_VIEWS = ['home', 'journey', 'system', 'opportunities', 'accounts', 'new-name', 'cross', 'forecast', 'regional', 'config'] as const
 type SidebarView = (typeof SIDEBAR_VIEWS)[number]
 
 /** Resolve a âncora visual do menu para as telas de drill-down. */

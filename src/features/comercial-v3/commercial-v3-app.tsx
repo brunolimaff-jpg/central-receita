@@ -31,6 +31,8 @@ import { NewNameScreen } from './screens/new-name-screen'
 import { SystemScreen } from './screens/system-screen'
 import { OpportunitiesScreen } from './screens/opportunities-screen'
 import { OpportunityScreen } from './screens/opportunity-screen'
+import { RegionalScreen } from './screens/regional-screen'
+import { REGIONAL_SNAPSHOT } from './regional/regional-mock'
 import {
   type CommercialFilters,
   type CommercialPeriod,
@@ -267,7 +269,7 @@ export function CommercialV3App() {
       executiveMode={executiveView}
       dataCarga={cargaNaPagina ? dataCarga : null}
     >
-      {sharedImportEnabled && view !== 'config' && !executiveView && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#dfe8ef] bg-white px-4 py-3 text-sm text-[#33466c]">
+      {sharedImportEnabled && view !== 'config' && view !== 'regional' && !executiveView && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#dfe8ef] bg-white px-4 py-3 text-sm text-[#33466c]">
         <p><strong>Cenário demonstrativo.</strong> As cargas CSV/XLSX são consultadas em Forecast e New Name. Esta visão usa o cenário fixo, com agregados por filial identificados na tela.</p>
         <Link href={nav.href('config')} className="font-semibold text-[#086b6b] underline">Consultar cargas</Link>
       </div>}
@@ -279,6 +281,8 @@ export function CommercialV3App() {
       {view === 'journey' && (
         <JourneyScreen rows={forecast.oportunidades} detalhes={detalhes} query={query} nav={nav} solucao={solution} />
       )}
+
+      {view === 'regional' && <RegionalScreen snapshot={REGIONAL_SNAPSHOT} nav={nav} from={from} />}
 
       {view === 'system' && (
         <SystemScreen model={home} filiaisReais={period === 'month'} nav={nav} />

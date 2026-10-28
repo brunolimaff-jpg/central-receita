@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Bell, Building2, ChevronDown, GitBranch, Layers, LayoutDashboard, List, PackagePlus, PanelLeftClose, PanelLeftOpen, Search, Settings2, Target, TrendingUp, Users } from 'lucide-react'
+import { Bell, Building2, ChevronDown, GitBranch, Layers, LayoutDashboard, List, MapPinned, PackagePlus, PanelLeftClose, PanelLeftOpen, Search, Settings2, Target, TrendingUp, Users } from 'lucide-react'
 import { FILTER_LABELS, VIEW_LABELS } from '../copy'
 import { sharedImportEnabled } from '../manual-import-client'
 import { sidebarViewFor, type CommercialNav } from '../nav'
@@ -30,6 +30,7 @@ const pertenceAPagina = (view: CommercialView) => (SECOES as readonly string[]).
 const ITENS: ItemNav[] = [
   { key: 'home', label: VIEW_LABELS.home, icon: LayoutDashboard, view: 'home' },
   { key: 'forecast', label: VIEW_LABELS.forecast, icon: TrendingUp, view: 'forecast' },
+  { key: 'regional', label: VIEW_LABELS.regional, icon: MapPinned, view: 'regional' },
   { key: 'new-name', label: VIEW_LABELS['new-name'], icon: Target, view: 'new-name' },
   { key: 'opportunities', label: VIEW_LABELS.opportunities, icon: List, view: 'opportunities' },
   { key: 'journey', label: VIEW_LABELS.journey, icon: GitBranch },
