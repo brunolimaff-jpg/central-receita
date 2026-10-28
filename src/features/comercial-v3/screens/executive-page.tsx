@@ -69,29 +69,66 @@ function Sinal({ icone: Icone, tom, titulo, detalhe, href }: {
 }
 
 /**
- * Texto da seção vazia. Três estados, não dois: "ainda carregando", "não
- * consegui consultar" e "não há carga". Trocar falha por vazio faz a tela
- * afirmar que não existe dado quando o que existe é um erro de consulta.
- * A mensagem completa da falha fica só no cartão do topo; aqui é uma linha,
- * para não repetir três vezes o mesmo aviso na tela.
+ * Estado da seção sem conteúdo.
+ *
+ * Eram três: carregando, falha e vazio. O "carregando" saiu do vocabulário da
+ * tela — ele era a causa do deslocamento de layout que media 0,13 de CLS: o
+ * aviso ocupava uma linha e era substituído por um painel inteiro, empurrando
+ * tudo para baixo. Enquanto a carga é consultada a seção agora reserva a
+ * altura do conteúdo real (`EsqueletoCarga`), então a troca não mexe em nada.
+ *
+ * Restam dois estados, e eles continuam distintos: falha de consulta não é
+ * ausência de carga. Trocar um pelo outro faria a tela afirmar que não existe
+ * dado quando o que existe é um erro.
  */
-function textoVazio(carregando: boolean, falha: string | null) {
-  if (carregando) return 'Carregando a última carga…'
-  if (falha) return 'Falha na consulta — veja o aviso no topo da página.'
-  return 'Sem carga importada para esta seção.'
+function textoVazio(falha: string | null) {
+  return falha ? 'Falha na consulta — veja o aviso no topo da página.' : 'Sem carga importada para esta seção.'
 }
 
-function EmptySection({ id, titulo, contexto, nav, carregando, falha }: { id: string; titulo: string; contexto: string; nav: CommercialNav; carregando: boolean; falha: string | null }) {
+function EmptySection({ id, titulo, contexto, nav, falha }: { id: string; titulo: string; contexto: string; nav: CommercialNav; falha: string | null }) {
   return (
     <PanelSection id={id} titulo={titulo} contexto={contexto}>
       <div className={`${PAINEL} flex flex-wrap items-center justify-between gap-3`}>
-        <p className={falha && !carregando ? 'text-[13px] text-dado-atencao' : 'text-[13px] text-ink-muted'}>{textoVazio(carregando, falha)}</p>
+        <p className={falha ? 'text-[13px] text-dado-atencao' : 'text-[13px] text-ink-muted'}>{textoVazio(falha)}</p>
         <Link href={nav.href('config')} className="inline-flex min-h-9 items-center gap-1.5 rounded-[10px] border border-brand px-3 text-[13px] font-semibold text-brand-escuro transition-premium hover:bg-dado-positivo-suave">
           Abrir Configurações
           <ArrowRight aria-hidden className="h-3.5 w-3.5" />
         </Link>
       </div>
     </PanelSection>
+  )
+}
+
+/**
+ * Esqueleto da primeira carga.
+ *
+ * A altura não é chutada: ela reserva o espaço do painel de trajetória, da
+ * faixa de indicadores e das duas colunas laterais — que é exatamente o que
+ * chega quando a leitura termina. Reservar o espaço certo é o que zera o
+ * deslocamento; um placeholder de uma linha, que era o que existia antes,
+ * empurrava tudo na troca.
+ *
+ * Sem animação de pulso: ela chamaria atenção para uma tela que dura poucos
+ * milissegundos no caminho normal e some no modo visual, onde a carga é
+ * síncrona.
+ */
+function EsqueletoCarga() {
+  return (
+    <div aria-hidden className="grid min-w-0 gap-4">
+      <section className={`${PAINEL} grid gap-4`}>
+        <div className="h-[13px] w-56 rounded-full bg-[#e6eef3]" />
+        <div className="h-[250px] w-full rounded-[12px] bg-[#eef4f8]" />
+      </section>
+      <div className="grid grid-cols-2 gap-3 2xl:grid-cols-4">
+        {Array.from({ length: 4 }, (_, indice) => (
+          <div key={indice} className={`${PAINEL} grid content-start gap-2`}>
+            <div className="h-[11px] w-24 rounded-full bg-[#e6eef3]" />
+            <div className="h-[22px] w-20 rounded-full bg-[#eef4f8]" />
+            <div className="h-[10px] w-28 rounded-full bg-[#eef4f8]" />
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -235,18 +272,20 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
         </FadeUp>
 
         <div className={`grid min-w-0 gap-4 ${temCarga ? 'xl:grid-cols-[minmax(0,1fr)_345px]' : ''}`}>
-          {!temCarga && (
-            <section aria-label={carregando ? 'Carregando a última carga' : falha ? 'Falha ao consultar a carga' : 'Sem carga importada'} aria-live="polite" className={`${PAINEL} grid gap-3 xl:col-span-2`}>
-              <p className={`text-[15px] font-bold ${falha && !carregando ? 'text-dado-atencao' : 'text-ink-strong'}`}>
-                {carregando ? 'Carregando a última carga…' : falha ? 'Não foi possível consultar a carga.' : 'Nenhuma carga importada.'}
+          {!temCarga && carregando && <EsqueletoCarga />}
+
+          {!temCarga && !carregando && (
+            <section aria-label={falha ? 'Falha ao consultar a carga' : 'Sem carga importada'} aria-live="polite" className={`${PAINEL} grid gap-3 xl:col-span-2`}>
+              <p className={`text-[15px] font-bold ${falha ? 'text-dado-atencao' : 'text-ink-strong'}`}>
+                {falha ? 'Não foi possível consultar a carga.' : 'Nenhuma carga importada.'}
               </p>
               <p className="text-[13px] text-ink-muted">
-                {falha && !carregando
+                {falha
                   ? falha
                   : 'Importe as planilhas de Forecast e New Name em Configurações para ver os números deste mês.'}
               </p>
               <div className="flex flex-wrap gap-3">
-                {falha && !carregando && (
+                {falha && (
                   <button type="button" onClick={() => window.location.reload()} className="inline-flex min-h-10 items-center gap-2 rounded-[10px] border border-brand px-4 text-[13px] font-semibold text-brand-escuro transition-premium hover:bg-dado-positivo-suave">
                     Tentar novamente
                   </button>
@@ -390,15 +429,15 @@ export function ExecutivePage({ opportunities, orders, previous, history, nav, c
 
       {opportunities
         ? <ImportedForecastScreen batch={opportunities} previousBatch={previous?.opportunities ?? null} referenceDate={referenceDate} focus={pedidoFoco} />
-        : <EmptySection id="forecast" titulo="Forecast" contexto="Previsto, ganhos no CRM e o que mudou desde a carga anterior." nav={nav} carregando={carregando} falha={falha} />}
+        : <EmptySection id="forecast" titulo="Forecast" contexto="Previsto, ganhos no CRM e o que mudou desde a carga anterior." nav={nav} falha={falha} />}
 
       {orders
         ? <NewNameSection orders={orders.records} opportunities={opportunities?.records ?? null} previousOrders={previousOrders} previousOpportunities={previousOpportunities} referenceDate={ordersReferenceDate} />
-        : <EmptySection id="new-name" titulo="New Name" contexto="Contas novas, pedidos conferidos e o que saiu do período." nav={nav} carregando={carregando} falha={falha} />}
+        : <EmptySection id="new-name" titulo="New Name" contexto="Contas novas, pedidos conferidos e o que saiu do período." nav={nav} falha={falha} />}
 
       {opportunities
         ? <PipelineSection records={opportunities.records} previousRecords={previousOpportunities} referenceDate={referenceDate} />
-        : <EmptySection id="opportunities" titulo="Oportunidades" contexto="Entradas, saídas e mudanças na carteira aberta." nav={nav} carregando={carregando} falha={falha} />}
+        : <EmptySection id="opportunities" titulo="Oportunidades" contexto="Entradas, saídas e mudanças na carteira aberta." nav={nav} falha={falha} />}
     </div>
   )
 }

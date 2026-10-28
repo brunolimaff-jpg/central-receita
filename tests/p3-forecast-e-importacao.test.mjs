@@ -104,17 +104,24 @@ test('P3-b: o painel lê draft, nunca workspace nem staged', () => {
 const executivo = () => ler('../src/features/comercial-v3/screens/executive-page.tsx')
 const app = () => ler('../src/features/comercial-v3/commercial-v3-app.tsx')
 
-test('a seção vazia distingue carregando, falha e ausência de carga', () => {
+test('a seção vazia distingue falha de ausência de carga', () => {
   const texto = executivo()
-  assert.match(texto, /if \(carregando\) return 'Carregando a última carga…'/)
   // A mensagem completa da falha fica no cartão do topo; a seção aponta para lá.
-  assert.match(texto, /if \(falha\) return 'Falha na consulta — veja o aviso no topo/)
-  assert.match(texto, /return 'Sem carga importada para esta seção\.'/)
+  assert.match(texto, /falha \? 'Falha na consulta — veja o aviso no topo/)
+  assert.match(texto, /'Sem carga importada para esta seção\.'/)
+})
+
+test('a seção não exibe mais o texto "Carregando a última carga"', () => {
+  // Ele ocupava uma linha e era substituído por um painel inteiro, o que media
+  // 0,13 de CLS. O espaço agora é reservado pelo esqueleto antes da troca.
+  const texto = executivo()
+  assert.doesNotMatch(texto, /Carregando a última carga…/)
+  assert.match(texto, /function EsqueletoCarga/)
 })
 
 test('a falha aparece em âmbar na seção, não como texto apagado de vazio', () => {
   const texto = executivo()
-  assert.match(texto, /falha && !carregando \? 'text-\[13px\] text-dado-atencao' : 'text-\[13px\] text-ink-muted'/)
+  assert.match(texto, /falha \? 'text-\[13px\] text-dado-atencao' : 'text-\[13px\] text-ink-muted'/)
 })
 
 test('o cartão principal da Visão Executiva oferece tentar de novo quando a consulta falha', () => {
@@ -205,5 +212,5 @@ test('a consulta que termina limpa o próprio prazo', () => {
 
 test('o aria-label do cartão vazio acompanha o estado', () => {
   const texto = executivo()
-  assert.match(texto, /aria-label=\{carregando \? 'Carregando a última carga' : falha \? 'Falha ao consultar a carga' : 'Sem carga importada'\}/)
+  assert.match(texto, /aria-label=\{falha \? 'Falha ao consultar a carga' : 'Sem carga importada'\}/)
 })
