@@ -11,8 +11,8 @@ import { forecastFluxo, resultadoFilial, resultadoTotal } from '../src/features/
 test('nível é derivado do que está aberto, não de um parâmetro', () => {
   assert.equal(T.nivelDe(null, null), 'cso')
   assert.equal(T.nivelDe('', null), 'cso')
-  assert.equal(T.nivelDe('centro-oeste', null), 'territorio')
-  assert.equal(T.nivelDe('centro-oeste', 'DF'), 'filial')
+  assert.equal(T.nivelDe('territorio-02', null), 'territorio')
+  assert.equal(T.nivelDe('territorio-02', 'DF'), 'filial')
 })
 
 test('território inexistente cai no CSO em vez de tela vazia', () => {
@@ -22,9 +22,9 @@ test('território inexistente cai no CSO em vez de tela vazia', () => {
 })
 
 test('filial de outro território não abre nível filial', () => {
-  // RO é do Norte. Pedir RO dentro do Centro-Oeste não é filial do CO.
-  assert.equal(T.nivelDe('centro-oeste', 'RO'), 'territorio')
-  assert.equal(T.nivelDe('norte', 'RO'), 'filial')
+  // RO é do Território 05. Pedir RO dentro do 02 não é filial dele.
+  assert.equal(T.nivelDe('territorio-02', 'RO'), 'territorio')
+  assert.equal(T.nivelDe('territorio-05', 'RO'), 'filial')
 })
 
 /* ------------------------------------------------------------------ */
@@ -32,17 +32,17 @@ test('filial de outro território não abre nível filial', () => {
 /* ------------------------------------------------------------------ */
 
 test('recorte de território não deixa passar filial de fora', () => {
-  const co = T.territorioPorId('centro-oeste')
-  const r = T.recortarTerritorio(S, co)
+  const t2 = T.territorioPorId('territorio-02')
+  const r = T.recortarTerritorio(S, t2)
   assert.deepEqual(r.filiais.map(f => f.sigla).sort(), ['DF', 'GO', 'MS', 'MT'])
-  assert.ok(r.opps.every(o => co.filiais.includes(o.filial)), 'nenhuma opp de fora pode sobrar')
-  assert.ok(r.execs.every(e => co.filiais.includes(e.filial)), 'nenhum executivo de fora pode sobrar')
+  assert.ok(r.opps.every(o => t2.filiais.includes(o.filial)), 'nenhuma opp de fora pode sobrar')
+  assert.ok(r.execs.every(e => t2.filiais.includes(e.filial)), 'nenhum executivo de fora pode sobrar')
 
-  const norte = T.recortarTerritorio(S, T.territorioPorId('norte'))
-  assert.deepEqual(norte.filiais.map(f => f.sigla).sort(), ['RO', 'TO'])
+  const t5 = T.recortarTerritorio(S, T.territorioPorId('territorio-05'))
+  assert.deepEqual(t5.filiais.map(f => f.sigla).sort(), ['RO', 'TO'])
   // E os dois recortes não se sobrepõem.
   const a = new Set(r.filiais.map(f => f.sigla))
-  assert.ok(norte.filiais.every(f => !a.has(f.sigla)))
+  assert.ok(t5.filiais.every(f => !a.has(f.sigla)))
 })
 
 test('território nulo é o consolidado inteiro', () => {
@@ -62,9 +62,9 @@ test('os territórios cobrem todas as filiais do snapshot, sem sobra nem repeti�
 /* ------------------------------------------------------------------ */
 
 test('a linha de território usa a mesma régua do nível de baixo', () => {
-  const co = T.territorioPorId('centro-oeste')
-  const recorte = T.recortarTerritorio(S, co)
-  const linha = T.linhasDeTerritorio(S, 'mrr').find(l => l.territorio.id === 'centro-oeste')
+  const t2 = T.territorioPorId('territorio-02')
+  const recorte = T.recortarTerritorio(S, t2)
+  const linha = T.linhasDeTerritorio(S, 'mrr').find(l => l.territorio.id === 'territorio-02')
   const f = forecastFluxo(recorte, 'mrr')
   assert.equal(linha.base, f.base)
   assert.equal(linha.pctBase, f.pctBase)
@@ -81,17 +81,17 @@ test('MRR e NRR nunca se somam em taxa nem em farol', () => {
     assert.notEqual(mrr[i].meta, nrr[i].meta, 'metas de fluxos distintos não podem coincidir')
   }
   // E cada linha bate com o próprio fluxo.
-  const co = T.territorioPorId('centro-oeste')
+  const t2 = T.territorioPorId('territorio-02')
   assert.equal(
-    T.linhasDeTerritorio(S, 'nrr').find(l => l.territorio.id === co.id).pctBase,
-    forecastFluxo(T.recortarTerritorio(S, co), 'nrr').pctBase,
+    T.linhasDeTerritorio(S, 'nrr').find(l => l.territorio.id === t2.id).pctBase,
+    forecastFluxo(T.recortarTerritorio(S, t2), 'nrr').pctBase,
   )
 })
 
 test('a pior filial é a de menor percentual, e só entre as que têm meta', () => {
-  const linha = T.linhasDeTerritorio(S, 'mrr').find(l => l.territorio.id === 'centro-oeste')
-  const co = T.territorioPorId('centro-oeste')
-  const percentuais = co.filiais
+  const linha = T.linhasDeTerritorio(S, 'mrr').find(l => l.territorio.id === 'territorio-02')
+  const t2 = T.territorioPorId('territorio-02')
+  const percentuais = t2.filiais
     .map(sigla => ({ sigla, pct: resultadoFilial(S.filiais.find(f => f.sigla === sigla), 'mrr').pct }))
     .filter(x => x.pct !== null)
     .sort((a, b) => a.pct - b.pct)
@@ -112,14 +112,14 @@ test('território sem meta não afirma farol nem "falta"', () => {
 
 test('filiaisComMeta conta só quem tem meta, e filiais conta todas', () => {
   const parcial = JSON.parse(JSON.stringify(S))
-  const co = T.territorioPorId('centro-oeste')
+  const t2 = T.territorioPorId('territorio-02')
   // `filiais[0]` é a assinatura de TO, que não é do CO — tem de buscar pela sigla declarada.
-  const alvo = parcial.filiais.find(f => f.sigla === co.filiais[0])
-  assert.ok(alvo, `a filial ${co.filiais[0]} precisa existir no snapshot`)
+  const alvo = parcial.filiais.find(f => f.sigla === t2.filiais[0])
+  assert.ok(alvo, `a filial ${t2.filiais[0]} precisa existir no snapshot`)
   for (const r of Object.keys(alvo.rubricas)) alvo.rubricas[r].meta = 0
-  const linha = T.linhasDeTerritorio(parcial, 'mrr').find(l => l.territorio.id === co.id)
-  assert.equal(linha.filiais, co.filiais.length)
-  assert.equal(linha.filiaisComMeta, co.filiais.length - 1)
+  const linha = T.linhasDeTerritorio(parcial, 'mrr').find(l => l.territorio.id === t2.id)
+  assert.equal(linha.filiais, t2.filiais.length)
+  assert.equal(linha.filiaisComMeta, t2.filiais.length - 1)
 })
 
 /* ------------------------------------------------------------------ */
@@ -162,21 +162,42 @@ test('atenção do CSO sai dos números da tela, sem indicador inventado', () =>
 /* ------------------------------------------------------------------ */
 
 test('filial do território só abre se pertencer a ele', () => {
-  assert.ok(T.filialDoTerritorio(S, 'centro-oeste', 'DF'))
-  assert.equal(T.filialDoTerritorio(S, 'centro-oeste', 'RO'), null, 'RO não é do Centro-Oeste')
-  assert.equal(T.filialDoTerritorio(S, 'norte', 'DF'), null)
-  assert.ok(T.filialDoTerritorio(S, 'norte', 'RO'))
+  assert.ok(T.filialDoTerritorio(S, 'territorio-02', 'DF'))
+  assert.equal(T.filialDoTerritorio(S, 'territorio-02', 'RO'), null, 'RO não é do Território 02')
+  assert.equal(T.filialDoTerritorio(S, 'territorio-05', 'DF'), null)
+  assert.ok(T.filialDoTerritorio(S, 'territorio-05', 'RO'))
 })
 
-test('só o Centro-Oeste tem desenho próprio', () => {
+test('só o Território 02 tem desenho próprio', () => {
   const comDesenho = T.TERRITORIOS.filter(t => t.desenhoProprio)
   assert.equal(comDesenho.length, 1)
-  assert.equal(comDesenho[0].id, 'centro-oeste')
+  assert.equal(comDesenho[0].id, 'territorio-02')
 })
 
 test('todo território declara procedência e não se apresenta como divisão oficial', () => {
   for (const t of T.TERRITORIOS) {
     assert.ok(t.procedencia.length > 0, `${t.id} sem procedência`)
-    assert.match(t.procedencia, /fictício|não é divisão corporativa/i, `${t.id} afirma estrutura real`)
+    // A base é o organograma, mas os números são do cenário: a frase precisa dizer as duas coisas.
+    assert.match(t.procedencia, /organograma/i, `${t.id} não diz de onde vem o recorte`)
+    assert.match(t.procedencia, /fictíci/i, `${t.id} afirma dado real`)
+  }
+})
+
+test('os territórios são os cinco do organograma, com UFs declaradas', () => {
+  assert.equal(T.TERRITORIOS.length, 5, 'o organograma tem cinco territórios')
+  const numeros = T.TERRITORIOS.map(t => t.nome).sort()
+  assert.deepEqual(numeros, ['Território 01', 'Território 02', 'Território 03', 'Território 04', 'Território 05'])
+  for (const t of T.TERRITORIOS) assert.ok(t.ufs.length > 0, `${t.id} sem UFs`)
+})
+
+test('todo território tem movimento: nenhum fica vazio na comparação', () => {
+  // Se um território não tiver filial com dado, a comparação lê como
+  // favorecimento dos outros. Todos precisam de meta e de ganho.
+  for (const t of T.TERRITORIOS) {
+    const r = T.recortarTerritorio(S, t)
+    assert.ok(r.filiais.length > 0, `${t.nome} sem filial no cenário`)
+    const total = resultadoTotal(r, 'mrr')
+    assert.ok(total.meta > 0, `${t.nome} sem meta de MRR`)
+    assert.ok(total.ganho > 0, `${t.nome} sem ganho de MRR`)
   }
 })

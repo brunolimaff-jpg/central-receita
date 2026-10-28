@@ -44,6 +44,8 @@ export type Nivel = 'cso' | 'territorio' | 'filial'
 export type Territorio = {
   id: string
   nome: string
+  /** UFs como o organograma declara. A carga só conhece filial; isto é a ponte declarada. */
+  ufs: string
   /** Siglas de filial que compõem o território nesta demonstração. */
   filiais: string[]
   /** Uma frase sobre o que distingue este território. Sem invenção de região. */
@@ -58,24 +60,61 @@ export type Territorio = {
 }
 
 /**
- * O recorte desta demonstração. Nenhum destes nomes afirma divisão oficial: são
- * agrupamentos de filiais do cenário fictício, e a tela diz isso em cada nível.
+ * Os cinco territórios do organograma (`org-2027.ts`), não um recorte inventado.
+ *
+ * Mesmo número, mesmas UFs e mesma cobertura que a home desenha. `filiais` é a
+ * ponte para a carga, que só conhece filial — a correspondência UF → filial é
+ * declaração desta demonstração, não dado importado.
+ *
+ * O Território 05 é o caso especial do organograma: faz novos negócios via
+ * canais e tem a base anexa ao 02. Aqui ele aparece com filiais próprias na
+ * demo para poder ser comparado como os outros; a nota do organograma continua
+ * valendo na home.
  */
 export const TERRITORIOS: Territorio[] = [
   {
-    id: 'centro-oeste',
-    nome: 'Centro-Oeste',
-    filiais: ['DF', 'GO', 'MS', 'MT'],
-    destaque: 'Território com desenho próprio: mapa de calor por filial e rubrica como leitura principal.',
-    procedencia: 'Recorte fictício de quatro filiais da demonstração. Não é divisão corporativa verificada.',
+    id: 'territorio-01',
+    nome: 'Território 01',
+    ufs: 'RS · SC · PR',
+    filiais: ['RS', 'SC', 'PR'],
+    destaque: 'Sul completo: três filiais, a maior base de construtoras e agro da demonstração.',
+    procedencia: 'Território 01 do organograma 2027 (RS · SC · PR). Filiais do cenário fictício.',
+    desenhoProprio: false,
+  },
+  {
+    id: 'territorio-02',
+    nome: 'Território 02',
+    ufs: 'MT + MS · DF · GO / TO',
+    filiais: ['MT', 'MS', 'DF', 'GO'],
+    destaque: 'Centro-Oeste e Tocantins: quatro filiais com perfis de cliente bem distintos.',
+    procedencia: 'Território 02 do organograma 2027 (MT + MS · DF · GO / TO). Filiais do cenário fictício.',
     desenhoProprio: true,
   },
   {
-    id: 'norte',
-    nome: 'Norte',
+    id: 'territorio-03',
+    nome: 'Território 03',
+    ufs: 'São Paulo Capital · Interior',
+    filiais: ['SP'],
+    destaque: 'A maior praça em valor absoluto: ler o número antes de comparar percentual.',
+    procedencia: 'Território 03 do organograma 2027 (São Paulo). Filial do cenário fictício.',
+    desenhoProprio: false,
+  },
+  {
+    id: 'territorio-04',
+    nome: 'Território 04',
+    ufs: 'Nordeste · MG · RJ / ES',
+    filiais: ['MG', 'BA', 'PE'],
+    destaque: 'Três praças de portes diferentes: percentual alto em base pequena engana.',
+    procedencia: 'Território 04 do organograma 2027 (Nordeste · MG · RJ / ES). Filiais do cenário fictício.',
+    desenhoProprio: false,
+  },
+  {
+    id: 'territorio-05',
+    nome: 'Território 05',
+    ufs: 'Norte',
     filiais: ['RO', 'TO'],
-    destaque: 'Duas filiais em praças distintas: ler valor absoluto antes do percentual.',
-    procedencia: 'Recorte fictício de duas filiais da demonstração. Não é divisão corporativa verificada.',
+    destaque: 'Novos negócios via canais: base menor, então o valor absoluto importa mais que o %.',
+    procedencia: 'Território 05 do organograma 2027 (Norte). Filiais do cenário fictício.',
     desenhoProprio: false,
   },
 ]

@@ -25,21 +25,21 @@ const params = href => new URLSearchParams(href.slice(2))
 
 test('href de filial serializa o branch, mesmo sem branch no contexto', () => {
   // O clique em "DF" a partir do CSO: contexto sem filial, extra com DF.
-  const href = buildCommercialHref('territorios', ctx(), { territorio: 'centro-oeste', branch: 'DF' })
+  const href = buildCommercialHref('territorios', ctx(), { territorio: 'territorio-02', branch: 'DF' })
   assert.equal(params(href).get('branch'), 'DF')
-  assert.equal(params(href).get('territorio'), 'centro-oeste')
+  assert.equal(params(href).get('territorio'), 'territorio-02')
 })
 
 test('o href do clique abre o nível filial de verdade', () => {
   // A prova que importa: parsear o href e derivar o nível.
-  const href = buildCommercialHref('territorios', ctx(), { territorio: 'centro-oeste', branch: 'DF' })
+  const href = buildCommercialHref('territorios', ctx(), { territorio: 'territorio-02', branch: 'DF' })
   const contexto = parseCommercialContext(params(href))
   assert.equal(nivelDe(contexto.territorio, contexto.branch), 'filial')
 })
 
 test('extra.branch vence o branch do contexto', () => {
   // Trocar de filial sem sair dela: contexto em DF, clique em GO.
-  const href = buildCommercialHref('territorios', ctx({ branch: 'DF' }), { territorio: 'centro-oeste', branch: 'GO' })
+  const href = buildCommercialHref('territorios', ctx({ branch: 'DF' }), { territorio: 'territorio-02', branch: 'GO' })
   assert.equal(params(href).get('branch'), 'GO')
 })
 
@@ -49,13 +49,13 @@ test('extra.branch vence o branch do contexto', () => {
 
 test('ALL_FILTERS no extra limpa o branch do contexto', () => {
   // "Todas" a partir da filial: contexto em DF, extra manda limpar.
-  const href = buildCommercialHref('territorios', ctx({ branch: 'DF' }), { territorio: 'centro-oeste', branch: ALL_FILTERS })
+  const href = buildCommercialHref('territorios', ctx({ branch: 'DF' }), { territorio: 'territorio-02', branch: ALL_FILTERS })
   assert.equal(params(href).get('branch'), null, 'ALL_FILTERS não pode virar branch=all na URL')
-  assert.equal(params(href).get('territorio'), 'centro-oeste')
+  assert.equal(params(href).get('territorio'), 'territorio-02')
 })
 
 test('subir da filial para o território devolve o nível território', () => {
-  const href = buildCommercialHref('territorios', ctx({ branch: 'DF' }), { territorio: 'centro-oeste', branch: ALL_FILTERS })
+  const href = buildCommercialHref('territorios', ctx({ branch: 'DF' }), { territorio: 'territorio-02', branch: ALL_FILTERS })
   const contexto = parseCommercialContext(params(href))
   assert.equal(nivelDe(contexto.territorio, contexto.branch), 'territorio')
 })

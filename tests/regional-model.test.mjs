@@ -79,8 +79,13 @@ test('recorte por filial restringe opps e executivos', () => {
   assert.equal(r.filiais.length, 1)
 })
 
-test('mock tem 6 filiais e casos adversariais visíveis', () => {
-  assert.deepEqual(S.filiais.map(f => f.sigla), ['DF', 'GO', 'MS', 'MT', 'RO', 'TO'])
+test('mock cobre os cinco territórios e mostra casos adversariais', () => {
+  // Uma filial por território do organograma, no mínimo: um território sem
+  // dado leria como favorecimento na comparação.
+  assert.deepEqual(
+    S.filiais.map(f => f.sigla),
+    ['RS', 'SC', 'PR', 'MT', 'MS', 'DF', 'GO', 'SP', 'MG', 'BA', 'PE', 'RO', 'TO'],
+  )
   const flags = new Set([...M.flagsLimpeza(S).values()].flat())
   for (const f of M.FLAGS_LIMPEZA.map(x => x.flag)) assert.ok(flags.has(f), f)
 })

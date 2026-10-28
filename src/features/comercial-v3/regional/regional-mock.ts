@@ -5,21 +5,65 @@
  */
 import { mulberry32, type RegionalExec, type RegionalExecHist, type RegionalFilial, type RegionalHistMes, type RegionalHistOpp, type RegionalOpp, type RegionalSnapshot, type Tier } from './regional-model.ts'
 
-const FILIAIS: { sigla: string; nome: string; metaMrr: number; metaNrr: number; execs: string[] }[] = [
-  { sigla: 'DF', nome: 'Distrito Federal', metaMrr: 42000, metaNrr: 260000, execs: ['Ana Ribeiro', 'Caio Mendes', 'Lívia Prado'] },
-  { sigla: 'GO', nome: 'Goiás', metaMrr: 48000, metaNrr: 300000, execs: ['Rafael Teles', 'Bianca Sousa', 'Diego Arantes'] },
-  { sigla: 'MS', nome: 'Mato Grosso do Sul', metaMrr: 30000, metaNrr: 190000, execs: ['Paulo Viana', 'Renata Lobo'] },
-  { sigla: 'MT', nome: 'Mato Grosso', metaMrr: 52000, metaNrr: 340000, execs: ['Tiago Farias', 'Marina Couto', 'Eduardo Leme', 'Sofia Rangel'] },
-  { sigla: 'RO', nome: 'Rondônia', metaMrr: 16000, metaNrr: 110000, execs: ['Hugo Batista'] },
-  { sigla: 'TO', nome: 'Tocantins', metaMrr: 14000, metaNrr: 90000, execs: ['Clara Nunes', 'Vitor Assis'] },
+/**
+ * Filiais do cenário, uma ou mais por território do organograma.
+ *
+ * O organograma (`org-2027.ts`) agrupa por UF; a carga agrupa por filial. Cada
+ * linha aqui pertence a um dos cinco territórios, e **todos** têm movimento:
+ * um território sem número na demo leria como favorecimento de outro, e a tela
+ * existe justamente para comparar.
+ */
+const FILIAIS: { sigla: string; nome: string; uf: string; metaMrr: number; metaNrr: number; execs: string[] }[] = [
+  // Território 01 — RS · SC · PR
+  { sigla: 'RS', nome: 'Rio Grande do Sul', uf: 'RS', metaMrr: 62000, metaNrr: 380000, execs: ['Ana Ribeiro', 'Caio Mendes', 'Lívia Prado'] },
+  { sigla: 'SC', nome: 'Santa Catarina', uf: 'SC', metaMrr: 38000, metaNrr: 240000, execs: ['Rafael Teles', 'Bianca Sousa'] },
+  { sigla: 'PR', nome: 'Paraná', uf: 'PR', metaMrr: 44000, metaNrr: 280000, execs: ['Diego Arantes', 'Paula Serrano'] },
+  // Território 02 — MT + MS · DF · GO / TO
+  { sigla: 'MT', nome: 'Mato Grosso', uf: 'MT', metaMrr: 52000, metaNrr: 340000, execs: ['Tiago Farias', 'Marina Couto', 'Eduardo Leme', 'Sofia Rangel'] },
+  { sigla: 'MS', nome: 'Mato Grosso do Sul', uf: 'MS', metaMrr: 30000, metaNrr: 190000, execs: ['Paulo Viana', 'Renata Lobo'] },
+  { sigla: 'DF', nome: 'Distrito Federal', uf: 'DF', metaMrr: 42000, metaNrr: 260000, execs: ['Camila Duarte', 'Bruno Salgado'] },
+  { sigla: 'GO', nome: 'Goiás', uf: 'GO', metaMrr: 48000, metaNrr: 300000, execs: ['Wagner Pinto', 'Helena Vasques'] },
+  // Território 03 — São Paulo Capital · Interior
+  { sigla: 'SP', nome: 'São Paulo', uf: 'SP', metaMrr: 96000, metaNrr: 620000, execs: ['Marcos Aurélio', 'Tatiana Reis', 'Gustavo Lima', 'Renata Alvarez'] },
+  // Território 04 — Nordeste · MG · RJ / ES
+  { sigla: 'MG', nome: 'Minas Gerais', uf: 'MG', metaMrr: 56000, metaNrr: 330000, execs: ['Otávio Braga', 'Simone Castro'] },
+  { sigla: 'BA', nome: 'Bahia', uf: 'BA', metaMrr: 34000, metaNrr: 210000, execs: ['Igor Menezes', 'Larissa Prado'] },
+  { sigla: 'PE', nome: 'Pernambuco', uf: 'PE', metaMrr: 26000, metaNrr: 165000, execs: ['Vitória Andrade'] },
+  // Território 05 — Norte (novos negócios via canais)
+  { sigla: 'RO', nome: 'Rondônia', uf: 'RO', metaMrr: 16000, metaNrr: 110000, execs: ['Hugo Batista'] },
+  { sigla: 'TO', nome: 'Tocantins', uf: 'TO', metaMrr: 14000, metaNrr: 90000, execs: ['Clara Nunes', 'Vitor Assis'] },
 ]
 
-/** Quanto do NRR realizado vem de cada rubrica, por filial. Soma ~2 (as duas colunas do NRR). */
-const SPLIT_LICENCA: Record<string, number> = { DF: 1.18, GO: 0.92, MS: 0.86, MT: 1.06, RO: 1.24, TO: 0.95 }
-const SPLIT_SERVICO: Record<string, number> = { DF: 0.78, GO: 1.09, MS: 1.14, MT: 0.94, RO: 0.72, TO: 1.05 }
+/**
+ * Quanto do NRR realizado vem de cada rubrica, por filial. Soma ~2 (as duas
+ * colunas do NRR). Fixo por filial para o cenário continuar reproduzível, e
+ * variado de propósito: sem diferença o mapa mostra duas colunas idênticas.
+ */
+const SPLIT_LICENCA: Record<string, number> = {
+  RS: 1.02, SC: 0.88, PR: 1.11,
+  MT: 1.06, MS: 0.86, DF: 1.18, GO: 0.92,
+  SP: 1.14,
+  MG: 0.97, BA: 1.21, PE: 0.83,
+  RO: 1.24, TO: 0.95,
+}
+const SPLIT_SERVICO: Record<string, number> = {
+  RS: 0.98, SC: 1.12, PR: 0.89,
+  MT: 0.94, MS: 1.14, DF: 0.78, GO: 1.09,
+  SP: 0.86,
+  MG: 1.03, BA: 0.79, PE: 1.17,
+  RO: 0.72, TO: 1.05,
+}
 
 const PREFIXOS = ['Agro', 'Grupo', 'Cooperativa', 'Usina', 'Distribuidora', 'Transportes', 'Laticínios', 'Sementes', 'Fazendas', 'Comercial']
-const NOMES = ['Cerrado Vivo', 'Pantanal', 'Serra Azul', 'Bom Retiro', 'Rio Claro', 'Vale Verde', 'Planalto', 'Araguaia', 'Boa Safra', 'Horizonte', 'Ipê Dourado', 'Três Lagoas', 'Chapada', 'Buriti', 'Santa Fé', 'Nova Era', 'Guaporé', 'Jalapão', 'Brasília Norte', 'Primavera']
+const NOMES = [
+  'Cerrado Vivo', 'Pantanal', 'Serra Azul', 'Bom Retiro', 'Rio Claro', 'Vale Verde', 'Planalto', 'Araguaia', 'Boa Safra', 'Horizonte',
+  'Ipê Dourado', 'Três Lagoas', 'Chapada', 'Buriti', 'Santa Fé', 'Nova Era', 'Guaporé', 'Jalapão', 'Brasília Norte', 'Primavera',
+  // Ampliado para caber todas as filiais dos cinco territórios: com 13 filiais
+  // são ~320 opps, e o gerador não pode repetir cliente.
+  'Vale do Rio Doce', 'Serra Geral', 'Campo Belo', 'Alto Paraíso', 'Pampa Sul', 'Costa Verde', 'Vale dos Sinos', 'Planalto Central',
+  'Rio das Pedras', 'Serra Negra', 'Baía Formosa', 'Monte Alto', 'Vale Europeu', 'Salto Grande', 'Água Branca', 'Pedra Branca',
+  'Sete Lagoas', 'Campo Largo', 'Entre Rios', 'Alto Taquari', 'Santa Rita', 'São Bento', 'Porto Real', 'Vila Nova',
+]
 
 const NOTAS_POR_TIER: Record<Tier, string[]> = {
   A: ['Contrato enviado para assinatura, decisor aprovou.', 'Cliente confirmou assinatura até sexta.', 'Minuta validada pelo jurídico; falta assinatura.'],
@@ -35,12 +79,24 @@ function gerar(): RegionalSnapshot {
   const rnd = mulberry32(20261028)
   const pick = <T,>(xs: T[]) => xs[Math.floor(rnd() * xs.length)]
   const ri = (a: number, b: number) => Math.round(a + rnd() * (b - a))
+  /*
+   * Nomes de cliente não se repetem. O laço é limitado ao tamanho do pool
+   * porque um `for(;;)` sobre combinações finitas trava o build em silêncio no
+   * dia em que as filiais passarem do total de combinações — foi o que
+   * aconteceu ao crescer para cinco territórios. Esgotado o pool, o nome ganha
+   * um sufixo em vez de girar para sempre.
+   */
   const usados = new Set<string>()
   const cliente = () => {
-    for (;;) {
+    for (let tentativa = 0; tentativa <= PREFIXOS.length * NOMES.length; tentativa++) {
       const c = `${pick(PREFIXOS)} ${pick(NOMES)}`
       if (!usados.has(c)) { usados.add(c); return c }
     }
+    let seq = 2
+    while (usados.has(`Cliente ${seq}`)) seq++
+    const c = `Cliente ${seq}`
+    usados.add(c)
+    return c
   }
 
   const execs: RegionalExec[] = []
@@ -111,12 +167,12 @@ function gerar(): RegionalSnapshot {
     base({ cliente: 'Usina Boa Vista do Norte', exec: 'Marina Couto', nota: 'Proposta de ERP com diretoria.', tier: 'B+', pb: 0.38, nrr: 85000, mrr: 6200 }),
     base({ cliente: 'Cooperativa Alto Xingu', filial: 'MT', exec: 'Eduardo Leme', nota: 'Módulo fiscal em negociação.', tier: 'B', pb: 0.24, nrr: 22000, mrr: 1800 }),
     base({ cliente: 'Cooperativa Alto Xingu', filial: 'MT', exec: 'Eduardo Leme', nota: 'Módulo de folha em negociação.', tier: 'B', pb: 0.24, nrr: 18000, mrr: 1400 }),
-    base({ cliente: 'Grupo Lago Sul', filial: 'DF', exec: 'Ana Ribeiro', nota: 'Cliente informou que perdemos para concorrente.', tier: 'B+', pb: 0.32, nrr: 64000, mrr: 4100 }),
+    base({ cliente: 'Grupo Lago Sul', filial: 'DF', exec: 'Camila Duarte', nota: 'Cliente informou que perdemos para concorrente.', tier: 'B+', pb: 0.32, nrr: 64000, mrr: 4100 }),
     base({ cliente: 'Transportes Cuiabá Rápido', filial: 'MT', exec: 'Sofia Rangel', nota: 'Empresa em recuperação judicial; aguardando crédito.', tier: 'B', pb: 0.2, nrr: 40000, mrr: 3000 }),
     base({ cliente: 'Agro Campo Grande Sul', filial: 'MS', exec: 'Paulo Viana', nota: 'Cliente indica pagamento só em 2027.', tier: 'B+', pb: 0.38, nrr: 72000, mrr: 5200 }),
     base({ cliente: 'Comercial Palmas Centro', filial: 'TO', exec: 'Clara Nunes', nota: 'Proposta enviada.', tier: 'C', pb: 0.1, mrr: 0, nrr: 0 }),
     base({ cliente: 'Laticínios Ji-Paraná', filial: 'RO', exec: 'Hugo Batista', nota: 'Levantamento inicial.', tier: 'C', pb: 0.1, proximaAcao: null, proximaAcaoData: null, atualizadaEm: '2026-08-30', nrr: 26000, mrr: 1900 }),
-    base({ cliente: 'Sementes Rio Verde', filial: 'GO', exec: 'Rafael Teles', nota: 'Contrato com assinatura agendada na segunda.', tier: 'A', pb: 0.62, nrr: 120000, mrr: 9800 }),
+    base({ cliente: 'Sementes Rio Verde', filial: 'GO', exec: 'Wagner Pinto', nota: 'Contrato com assinatura agendada na segunda.', tier: 'A', pb: 0.62, nrr: 120000, mrr: 9800 }),
   )
 
   const filiais: RegionalFilial[] = FILIAIS.map(f => {
@@ -168,7 +224,7 @@ function gerar(): RegionalSnapshot {
     asOf: '2026-10-28',
     competencia: 'Outubro/2026',
     ultimoDiaUtil: '2026-10-30',
-    persona: { nome: 'Matheus Martins', papel: 'Gerente regional · Centro-Oeste + estados', filiais: FILIAIS.map(f => f.sigla) },
+    persona: { nome: 'Diretoria de Mercado', papel: 'Leitura por território · Brasil', filiais: FILIAIS.map(f => f.sigla) },
     filiais,
     execs,
     opps,
