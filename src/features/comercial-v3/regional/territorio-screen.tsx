@@ -36,9 +36,14 @@ export function TerritorioScreen({
   const total = resultadoTotal(s, fluxo)
   const f = forecastFluxo(s, fluxo)
   const calor = calorFilialRubrica(s)
+  /*
+   * Ordena pelo cenário Base, que é o percentual que a tabela mostra e a dica
+   * promete. Antes ordenava por ganho ÷ meta, um número que não aparece em
+   * coluna nenhuma: a lista saía fora de ordem para quem lê.
+   */
   const linhas = s.filiais
     .map(fil => ({ fil, r: resultadoFilial(fil, fluxo), f: forecastFluxo(recortarTerritorio(snapshot, { ...territorio, filiais: [fil.sigla] }), fluxo) }))
-    .sort((a, b) => (a.r.pct ?? Infinity) - (b.r.pct ?? Infinity))
+    .sort((a, b) => (a.f.pctBase ?? Infinity) - (b.f.pctBase ?? Infinity))
 
   const hrefFilial = (sigla: string) => nav.href('territorios', { territorio: territorio.id, branch: sigla })
 

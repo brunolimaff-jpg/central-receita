@@ -22,6 +22,7 @@ import { VIEW_LABELS, VOLTAR_POR_ORIGEM } from '../copy'
 import type { CommercialContext } from '../types'
 import type { CommercialNav } from '../nav'
 import type { CommercialView } from '../types'
+import { ALL_FILTERS } from '../types'
 import { CsoScreen } from '../regional/cso-screen'
 import { FilialScreen } from '../regional/filial-screen'
 import { TerritorioScreen } from '../regional/territorio-screen'
@@ -46,10 +47,12 @@ export function TerritoriosScreen({
   const origem = from ?? 'home'
 
   // Trilha sempre navegável: cada nível volta ao anterior pelo próprio nome.
+  // Subir limpa a filial: sem `branch: ALL_FILTERS` o passo herdaria o branch do
+  // contexto e a trilha não sairia da filial.
   const trilha = [
     { label: VIEW_LABELS.home, href: nav.href('home') },
-    { label: VIEW_LABELS.territorios, href: nav.href('territorios') },
-    ...(territorio ? [{ label: territorio.nome, href: nav.href('territorios', { territorio: territorio.id }) }] : []),
+    { label: VIEW_LABELS.territorios, href: nav.href('territorios', { branch: ALL_FILTERS }) },
+    ...(territorio ? [{ label: territorio.nome, href: nav.href('territorios', { territorio: territorio.id, branch: ALL_FILTERS }) }] : []),
     ...(filial ? [{ label: filial.sigla }] : []),
   ]
 
@@ -96,7 +99,7 @@ export function TerritoriosScreen({
       <div className="flex flex-wrap items-center gap-2">
         <div role="group" aria-label="Território" className="flex flex-wrap gap-1 rounded-full bg-[#ecf0ef] p-1">
           <Link
-            href={nav.href('territorios')}
+            href={nav.href('territorios', { branch: ALL_FILTERS })}
             aria-current={nivel === 'cso' ? 'page' : undefined}
             className={`rounded-full px-3 py-1.5 text-[12.5px] font-semibold ${nivel === 'cso' ? 'bg-[#00544e] text-white' : 'text-[#3f5d59] hover:text-[#0d2340]'}`}
           >
@@ -105,7 +108,7 @@ export function TerritoriosScreen({
           {TERRITORIOS.map(t => (
             <Link
               key={t.id}
-              href={nav.href('territorios', { territorio: t.id })}
+              href={nav.href('territorios', { territorio: t.id, branch: ALL_FILTERS })}
               aria-current={territorio?.id === t.id ? 'page' : undefined}
               className={`rounded-full px-3 py-1.5 text-[12.5px] font-semibold ${territorio?.id === t.id ? 'bg-[#00544e] text-white' : 'text-[#3f5d59] hover:text-[#0d2340]'}`}
             >
@@ -131,7 +134,7 @@ export function TerritoriosScreen({
           {territorio && (
             <div role="group" aria-label="Filial" className="flex flex-wrap gap-1 rounded-full bg-[#ecf0ef] p-1">
               <Link
-                href={nav.href('territorios', { territorio: territorio.id })}
+                href={nav.href('territorios', { territorio: territorio.id, branch: ALL_FILTERS })}
                 aria-current={nivel === 'territorio' ? 'page' : undefined}
                 className={`rounded-full px-3 py-1 text-[12px] font-bold ${nivel === 'territorio' ? 'bg-white text-[#0d2340] shadow' : 'text-[#3f5d59] hover:text-[#0d2340]'}`}
               >

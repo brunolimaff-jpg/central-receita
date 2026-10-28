@@ -1,6 +1,10 @@
 # Parecer — Territórios (`fix/regional-mapa-calor` @ `7751cee`)
 
-**Veredito: não integrar como está.** A reestruturação está certa e o modelo é
+> **Atualização (28/10, após o parecer):** B1, T1 e T2 foram corrigidos e o teste
+> que faltava foi escrito. Ver a seção 7, no fim, para o que mudou e como foi
+> verificado. Os itens M1, M2 e o órfão da seção 5 continuam em aberto.
+
+**Veredito original: não integrar como está.** A reestruturação está certa e o modelo é
 sólido, mas a navegação de três níveis — que é a entrega — não funciona por
 clique. O terceiro nível é inalcançável, e não há caminho de volta da filial para
 o território. Cinco lentes independentes chegaram ao mesmo defeito, e três
@@ -156,3 +160,71 @@ Manter código inalcançável que viola uma invariante é pior que apagá-lo.
 
 Os itens 1 a 3 são o que separa esta branch de ser revisável. Os itens 4 a 6
 podem vir depois, mas o 6 é promessa de interface que hoje não se sustenta.
+
+---
+
+## 7. O que foi corrigido (28/10, depois do parecer)
+
+Autorizado por Bruno: itens 1 a 3 e o teste do href.
+
+### B1 — corrigido
+`context.ts:94-110`. O `extra` de `buildCommercialHref` passou a declarar
+`branch?: string`, e a serialização virou:
+
+```ts
+const filial = extra?.branch ?? context.branch
+if (filial && filial !== ALL_FILTERS) params.set('branch', filial)
+```
+
+`extra.branch` vence o do contexto, e `ALL_FILTERS` limpa o parâmetro. Isso é o
+que permite **subir**: "Todas", a trilha e "Todos · CSO" passam `branch:
+ALL_FILTERS` e não herdam mais a filial aberta.
+
+Na tela, os quatro links que mudam o nível foram corrigidos:
+`territorios-screen.tsx` (Todos · CSO, cada território, Todas, a trilha) e
+`territorio-screen.tsx` (a linha da filial, que já passava `branch` e só passou a
+funcionar).
+
+### T1 — corrigido
+`territorio-screen.tsx:39-46`. O `sort` passou de `a.r.pct` (ganho) para
+`a.f.pctBase` (cenário Base), que é o percentual que a tabela mostra.
+
+### T2 — corrigido
+`filial-screen.tsx:62-86`. O chip e a cor da barra passaram a vir de
+`resultadoRubrica` — a própria rubrica — em vez do total do fluxo. O percentual
+repetido saiu da linha, e a dica diz uma vez qual é o cenário Base do fluxo,
+explicando que ele não se abre por rubrica.
+
+### Teste que faltava — `tests/navegacao-href.test.mjs`
+Nove testes sobre `buildCommercialHref` e `parseCommercialContext`, cobrindo os
+dois sentidos: descer para a filial, trocar de filial, subir para o território,
+voltar ao CSO, e o comportamento herdado que não podia quebrar.
+
+**Prova de que o teste pega o defeito:** revertendo `context.ts` para a versão
+antiga, 6 dos 9 falham. Com a correção, os 9 passam.
+
+Para importar `context.ts` sob `--experimental-strip-types`, o import de
+`./types` virou `./types.ts` — a mesma convenção que `carteira-fila.ts` e
+`carteira-arvore.ts` já usam e que o build aceita.
+
+### Verificação
+| Item | Resultado |
+| --- | --- |
+| `npm test` | 351 testes, 351 passam (eram 342; +9) |
+| `npx tsc --noEmit` | exit 0 |
+| `npm run build:visual` | passa; pacote sem backend e sem fonte comercial |
+| Navegador: descer CSO → CO → DF | link carrega `branch=DF`; clique abre a filial |
+| Navegador: subir DF → CO | "Todas" sem `branch`; volta ao território |
+| Navegador: tabela do território | 68, 88, 93, 102 — crescente pelo exibido |
+| Navegador: rubricas em NRR | Licença 38% e Serviço 25%, sem chip repetido |
+| Mobile 375×812 | empilha sem overflow; seletores acessíveis |
+| Console | sem erro da aplicação (só o HMR do dev server) |
+
+### O que continua em aberto
+- **M1** — filial sem meta ainda infla o percentual do território. Não corrigido
+  nesta rodada porque a correção certa é uma decisão de produto: excluir o ganho
+  do numerador (como o tier D) ou mostrar o percentual como indisponível. Tem
+  teste a escrever junto.
+- **M2** — o dado de integração com ERP continua não existindo na carga.
+- **Seção 5** — `RegionalScreen` e o valor `'regional'` seguem órfãos; o ADR-0006
+  e a escala de cinco faixas no doc de regras seguem desatualizados.

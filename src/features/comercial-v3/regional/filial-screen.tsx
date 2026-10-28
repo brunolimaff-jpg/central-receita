@@ -12,7 +12,7 @@
 import Link from 'next/link'
 import type { CommercialNav } from '../nav'
 import { Barra, Card, Chip, P, R } from '../screens/territorios-ui'
-import { forecastFluxo, resultadoFilial, rubricasDoFluxo, ROTULO_RUBRICA, type Fluxo, type RegionalFilial, type RegionalSnapshot } from './regional-model'
+import { forecastFluxo, resultadoFilial, resultadoRubrica, rubricasDoFluxo, ROTULO_RUBRICA, type Fluxo, type RegionalFilial, type RegionalSnapshot } from './regional-model'
 import { recortarTerritorio, type Territorio } from './territorios-model'
 
 export function FilialScreen({
@@ -59,22 +59,21 @@ export function FilialScreen({
         </Card>
       </section>
 
-      <Card titulo="Rubrica por rubrica" hint={`Fluxo ${fluxo.toUpperCase()}. A barra é ganho ÷ meta da própria rubrica; o chip é o cenário Base do fluxo, que é onde ela deve aterrissar.`}>
+      <Card
+        titulo="Rubrica por rubrica"
+        hint={`Fluxo ${fluxo.toUpperCase()}. Barra, percentual e chip medem ganho ÷ meta da própria rubrica. O cenário Base do fluxo é ${P(f.pctBase)} — é onde a filial deve aterrissar, e ele não se abre por rubrica.`}
+      >
         <div className="grid gap-3">
           {rubricas.map(rubrica => {
-            const bloco = resultadoFilial(filial, fluxo)
-            const daRubrica = filial.rubricas[rubrica]
-            const pctRubrica = daRubrica.meta > 0 ? daRubrica.ganho / daRubrica.meta : null
+            const daRubrica = resultadoRubrica(filial, rubrica)
+            const cor = daRubrica.farol === 'verde' ? '#00544e' : daRubrica.farol === 'amarelo' ? '#2db5aa' : '#c0283b'
             return (
               <div key={rubrica}>
                 <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2 text-[12.5px] font-bold text-[#243b56]">
                   <span>{ROTULO_RUBRICA[rubrica]}</span>
-                  <span className="flex items-center gap-2">
-                    <span className="tabular-nums">{P(pctRubrica)}</span>
-                    <Chip farol={bloco.farol}>{P(bloco.pct)}</Chip>
-                  </span>
+                  <Chip farol={daRubrica.farol}>{P(daRubrica.pct)}</Chip>
                 </div>
-                <Barra pct={pctRubrica} cor={bloco.farol === 'verde' ? '#00544e' : bloco.farol === 'amarelo' ? '#2db5aa' : '#c0283b'} />
+                <Barra pct={daRubrica.pct} cor={cor} />
                 <div className="mt-1 flex justify-between text-[11px] text-[#63748a]">
                   <span>Ganho <b className="text-[#0d2340]">{R(daRubrica.ganho)}</b></span>
                   <span>Meta {daRubrica.meta > 0 ? R(daRubrica.meta) : 'sem meta'}</span>
