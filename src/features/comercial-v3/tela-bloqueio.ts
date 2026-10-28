@@ -64,26 +64,29 @@ export function gravarLiberado(): string {
  * conteúdo, não no formato — sem exclamação empilhada, sem emoji de circo.
  */
 export const TEXTO_BLOQUEIO = {
-  rotulo: 'Acesso restrito',
-  titulo: 'Ops! Esta porta está protegida',
-  subtitulo: 'Digite a senha para entrar na demonstração e continuar explorando.',
+  rotulo: 'Portaria digital',
+  titulo: 'Identifique-se para entrar',
+  subtitulo: 'Registro de acesso da demonstração comercial. A portaria confere a credencial e libera a catraca.',
 
   /** Dica que casa com o easter egg: quem conhece a fala do Hermínio entra na hora. */
-  dica: 'A senha é a palavra que o Hermínio repete em toda apresentação.',
-  alternativa: 'Se você já esteve numa reunião com ele, sabe de cor.',
+  dica: 'A credencial é a palavra que o Hermínio repete em toda apresentação.',
+  alternativa: 'Sem crachá, sem catraca. Ele não abre exceção.',
 
-  campo: 'Senha',
+  campo: 'Credencial',
   placeholder: '.......',
-  botao: 'Abrir a demonstração',
-  botaoErro: 'Não foi essa. Tente de novo',
+  botao: 'Registrar entrada',
+  botaoErro: 'Credencial não confere. Tente de novo.',
 
   /** Boas-vindas depois do acerto. */
-  acertoRotulo: 'Senha correta',
-  acertoTitulo: 'É isso. Pode entrar.',
-  acertoTexto: 'A casa é sua. Os números são fictícios, mas o cuidado com eles não.',
-  acertoBotao: 'Entrar',
+  acertoRotulo: 'Acesso liberado',
+  acertoTitulo: 'Bem-vindo à Portaria',
+  acertoTexto: 'Entrada registrada às {hora}. A catraca está liberada.',
+  acertoBotao: 'Passar pela catraca',
 
-  /** A marca 5 bi aparece como contexto, não como decoração. */
-  metaRotulo: 'A caminho dos',
-  metaValor: 'R$ 5 bi',
+  /** Régua da portaria: números reais do produto, não inventados. */
+  registros: [
+    { valor: '+300 mi', rotulo: 'acessos gerenciados' },
+    { valor: '+2.100', rotulo: 'portarias' },
+    { valor: '+1.800', rotulo: 'clientes ativos' },
+  ],
 } as const
