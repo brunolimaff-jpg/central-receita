@@ -4,6 +4,8 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CommercialShell } from './components/commercial-shell'
+import { TelaBloqueio } from './components/tela-bloqueio'
+import { CHAVE_BLOQUEIO, estaLiberado } from './tela-bloqueio'
 import { buildCommercialHref, commercialReturnHref, parseCommercialContext } from './context'
 import { selectOpportunityLife } from './opportunity-life'
 import { mesCurto } from './mock-data'
@@ -59,6 +61,24 @@ export function CommercialV3App() {
   const [importLoading, setImportLoading] = useState(true)
   const [importError, setImportError] = useState('')
   const importEpoch = useRef(0)
+  /*
+   * Bloqueio da demonstração. Estado inicialmente nulo porque o servidor não
+   * conhece o armazenamento: um valor fixo aqui faria a árvore do HTML sair
+   * diferente da hidratada. Na reconciliação o valor real é lido antes da
+   * pintura, então não há piscada de conteúdo liberado.
+   *
+   * Só a publicação visual é bloqueada. Em desenvolvimento a porta atrapalharia
+   * o trabalho, e o `build:visual` é o único pacote público.
+   */
+  const [liberado, setLiberado] = useState<boolean | null>(visualPreviewEnabled ? false : true)
+  useEffect(() => {
+    if (!visualPreviewEnabled) return
+    try {
+      setLiberado(estaLiberado(window.localStorage.getItem(CHAVE_BLOQUEIO)))
+    } catch {
+      setLiberado(false)
+    }
+  }, [])
   useEffect(() => {
     let active = true
     let prazo: number | undefined
@@ -276,6 +296,14 @@ export function CommercialV3App() {
     }),
     [href, movementHref, branchHref, trocarFiltros, router, period, solution, branch, view, movement, from, demoRequested],
   )
+
+  /*
+   * A porta vem antes de tudo. Enquanto o valor é nulo a tela não decide nada:
+   * pintar a visão e depois cobri-la mostraria os números por um frame, e
+   * pintar o bloqueio e depois trocar faria piscar para quem já tem a senha.
+   */
+  if (liberado === false) return <TelaBloqueio onAbrir={() => setLiberado(true)} />
+  if (liberado === null) return <div className="min-h-dvh bg-[#f2fbf9]" aria-busy="true" />
 
   return (
     <CommercialShell

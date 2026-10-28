@@ -708,6 +708,12 @@
     transition-delay: 0ms;
   }
 
+  /* Botão da porta de entrada: degradê oficial Senior. */
+  .revenue-porta-botao {
+    background: linear-gradient(167deg, #00AF9C 0%, #12F7D1 100%);
+    box-shadow: 0 10px 30px -12px rgb(18 247 209 / 55%), inset 0 1px 0 rgb(255 255 255 / 35%);
+  }
+
   /* ---------- Sidebar escura ---------- */
   /*
    * A coluna vira a peça de marca da tela: vidro escuro em petróleo, com o
@@ -1594,3 +1600,4 @@
     transition-duration: 0.01ms !important;
   }
 }
+
