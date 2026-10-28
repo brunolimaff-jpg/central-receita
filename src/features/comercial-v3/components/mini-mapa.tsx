@@ -3,15 +3,14 @@
 import { useEffect, useState } from 'react'
 
 /**
- * Mini mapa do Brasil: as UFs de um território pintadas na cor dele, as demais
- * em cinza claro formando o contorno do país. A geometria vem de
- * `/geo/brasil-ufs.json`, simplificada a partir da malha do IBGE (24 KB, 27 UFs,
- * ~1.800 pontos): o suficiente para um mapa de contexto, longe do peso de uma
- * biblioteca de mapas ou de um GeoJSON completo.
+ * Recorte geográfico do território: só as UFs dele, na cor dele, enquadradas na
+ * própria extensão. Diferente de um mapa do Brasil inteiro — aqui o desenho é o
+ * território, não o país com ele pintado dentro.
  *
- * O desenho é SVG puro, projetado em coordenadas equirretangulares — para a
- * escala de um cartão, a distorção do equador não aparece, e a projeção cabe em
- * oito linhas sem dependência.
+ * A geometria vem de `/geo/brasil-ufs.json`, simplificada da malha do IBGE
+ * (24 KB, 27 UFs, ~1.800 pontos). O SVG é puro, em coordenadas
+ * equirretangulares: na escala de um cartão a distorção não aparece, e a
+ * projeção cabe em poucas linhas sem biblioteca de mapas.
  */
 
 type Malha = Record<string, Array<Array<[number, number]>>>
@@ -24,18 +23,14 @@ const carregarMalha = () => {
   return cache
 }
 
-/** Brasil inteiro; margem de 1 unidade para o traço não encostar na borda. */
-const LON = [-74, -34]
-const LAT = [-34, 6]
-const VISTA = { largura: LON[1] - LON[0], altura: LAT[1] - LAT[0] }
-const ESCALA = 8
-const LARGURA = VISTA.largura * ESCALA
-const ALTURA = VISTA.altura * ESCALA
-const projetar = ([lon, lat]: [number, number]): string =>
-  `${((lon - LON[0]) * ESCALA).toFixed(1)},${((LAT[1] - lat) * ESCALA).toFixed(1)}`
-
-const caminhos = (malha: Malha, uf: string) =>
-  (malha[uf] ?? []).map(anel => `M${anel.map(projetar).join('L')}Z`).join('')
+/**
+ * Aspecto do quadro. Os extremos do organograma vão de um estado só (SP, quase
+ * quadrado) ao Norte inteiro (largo e achatado); o limite evita que o recorte
+ * esprema o cartão.
+ */
+const ASPECTO_MIN = 0.75
+const ASPECTO_MAX = 1.6
+const ALTURA = 56
 
 export function MiniMapa({ ufs, cor, rotulo }: { ufs: string[]; cor: string; rotulo: string }) {
   const [malha, mudarMalha] = useState<Malha | null>(null)
@@ -46,29 +41,51 @@ export function MiniMapa({ ufs, cor, rotulo }: { ufs: string[]; cor: string; rot
     return () => { vigente = false }
   }, [])
 
-  if (!malha) {
+  const aneis = malha ? ufs.flatMap(uf => malha[uf] ?? []) : []
+
+  if (!malha || aneis.length === 0) {
     // O mapa é apoio, não conteúdo: enquanto a malha não chega, ele só não aparece.
-    return <div aria-hidden className="aspect-[100/82] w-full" />
+    return <div aria-hidden style={{ height: ALTURA }} />
   }
 
-  const destacadas = new Set(ufs)
-  const todas = Object.keys(malha).sort()
+  // Enquadramento pela extensão real das UFs destacadas, com folga de 4%.
+  const longitudes = aneis.flatMap(anel => anel.map(([lon]) => lon))
+  const latitudes = aneis.flatMap(anel => anel.map(([, lat]) => lat))
+  const oeste = Math.min(...longitudes)
+  const leste = Math.max(...longitudes)
+  const sul = Math.min(...latitudes)
+  const norte = Math.max(...latitudes)
+  const folga = Math.max(leste - oeste, norte - sul) * 0.04 || 0.2
+  const larguraGeo = leste - oeste + folga * 2
+  const alturaGeo = norte - sul + folga * 2
+  const largura = Math.min(Math.max(larguraGeo / alturaGeo, ASPECTO_MIN), ASPECTO_MAX) * ALTURA
+  const escala = Math.min(largura / larguraGeo, ALTURA / alturaGeo)
+  const deslocarX = (largura - larguraGeo * escala) / 2
+  const deslocarY = (ALTURA - alturaGeo * escala) / 2
+
+  const projetar = ([lon, lat]: [number, number]) =>
+    `${(deslocarX + (lon - oeste + folga) * escala).toFixed(1)},${(deslocarY + (norte + folga - lat) * escala).toFixed(1)}`
+  // Traço proporcional ao quadro: some no detalhe grande sem engrossar no pequeno.
+  const traco = Math.max(escala * 0.12, 0.5)
 
   return (
     <svg
       role="img"
       aria-label={rotulo}
-      viewBox={`0 0 ${LARGURA} ${ALTURA}`}
-      className="aspect-[100/82] w-full"
+      viewBox={`0 0 ${largura.toFixed(1)} ${ALTURA}`}
+      width={Math.round(largura)}
+      height={ALTURA}
       preserveAspectRatio="xMidYMid meet"
+      style={{ display: 'block' }}
     >
-      {todas.map(uf => (
+      {aneis.map((anel, indice) => (
         <path
-          key={uf}
-          d={caminhos(malha, uf)}
-          fill={destacadas.has(uf) ? cor : 'rgb(51 70 108 / 9%)'}
-          stroke={destacadas.has(uf) ? 'rgb(255 255 255 / 85%)' : 'rgb(51 70 108 / 12%)'}
-          strokeWidth={destacadas.has(uf) ? 0.9 : 0.4}
+          key={indice}
+          d={`M${anel.map(projetar).join('L')}Z`}
+          fill={cor}
+          fillOpacity={0.82}
+          stroke="rgb(255 255 255 / 92%)"
+          strokeWidth={traco}
           strokeLinejoin="round"
         />
       ))}

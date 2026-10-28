@@ -460,7 +460,7 @@ export function DiretoriasSection() {
             style={{ ['--tom' as string]: t.cor }}
           >
             {/* O mapa ancora a geografia no canto: o leitor vê antes de ler a lista de UFs. */}
-            <div className="pointer-events-none absolute -right-1 -top-1 w-[108px] opacity-90">
+            <div className="pointer-events-none absolute right-2 top-2 flex justify-end opacity-90">
               <MiniMapa ufs={UFS_TERRITORIO[t.numero] ?? []} cor={t.cor} rotulo={`Território ${t.numero}: ${t.ufs}`} />
             </div>
             <div className="relative flex items-center gap-3">
@@ -509,7 +509,7 @@ export function DiretoriasSection() {
             className="vidro revenue-glow relative overflow-hidden rounded-[16px] p-4"
             style={{ ['--tom' as string]: t.cor, background: `linear-gradient(135deg, color-mix(in srgb, ${t.cor} 13%, white), white 62%)` }}
           >
-            <div className="pointer-events-none absolute -right-1 -top-1 w-[108px] opacity-90">
+            <div className="pointer-events-none absolute right-2 top-2 flex justify-end opacity-90">
               <MiniMapa ufs={UFS_TERRITORIO[t.numero] ?? []} cor={t.cor} rotulo={`Território ${t.numero}: ${t.ufs}`} />
             </div>
             <div className="relative flex items-center gap-3">
