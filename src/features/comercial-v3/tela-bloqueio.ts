@@ -68,9 +68,13 @@ export const TEXTO_BLOQUEIO = {
   titulo: 'Identifique-se para entrar',
   subtitulo: 'Registro de acesso da demonstração comercial. A portaria confere a credencial e libera a catraca.',
 
-  /** Dica que casa com o easter egg: quem conhece a fala do Hermínio entra na hora. */
-  dica: 'A credencial é a palavra que o Hermínio repete em toda apresentação.',
-  alternativa: 'Sem crachá, sem catraca. Ele não abre exceção.',
+  /**
+   * A dica não nomeia ninguém. Nomear o diretor na tela explica a piada e
+   * estraga o easter egg: quem é do time reconhece a fala sozinho, e quem não
+   * é continua sabendo que existe uma palavra solta no ar.
+   */
+  dica: 'Quem já sentou numa reunião de resultado conhece a credencial de cor.',
+  alternativa: 'Sem crachá, sem catraca.',
 
   campo: 'Credencial',
   placeholder: '.......',
