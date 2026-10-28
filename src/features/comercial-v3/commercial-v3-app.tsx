@@ -27,6 +27,8 @@ import { CrossScreen } from './screens/cross-screen'
 import { ForecastScreen } from './screens/forecast-screen'
 import { ImportScreen } from './screens/import-screen'
 import { CarteiraScreen } from './screens/carteira-screen'
+import { RegionalScreen } from './screens/regional-screen'
+import { REGIONAL_SNAPSHOT } from './regional/regional-mock'
 import { ARVORE } from './carteira-arvore'
 import { coberturaDePara } from './carteira-de-para'
 import { montarCarteira } from './carteira-model'
@@ -351,7 +353,7 @@ export function CommercialV3App() {
       dataCarga={cargaNaPagina ? dataCarga : null}
     >
       {visualPreviewEnabled && <p role="status" className="mb-3 inline-flex rounded-full bg-white/70 px-3 py-1 text-[12px] text-ink-muted">Homologação · dados fictícios</p>}
-      {sharedImportEnabled && view !== 'config' && !executiveView && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#dfe8ef] bg-white px-4 py-3 text-sm text-[#33466c]">
+      {sharedImportEnabled && view !== 'config' && view !== 'regional' && !executiveView && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#dfe8ef] bg-white px-4 py-3 text-sm text-[#33466c]">
         <p><strong>Cenário demonstrativo.</strong> As cargas CSV/XLSX são consultadas em Forecast e New Name. Esta visão usa o cenário fixo, com agregados por filial identificados na tela.</p>
         <Link href={nav.href('config')} className="font-semibold text-[#086b6b] underline">Consultar cargas</Link>
       </div>}
@@ -370,6 +372,8 @@ export function CommercialV3App() {
           solucao={solution}
         />
       )}
+
+      {view === 'regional' && <RegionalScreen snapshot={REGIONAL_SNAPSHOT} nav={nav} from={from} />}
 
       {view === 'agent' && <AgentScreen briefing={briefing} from={from} nav={nav} />}
 

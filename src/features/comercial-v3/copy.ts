@@ -41,6 +41,7 @@ export const VIEW_LABELS: Record<CommercialView, string> = {
   branch: 'Filiais',
   opportunity: 'Oportunidade',
   carteira: 'Carteira',
+  regional: 'Visão Regional',
   config: 'Configurações',
 }
 
@@ -68,6 +69,7 @@ export const VOLTAR_POR_ORIGEM: Record<CommercialView, string> = {
   branch: 'Voltar à filial',
   opportunity: 'Voltar à visão executiva',
   carteira: 'Voltar à carteira',
+  regional: 'Voltar à visão regional',
   config: 'Voltar às configurações',
 }
 

@@ -190,3 +190,25 @@ Divergências entre o Dash (e ADRs antigos) e as decisões de 20/10/2026, penden
 4. **Filial: unidade de negócio versus conta.** O Dash derivava a filial da conta; o projeto novo usa `UNIDADE NEGOCIO OPORTUNIDADE`. Confirmar com a Fabi (issue #8).
 5. **Naturezas Base/C4L.** O Dash tinha as quatro naturezas do CRM Integrado MG com estados de mapeamento; o projeto novo ainda não as leu, e os valores reais de `CLASSIFICACAO DO PEDIDO` seguem por confirmar com a Fabi (issue #8).
 6. **Rubrica e competência do MRR elegível.** A meta individual em MRR é decisão do Bruno (issue #8); a rubrica elegível e a competência do atingimento não estão comprovadas, e `PRODUTO - VALOR MANUTENCAO` não é a regra oficial validada.
+
+## Visão Regional
+
+Regras completas em [docs/regional/REGRAS-E-CALCULOS.md](docs/regional/REGRAS-E-CALCULOS.md) (ADR-0006).
+
+### Commit / Best case / Pipeline
+Categorias do forecast por estágio: Commit = A, Best case = B+ e B, Pipeline = C. D é omitido.
+
+### Esperado
+Soma de valor × probabilidade calibrada (pb) das oportunidades em andamento. Em andamento não é previsão.
+
+### Cenário Base
+Ganho + Esperado + fechamento estimado fora do congelado.
+
+### Conversão exigida
+Fração do Best case que precisa virar Ganho para chegar a 70% da meta.
+
+### Nine box (regional)
+Matriz de executivos: atingimento (Y) × cobertura de pipeline (X), cada eixo em três níveis, com uma ação de liderança por quadrante.
+
+### Limpeza do forecast
+Pendências que distorcem o forecast (perdido, duplicidade, zerado, sem atualização, recuperação judicial, 2027, C sem próxima ação).
