@@ -68,6 +68,18 @@ export function parseCommercialContext(params: URLSearchParams): CommercialConte
   const idNo = (params.get('no') ?? '').trim()
   if (idNo !== '') contexto.no = idNo
 
+  /*
+   * `view=regional` era o nome do módulo antes de virar Territórios. Traduzir
+   * aqui, e não numa rota de redirect, mantém o link antigo funcionando sem
+   * uma ida a mais ao servidor — e sem deixar a URL velha sobreviver na barra.
+   */
+  if (contexto.view === 'regional') contexto.view = 'territorios'
+  if (contexto.from === 'regional') contexto.from = 'territorios'
+
+  // Território aberto. Vazio é o consolidado; quem valida se existe é a tela.
+  const territorio = (params.get('territorio') ?? '').trim()
+  if (territorio !== '') contexto.territorio = territorio
+
   const returnTo = retornoLocal(params.get('returnTo'))
   if (returnTo) contexto.returnTo = returnTo
 
@@ -82,7 +94,7 @@ export function parseCommercialContext(params: URLSearchParams): CommercialConte
 export function buildCommercialHref(
   view: CommercialView,
   context: Pick<CommercialContext, 'period' | 'solution' | 'branch'> & { query?: string; busca?: string; movement?: ForecastMovement | null },
-  extra?: { from?: CommercialView; opportunityId?: string; movement?: ForecastMovement | null; returnTo?: string; no?: string },
+  extra?: { from?: CommercialView; opportunityId?: string; movement?: ForecastMovement | null; returnTo?: string; no?: string; territorio?: string },
 ): string {
   const params = new URLSearchParams()
   params.set('view', view)
@@ -91,6 +103,7 @@ export function buildCommercialHref(
   if (context.branch && context.branch !== ALL_FILTERS) params.set('branch', context.branch)
   if (extra?.opportunityId) params.set('op', extra.opportunityId)
   if (extra?.no) params.set('no', extra.no)
+  if (extra?.territorio) params.set('territorio', extra.territorio)
   if (extra?.from) params.set('from', extra.from)
   const movement = extra?.movement === undefined ? context.movement : extra.movement
   if (movement) params.set('movement', movement)

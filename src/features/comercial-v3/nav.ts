@@ -8,7 +8,7 @@
 
 import type { CommercialPeriod, CommercialView, ForecastMovement } from './types'
 
-const SIDEBAR_VIEWS = ['home', 'journey', 'system', 'opportunities', 'accounts', 'new-name', 'cross', 'forecast', 'regional', 'config'] as const
+const SIDEBAR_VIEWS = ['home', 'journey', 'system', 'opportunities', 'accounts', 'new-name', 'cross', 'forecast', 'territorios', 'config'] as const
 type SidebarView = (typeof SIDEBAR_VIEWS)[number]
 
 /** Resolve a âncora visual do menu para as telas de drill-down. */
@@ -30,6 +30,14 @@ export type CommercialHrefExtra = {
   opportunityId?: string
   movement?: ForecastMovement | null
   returnTo?: string
+  /** Território aberto em Territórios. Ausente = Visão CSO. */
+  territorio?: string
+  /**
+   * Filial ativa em Territórios. Usa o mesmo parâmetro `branch` do resto do app,
+   * então o filtro de filial e o nível aberto são a mesma coisa — dois
+   * parâmetros permitiriam "filtro SP com filial DF aberta".
+   */
+  branch?: string
 }
 
 export type CommercialNav = {

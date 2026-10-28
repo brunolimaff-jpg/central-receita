@@ -212,3 +212,27 @@ Matriz de executivos: atingimento (Y) × cobertura de pipeline (X), cada eixo em
 
 ### Limpeza do forecast
 Pendências que distorcem o forecast (perdido, duplicidade, zerado, sem atualização, recuperação judicial, 2027, C sem próxima ação).
+
+## Territórios
+
+Módulo de navegação da liderança comercial, em três níveis: **CSO → território → filial**. Substitui a entrada "Visão Regional" no menu; `?view=regional` continua abrindo o módulo.
+
+### Visão CSO
+Nível consolidado. Compara territórios com a mesma régua dos níveis de baixo (cenário Base ÷ meta, por fluxo) e aponta o que merece atenção. Não repete a análise do Forecast.
+
+### Território
+Recorte **declarado de filiais**, não divisão corporativa. Nesta demonstração são dois — Centro-Oeste e Norte — e cada um carrega a própria `procedencia`. Centro-Oeste é o primeiro com desenho próprio (mapa de calor como leitor principal); os demais usam o desenho padrão até haver necessidade demonstrada.
+
+### Nível
+Derivado do que está aberto, nunca de um parâmetro: sem território é o CSO; com território, o território; com território e filial, a filial. Não existe "filial sem território".
+
+### Escopo
+O recorte por território é **só de interface**. Ainda não há identidade no servidor: qualquer pessoa com o endereço abre qualquer território. Escopo de gerente não é controle de acesso.
+
+### Onde fica cada capacidade
+| Capacidade | Onde vive |
+|---|---|
+| Comparação entre territórios, atenção do gestor, intervenção | **Territórios** |
+| Cenário, simulação, calibração, movimentos do mês | **Forecast** |
+| Saneamento, pendências, qualidade da carteira | **Oportunidades** |
+| A mesma pergunta por pessoa (CSO, diretor, gerente) | **Carteira** |

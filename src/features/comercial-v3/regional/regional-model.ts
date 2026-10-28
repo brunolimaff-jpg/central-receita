@@ -119,6 +119,13 @@ export function rubricasDoFluxo(fluxo: Fluxo): Rubrica[] {
   return fluxo === 'mrr' ? ['manutencao'] : ['licenca', 'servico']
 }
 
+/** Nome da rubrica para a tela. Fonte única: o mapa de calor e a filial usam o mesmo. */
+export const ROTULO_RUBRICA: Record<Rubrica, string> = {
+  manutencao: 'Manutenção',
+  licenca: 'Licença',
+  servico: 'Serviço',
+}
+
 const soma = (xs: number[]) => xs.reduce((a, b) => a + b, 0)
 /** Razão comum: 0 de 0 é ausência de resultado, não zero. Usar só onde o denominador é contagem. */
 const div = (a: number, b: number) => (b === 0 ? 0 : a / b)

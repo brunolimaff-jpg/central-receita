@@ -38,7 +38,7 @@ const ITENS: ItemNav[] = [
   { key: 'home', label: VIEW_LABELS.home, icon: LayoutDashboard, view: 'home' },
   { key: 'diretorias', label: VIEW_LABELS.diretorias, icon: Network, view: 'diretorias' },
   { key: 'carteira', label: VIEW_LABELS.carteira, icon: Gauge, view: 'carteira', preliminar: true },
-  { key: 'regional', label: VIEW_LABELS.regional, icon: MapPinned, view: 'regional', preliminar: true },
+  { key: 'territorios', label: VIEW_LABELS.territorios, icon: MapPinned, view: 'territorios', preliminar: true },
   { key: 'forecast', label: VIEW_LABELS.forecast, icon: TrendingUp, view: 'forecast' },
   { key: 'new-name', label: VIEW_LABELS['new-name'], icon: Target, view: 'new-name' },
   { key: 'opportunities', label: VIEW_LABELS.opportunities, icon: List, view: 'opportunities' },

@@ -27,7 +27,7 @@ import { CrossScreen } from './screens/cross-screen'
 import { ForecastScreen } from './screens/forecast-screen'
 import { ImportScreen } from './screens/import-screen'
 import { CarteiraScreen } from './screens/carteira-screen'
-import { RegionalScreen } from './screens/regional-screen'
+import { TerritoriosScreen } from './screens/territorios-screen'
 import { REGIONAL_SNAPSHOT } from './regional/regional-mock'
 import { ARVORE } from './carteira-arvore'
 import { coberturaDePara } from './carteira-de-para'
@@ -130,7 +130,7 @@ export function CommercialV3App() {
 
   const consulta = searchParams.toString()
   const contexto = useMemo(() => parseCommercialContext(new URLSearchParams(consulta)), [consulta])
-  const { view, period, solution, branch, from, opportunityId, no: idNo } = contexto
+  const { view, period, solution, branch, from, opportunityId, no: idNo, territorio } = contexto
   /*
    * `?demo=1` existe para revisar o cenário fictício em desenvolvimento. Na
    * publicação, o painel mostra somente a carga confirmada: aceitar o parâmetro
@@ -241,6 +241,8 @@ export function CommercialV3App() {
         { period, solution, branch, query, busca, movement },
         {
           ...(destino === view && from ? { from } : {}),
+          // Sair de Territórios para outra tela leva o território aberto, para o retorno cair no mesmo nível.
+          ...(destino !== 'territorios' && contexto.territorio ? { territorio: contexto.territorio } : {}),
           ...(destino === 'opportunity' && view !== 'opportunity' ? { returnTo: `/?${consulta}` } : {}),
           ...extra,
         },
@@ -353,7 +355,7 @@ export function CommercialV3App() {
       dataCarga={cargaNaPagina ? dataCarga : null}
     >
       {visualPreviewEnabled && <p role="status" className="mb-3 inline-flex rounded-full bg-white/70 px-3 py-1 text-[12px] text-ink-muted">Homologação · dados fictícios</p>}
-      {sharedImportEnabled && view !== 'config' && view !== 'regional' && !executiveView && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#dfe8ef] bg-white px-4 py-3 text-sm text-[#33466c]">
+      {sharedImportEnabled && view !== 'config' && view !== 'territorios' && !executiveView && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#dfe8ef] bg-white px-4 py-3 text-sm text-[#33466c]">
         <p><strong>Cenário demonstrativo.</strong> As cargas CSV/XLSX são consultadas em Forecast e New Name. Esta visão usa o cenário fixo, com agregados por filial identificados na tela.</p>
         <Link href={nav.href('config')} className="font-semibold text-[#086b6b] underline">Consultar cargas</Link>
       </div>}
@@ -373,7 +375,9 @@ export function CommercialV3App() {
         />
       )}
 
-      {view === 'regional' && <RegionalScreen snapshot={REGIONAL_SNAPSHOT} nav={nav} from={from} />}
+      {view === 'territorios' && (
+        <TerritoriosScreen snapshot={REGIONAL_SNAPSHOT} contexto={contexto} nav={nav} from={from} />
+      )}
 
       {view === 'agent' && <AgentScreen briefing={briefing} from={from} nav={nav} />}
 
