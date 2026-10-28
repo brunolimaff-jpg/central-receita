@@ -491,18 +491,47 @@ export function DiretoriasSection() {
           </motion.article>
         ))}
       </div>
-      {TERRITORIOS.filter(t => !t.porVertical).map(t => (
-        <div key={t.numero} className="vidro -mt-1 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-[14px] px-4 py-3" style={{ background: `linear-gradient(90deg, color-mix(in srgb, ${t.cor} 16%, white), transparent 70%)` }}>
-          <span className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-full text-[15px] font-bold text-white" style={{ background: t.cor }}>{t.numero}</span>
-            <span className="leading-tight">
-              <strong className="block text-[14px] font-bold text-ink-strong">{t.nome}</strong>
-              <small className="block text-[12px]" style={{ color: `color-mix(in srgb, ${t.cor} 70%, black)` }}>{t.ufs}</small>
-            </span>
-          </span>
-          {t.nota?.map(item => <span key={item} className="rounded-full bg-white/80 px-3 py-1 text-[12px] font-semibold text-ink-strong">{item}</span>)}
-        </div>
-      ))}
+      {/*
+        Território sem base própria: mesmo material dos demais, mas sem números
+        para preencher — a leitura é a regra de atuação, não a carteira. Em vez
+        de selos soltos, o vínculo com o Território 02 aparece na cor dele: o
+        laranja do 02 no texto diz de quem é a carteira sem precisar de rótulo.
+      */}
+      {TERRITORIOS.filter(t => !t.porVertical).map(t => {
+        const dono = TERRITORIOS.find(outro => outro.numero === 2)
+        return (
+          <motion.article
+            key={t.numero}
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-30px' }}
+            transition={SPRING_SUAVE}
+            className="vidro revenue-glow relative overflow-hidden rounded-[16px] p-4"
+            style={{ ['--tom' as string]: t.cor, background: `linear-gradient(135deg, color-mix(in srgb, ${t.cor} 13%, white), white 62%)` }}
+          >
+            <div className="pointer-events-none absolute -right-1 -top-1 w-[108px] opacity-90">
+              <MiniMapa ufs={UFS_TERRITORIO[t.numero] ?? []} cor={t.cor} rotulo={`Território ${t.numero}: ${t.ufs}`} />
+            </div>
+            <div className="relative flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-full text-[17px] font-bold text-white" style={{ background: t.cor, boxShadow: `0 8px 18px -8px ${t.cor}` }}>{t.numero}</span>
+              <span className="min-w-0 leading-tight">
+                <strong className="block text-[14px] font-bold text-ink-strong">{t.nome}</strong>
+                <small className="block truncate text-[12px]" style={{ color: `color-mix(in srgb, ${t.cor} 70%, black)` }}>{t.ufs}</small>
+              </span>
+            </div>
+            <p className="relative mt-3 max-w-[78%] text-[12px] leading-snug text-ink-muted">
+              {t.nota?.[0]}
+              {dono && (
+                <>
+                  {'. A carteira anda junto com o '}
+                  <span className="font-semibold" style={{ color: `color-mix(in srgb, ${dono.cor} 72%, black)` }}>{dono.nome}</span>
+                  {'.'}
+                </>
+              )}
+            </p>
+          </motion.article>
+        )
+      })}
 
       <div className="grid gap-2">
         <div className="flex flex-wrap items-center gap-2 text-[12px]">
