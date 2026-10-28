@@ -37,6 +37,12 @@ export type CommercialNav = {
   href: (view: CommercialView, extra?: CommercialHrefExtra) => string
   /** Href para o Forecast com o movimento selecionado (plano Task 7 Step 1, l.650). */
   movementHref: (movement: ForecastMovement) => string
+  /**
+   * Href para a Carteira num nó da estrutura. `no` ausente ou igual à raiz
+   * devolve a URL sem o parâmetro, para o link do CSO ser o mesmo endereço da
+   * carteira inteira.
+   */
+  carteiraHref: (noId?: string | null) => string
   /** Href para a tela da filial, preservando período e solução e registrando a origem. */
   branchHref: (branch: string, from?: CommercialView) => string
   onPeriod: (period: CommercialPeriod) => void

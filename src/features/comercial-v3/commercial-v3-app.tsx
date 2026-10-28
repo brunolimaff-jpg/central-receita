@@ -26,6 +26,10 @@ import { BranchScreen } from './screens/branch-screen'
 import { CrossScreen } from './screens/cross-screen'
 import { ForecastScreen } from './screens/forecast-screen'
 import { ImportScreen } from './screens/import-screen'
+import { CarteiraScreen } from './screens/carteira-screen'
+import { ARVORE } from './carteira-arvore'
+import { coberturaDePara } from './carteira-de-para'
+import { montarCarteira } from './carteira-model'
 import { loadImportDraft, loadPreviousDraft, sharedImportEnabled, visualPreviewEnabled, type ImportDraft } from './manual-import-client'
 import { ExecutivePage } from './screens/executive-page'
 import { JourneyScreen } from './screens/journey-screen'
@@ -124,7 +128,7 @@ export function CommercialV3App() {
 
   const consulta = searchParams.toString()
   const contexto = useMemo(() => parseCommercialContext(new URLSearchParams(consulta)), [consulta])
-  const { view, period, solution, branch, from, opportunityId } = contexto
+  const { view, period, solution, branch, from, opportunityId, no: idNo } = contexto
   /*
    * `?demo=1` existe para revisar o cenário fictício em desenvolvimento. Na
    * publicação, o painel mostra somente a carga confirmada: aceitar o parâmetro
@@ -186,6 +190,19 @@ export function CommercialV3App() {
   const briefing = useMemo(() => selectAgentBriefing(COMMERCIAL_SNAPSHOT, filtros), [filtros])
   const forecast = useMemo(() => selectForecastModel(COMMERCIAL_SNAPSHOT, filtros), [filtros])
   const detalhes = useMemo(() => selectOpportunityDetails(COMMERCIAL_SNAPSHOT, filtros), [filtros])
+  /*
+   * Carteira da estrutura. O nó vem da URL; quando o identificador não existe,
+   * cai na raiz em vez de quebrar — a URL nunca é o lugar de provar que um nó
+   * existe. O de-para é estático, então a cobertura também é.
+   */
+  const carteira = useMemo(() => {
+    const idNoValidado = idNo && ARVORE.nos.has(idNo) ? idNo : ARVORE.raiz
+    const registros = importDraft?.opportunities?.records ?? []
+    const referencia = importDraft?.opportunities?.referenceDate ?? ''
+    if (!referencia) return null
+    const pedidos = importDraft?.orders?.records ?? []
+    return montarCarteira(ARVORE, registros, idNoValidado, referencia, coberturaDePara(ARVORE), pedidos)
+  }, [idNo, importDraft])
   const solucoes = useMemo(() => selectSolutionOptions(COMMERCIAL_SNAPSHOT), [])
   const filiais = REAL_BRANCH_NAMES
   const mes = mesCurto(COMMERCIAL_SNAPSHOT.competence.month)
@@ -252,6 +269,17 @@ export function CommercialV3App() {
     [period, solution, branch, query, busca, movement],
   )
 
+  /*
+   * Link para a Carteira num nó. O nó raiz não é serializado: a URL da
+   * carteira inteira é a mesma para todo mundo, e um `no=cso` explícito
+   * obriga quem compartilha o link a conhecer o identificador interno.
+   */
+  const carteiraHref = useCallback(
+    (noId?: string | null) =>
+      buildCommercialHref('carteira', { period, solution, branch }, noId && noId !== 'cso' ? { no: noId } : undefined),
+    [period, solution, branch],
+  )
+
   const trocarFiltros = useCallback(
     (parcial: Partial<CommercialFilters>) => {
       const destino = buildCommercialHref(
@@ -280,6 +308,7 @@ export function CommercialV3App() {
       href,
       movementHref,
       branchHref,
+      carteiraHref,
       onPeriod: (novoPeriodo: CommercialPeriod) => trocarFiltros({ period: novoPeriodo }),
       onSolution: (novaSolucao: string) => trocarFiltros({ solution: novaSolucao }),
       onBranch: (novaFilial: string) => trocarFiltros({ branch: novaFilial }),
@@ -294,7 +323,7 @@ export function CommercialV3App() {
         })
       },
     }),
-    [href, movementHref, branchHref, trocarFiltros, router, period, solution, branch, view, movement, from, demoRequested],
+    [href, movementHref, branchHref, carteiraHref, trocarFiltros, router, period, solution, branch, view, movement, from, demoRequested],
   )
 
   /*
@@ -328,6 +357,19 @@ export function CommercialV3App() {
       </div>}
       {view === 'config' && <ImportScreen draft={importDraft} canImport={canImport} onSaved={draft => { importEpoch.current++; setPreviousImportDraft(importDraft); setImportDraft(draft); setImportError('') }} loading={importLoading} loadError={importError} nav={nav} />}
       {executiveView && <ExecutivePage opportunities={importDraft?.opportunities ?? null} orders={importDraft?.orders ?? null} previous={previousImportDraft} history={importDraft?.history ?? []} nav={nav} carregando={importLoading && !importDraft} falha={importError || null} />}
+
+      {view === 'carteira' && (
+        <CarteiraScreen
+          carteira={carteira}
+          arvore={ARVORE}
+          idNo={idNo && ARVORE.nos.has(idNo) ? idNo : ARVORE.raiz}
+          referenceDate={importDraft?.opportunities?.referenceDate ?? ''}
+          from={from}
+          nav={nav}
+          branch={branch}
+          solucao={solution}
+        />
+      )}
 
       {view === 'agent' && <AgentScreen briefing={briefing} from={from} nav={nav} />}
 

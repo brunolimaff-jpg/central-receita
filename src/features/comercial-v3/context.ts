@@ -60,6 +60,14 @@ export function parseCommercialContext(params: URLSearchParams): CommercialConte
   const movement = params.get('movement')
   if (pertence(FORECAST_MOVEMENTS, movement)) contexto.movement = movement
 
+  /*
+   * Nó da estrutura na Carteira. Aceita qualquer identificador não vazio; quem
+   * valida se o nó existe é a tela, que cai na raiz quando não reconhece — a
+   * URL nunca é o lugar de provar que um nó existe.
+   */
+  const idNo = (params.get('no') ?? '').trim()
+  if (idNo !== '') contexto.no = idNo
+
   const returnTo = retornoLocal(params.get('returnTo'))
   if (returnTo) contexto.returnTo = returnTo
 
@@ -74,7 +82,7 @@ export function parseCommercialContext(params: URLSearchParams): CommercialConte
 export function buildCommercialHref(
   view: CommercialView,
   context: Pick<CommercialContext, 'period' | 'solution' | 'branch'> & { query?: string; busca?: string; movement?: ForecastMovement | null },
-  extra?: { from?: CommercialView; opportunityId?: string; movement?: ForecastMovement | null; returnTo?: string },
+  extra?: { from?: CommercialView; opportunityId?: string; movement?: ForecastMovement | null; returnTo?: string; no?: string },
 ): string {
   const params = new URLSearchParams()
   params.set('view', view)
@@ -82,6 +90,7 @@ export function buildCommercialHref(
   if (context.solution && context.solution !== ALL_FILTERS) params.set('solution', context.solution)
   if (context.branch && context.branch !== ALL_FILTERS) params.set('branch', context.branch)
   if (extra?.opportunityId) params.set('op', extra.opportunityId)
+  if (extra?.no) params.set('no', extra.no)
   if (extra?.from) params.set('from', extra.from)
   const movement = extra?.movement === undefined ? context.movement : extra.movement
   if (movement) params.set('movement', movement)

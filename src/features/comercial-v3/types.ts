@@ -27,6 +27,7 @@ export type CommercialView =
   | 'cross'
   | 'branch'
   | 'opportunity'
+  | 'carteira'
   | 'config'
 export type CommercialPeriod = 'month' | 'quarter' | 'threeMonths'
 
@@ -44,6 +45,12 @@ export type CommercialContext = {
    * seleção de movimento na query como parâmetro opcional `movement`.
    */
   movement?: ForecastMovement
+  /**
+   * Nó da estrutura organizacional aberto na Carteira. Ausente = raiz (CSO).
+   * Não há parâmetro de nível: o nível é derivado do nó, senão existiria o
+   * estado inconsistente "nível=gerente com nó de diretor".
+   */
+  no?: string
 }
 
 /** Recorte do contexto consumido pelos seletores puros (plano Task 2 Step 6, l.244-254). */
@@ -64,6 +71,7 @@ export const COMMERCIAL_VIEWS = [
   'cross',
   'branch',
   'opportunity',
+  'carteira',
   'config',
 ] as const
 export const COMMERCIAL_PERIODS = ['month', 'quarter', 'threeMonths'] as const

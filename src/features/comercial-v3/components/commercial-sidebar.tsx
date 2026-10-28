@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Bell, Building2, ChevronDown, GitBranch, Layers, LayoutDashboard, List, Network, PackagePlus, PanelLeftClose, PanelLeftOpen, Search, Settings2, Target, TrendingUp, Users } from 'lucide-react'
+import { Bell, Building2, Gauge, ChevronDown, GitBranch, Layers, LayoutDashboard, List, Network, PackagePlus, PanelLeftClose, PanelLeftOpen, Search, Settings2, Target, TrendingUp, Users } from 'lucide-react'
 import { FILTER_LABELS, VIEW_LABELS } from '../copy'
 import { sharedImportEnabled } from '../manual-import-client'
 import { sidebarViewFor, type CommercialNav } from '../nav'
@@ -37,6 +37,7 @@ const pertenceAPagina = (view: CommercialView) => (SECOES as readonly string[]).
 const ITENS: ItemNav[] = [
   { key: 'home', label: VIEW_LABELS.home, icon: LayoutDashboard, view: 'home' },
   { key: 'diretorias', label: VIEW_LABELS.diretorias, icon: Network, view: 'diretorias' },
+  { key: 'carteira', label: VIEW_LABELS.carteira, icon: Gauge, view: 'carteira', preliminar: true },
   { key: 'forecast', label: VIEW_LABELS.forecast, icon: TrendingUp, view: 'forecast' },
   { key: 'new-name', label: VIEW_LABELS['new-name'], icon: Target, view: 'new-name' },
   { key: 'opportunities', label: VIEW_LABELS.opportunities, icon: List, view: 'opportunities' },
