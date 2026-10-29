@@ -81,6 +81,7 @@ export function CartaoNivel({
   selo,
   cor,
   numero,
+  pessoas,
 }: {
   href: string
   titulo: string
@@ -96,6 +97,8 @@ export function CartaoNivel({
   cor?: string
   /** Número do território, no selo redondo que a Home usa. */
   numero?: number
+  /** Quem responde por este nível. As fotos empilham no canto do cartão. */
+  pessoas?: string[]
 }) {
   const tom = cor ?? '#086b6b'
   return (
@@ -121,6 +124,18 @@ export function CartaoNivel({
         </div>
         <ArrowRight aria-hidden className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#b0bccb] transition-transform group-hover:translate-x-0.5 group-hover:text-[#086b6b]" />
       </div>
+
+      {pessoas && pessoas.length > 0 && (
+        <div className="flex items-center gap-1.5">
+          <span className="flex -space-x-2">
+            {pessoas.slice(0, 4).map(nome => (
+              <AvatarPessoa key={nome} nome={nome} tamanho={24} />
+            ))}
+          </span>
+          {pessoas.length > 4 && <span className="text-[10.5px] text-[#8a9a97]">+{pessoas.length - 4}</span>}
+          <span className="text-[10.5px] text-[#8a9a97]">{pessoas.length === 1 ? pessoas[0] : `${pessoas.length} executivos`}</span>
+        </div>
+      )}
 
       <div className="flex items-end justify-between gap-2 border-t border-[#eef2f6] pt-2">
         <div className="min-w-0">

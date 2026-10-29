@@ -141,6 +141,7 @@ export function TerritoriosScreen({
                 rodape={`${l.filiais} ${l.filiais === 1 ? 'filial' : 'filiais'}${l.piorFilial ? ` · pior: ${l.piorFilial.sigla}` : ''}`}
                 cor={l.territorio.cor}
                 numero={l.territorio.numero}
+                pessoas={snapshot.execs.filter(e => l.territorio.filiais.includes(e.filial)).map(e => e.nome)}
               />
             ))}
           </div>
@@ -170,6 +171,7 @@ export function TerritoriosScreen({
                   rodape={nivel === 'filial' && filial?.sigla === f.sigla ? 'Aberto agora' : undefined}
                   selo={nivel === 'filial' && filial?.sigla === f.sigla}
                   cor={territorio.cor}
+                  pessoas={snapshot.execs.filter(e => e.filial === f.sigla).map(e => e.nome)}
                 />
               )
             })}
