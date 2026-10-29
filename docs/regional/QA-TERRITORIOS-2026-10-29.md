@@ -193,3 +193,74 @@ do cargo. Adoto o critério dele.
 > Home. Não reconstruir o painel."
 
 Nada foi executado. Nenhum arquivo, issue ou PR alterado pelo parecer.
+
+---
+
+# Segunda resposta do Planejador (29/10) — sobre os prints da Carteira
+
+O Bruno mandou prints da tela anterior e disse: *"mt melhor sabe a navegacao de ir
+descendo assim"*. O parecer mudou de ênfase: o problema não é só conteúdo
+faltando, é o **padrão de navegação**.
+
+## O que ele identificou nos prints
+
+> "A navegação anterior é muito melhor porque funciona como uma **exploração da
+> operação**, não como um filtro de dashboard."
+
+Três coisas que a versão anterior acerta e a nova perde, segundo ele:
+
+1. **Identidade e contexto** — mostra quem está sendo analisado (CSO, diretor,
+   gerente) com os indicadores daquela pessoa.
+2. **Quem responde abaixo** — "os cartões **são** a própria navegação". Mostram
+   nome, cargo, previsto e travas antes de entrar no próximo nível.
+3. **Profundidade progressiva** — ao descer aparecem fila de pedidos, maiores
+   negociações, pendências e distribuição da carteira.
+
+> "Nos prints, a navegação não depende de uma tabela nem de várias abas. A
+> própria estrutura de gestão guia o caminho."
+
+## A direção que ele fecha
+
+Dois caminhos complementares, não um substituindo o outro:
+
+```
+Central de Receita
+├── Carteira · Responsabilidade     CSO → Diretor → Gerente → Executivo
+└── Territórios · Geografia         CSO → Território → Filial → Contas
+```
+
+> "Carteira responde **quem é responsável** pela operação. Territórios responde
+> **onde o resultado acontece** e quais regiões precisam de intervenção."
+
+E o ponto que reorganiza a implementação:
+
+> "Os cartões devem ser clicáveis e informativos, como os de 'Quem responde
+> abaixo'. **Não apenas seletores de território.**"
+
+Hoje os seletores de Territórios são pílulas (`territorios-screen.tsx:96-154`).
+O que ele propõe é que cada nível mostre cartões de quem está abaixo — com dado
+já visível antes do clique.
+
+## A ressalva que ele mantém
+
+> "A seção de Territórios dos prints informa que a estrutura é declarada, mas não
+> medida pela carga. Essa distinção precisa continuar visível. Não podemos
+> transformar os valores do organograma em desempenho territorial efetivamente
+> atribuído."
+
+Isso já está no código (`territorios-model.ts`, campo `procedencia`, e o cartão
+"Escopo desta tela"), mas a nova composição não pode perdê-la.
+
+## O que isso muda na ordem de custo
+
+A ordem anterior (semântica → barras → oportunidades) continua válida, mas ganha
+um item na frente:
+
+0. **Trocar as pílulas por cartões informativos de nível.** O CSO mostra cinco
+   cartões de território com Base, meta e farol visíveis antes do clique; o
+   território mostra cartões de filial; a filial mostra executivos. É o padrão
+   da Carteira, aplicado à geografia.
+
+Sem isso, os itens 1 a 4 enchem uma tela que continua sendo um filtro.
+
+Nada foi executado.
