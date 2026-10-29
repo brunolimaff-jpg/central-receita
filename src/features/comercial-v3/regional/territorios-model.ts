@@ -46,6 +46,9 @@ export type Territorio = {
   nome: string
   /** UFs como o organograma declara. A carga só conhece filial; isto é a ponte declarada. */
   ufs: string
+  /** Número e cor do organograma: é o que distingue um território do outro na Home. */
+  numero: number
+  cor: string
   /** Siglas de filial que compõem o território nesta demonstração. */
   filiais: string[]
   /** Uma frase sobre o que distingue este território. Sem invenção de região. */
@@ -76,6 +79,8 @@ export const TERRITORIOS: Territorio[] = [
     id: 'territorio-01',
     nome: 'Território 01',
     ufs: 'RS · SC · PR',
+    numero: 1,
+    cor: '#12b5bf',
     filiais: ['RS', 'SC', 'PR'],
     destaque: 'Sul completo: três filiais, a maior base de construtoras e agro da demonstração.',
     procedencia: 'Território 01 do organograma 2027 (RS · SC · PR). Filiais do cenário fictício.',
@@ -85,6 +90,8 @@ export const TERRITORIOS: Territorio[] = [
     id: 'territorio-02',
     nome: 'Território 02',
     ufs: 'MT + MS · DF · GO / TO',
+    numero: 2,
+    cor: '#ee8f3f',
     filiais: ['MT', 'MS', 'DF', 'GO'],
     destaque: 'Centro-Oeste e Tocantins: quatro filiais com perfis de cliente bem distintos.',
     procedencia: 'Território 02 do organograma 2027 (MT + MS · DF · GO / TO). Filiais do cenário fictício.',
@@ -94,6 +101,8 @@ export const TERRITORIOS: Territorio[] = [
     id: 'territorio-03',
     nome: 'Território 03',
     ufs: 'São Paulo Capital · Interior',
+    numero: 3,
+    cor: '#8cc63f',
     filiais: ['SP'],
     destaque: 'A maior praça em valor absoluto: ler o número antes de comparar percentual.',
     procedencia: 'Território 03 do organograma 2027 (São Paulo). Filial do cenário fictício.',
@@ -103,6 +112,8 @@ export const TERRITORIOS: Territorio[] = [
     id: 'territorio-04',
     nome: 'Território 04',
     ufs: 'Nordeste · MG · RJ / ES',
+    numero: 4,
+    cor: '#2fae6c',
     filiais: ['MG', 'BA', 'PE'],
     destaque: 'Três praças de portes diferentes: percentual alto em base pequena engana.',
     procedencia: 'Território 04 do organograma 2027 (Nordeste · MG · RJ / ES). Filiais do cenário fictício.',
@@ -112,6 +123,8 @@ export const TERRITORIOS: Territorio[] = [
     id: 'territorio-05',
     nome: 'Território 05',
     ufs: 'Norte',
+    numero: 5,
+    cor: '#f2a974',
     filiais: ['RO', 'TO'],
     destaque: 'Novos negócios via canais: base menor, então o valor absoluto importa mais que o %.',
     procedencia: 'Território 05 do organograma 2027 (Norte). Filiais do cenário fictício.',

@@ -11,7 +11,7 @@
 
 import Link from 'next/link'
 import type { CommercialNav } from '../nav'
-import { Barra, Card, Chip, P, R } from '../screens/territorios-ui'
+import { AvatarPessoa, Barra, Card, Chip, P, R } from '../screens/territorios-ui'
 import { forecastFluxo, resultadoFilial, resultadoRubrica, rubricasDoFluxo, ROTULO_RUBRICA, type Fluxo, type RegionalFilial, type RegionalSnapshot } from './regional-model'
 import { recortarTerritorio, type Territorio } from './territorios-model'
 
@@ -33,6 +33,7 @@ export function FilialScreen({
   const f = forecastFluxo(s, fluxo)
   const r = resultadoFilial(filial, fluxo)
   const rubricas = rubricasDoFluxo(fluxo)
+  const executivos = snapshot.execs.filter(e => e.filial === filial.sigla)
 
   return (
     <div className="grid gap-3">
@@ -82,6 +83,24 @@ export function FilialScreen({
             )
           })}
         </div>
+      </Card>
+
+      <Card titulo="Quem responde por esta filial" hint={`${executivos.length} ${executivos.length === 1 ? 'executivo' : 'executivos'} no cenário desta filial.`}>
+        {executivos.length === 0 ? (
+          <p className="text-[13px] text-[#63748a]">Nenhum executivo cadastrado nesta filial na demonstração.</p>
+        ) : (
+          <ul className="grid gap-2 sm:grid-cols-2">
+            {executivos.map(e => (
+              <li key={e.nome} className="flex items-center gap-2.5 rounded-lg border border-[#eef2f1] px-2.5 py-2">
+                <AvatarPessoa nome={e.nome} tamanho={32} />
+                <div className="min-w-0">
+                  <p className="truncate text-[13px] font-semibold text-[#0d2340]">{e.nome}</p>
+                  <p className="text-[11px] text-[#63748a]">meta {fluxo.toUpperCase()} {R(fluxo === 'mrr' ? e.metaMrr : e.metaNrr)}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </Card>
 
       <Card titulo="Continuar a análise" hint="Territórios mostra onde a filial está; o detalhe fica nas telas que já existem.">

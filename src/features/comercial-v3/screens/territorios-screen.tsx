@@ -139,6 +139,8 @@ export function TerritoriosScreen({
                 pct={l.pctBase}
                 farol={l.farolBase}
                 rodape={`${l.filiais} ${l.filiais === 1 ? 'filial' : 'filiais'}${l.piorFilial ? ` · pior: ${l.piorFilial.sigla}` : ''}`}
+                cor={l.territorio.cor}
+                numero={l.territorio.numero}
               />
             ))}
           </div>
@@ -167,6 +169,7 @@ export function TerritoriosScreen({
                   farol={ff.farolBase}
                   rodape={nivel === 'filial' && filial?.sigla === f.sigla ? 'Aberto agora' : undefined}
                   selo={nivel === 'filial' && filial?.sigla === f.sigla}
+                  cor={territorio.cor}
                 />
               )
             })}

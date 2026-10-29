@@ -12,26 +12,31 @@ import { mulberry32, type RegionalExec, type RegionalExecHist, type RegionalFili
  * linha aqui pertence a um dos cinco territórios, e **todos** têm movimento:
  * um território sem número na demo leria como favorecimento de outro, e a tela
  * existe justamente para comparar.
+ *
+ * Os executivos são **pessoas do organograma de 2027**, não nomes inventados:
+ * são elas que têm foto em `public/pessoas/`, e o avatar sem foto cai nas
+ * iniciais — o que faria a tela parecer quebrada. A distribuição segue o
+ * escopo declarado de cada líder (Sul, Centro-Oeste, SP, Nordeste, Norte).
  */
 const FILIAIS: { sigla: string; nome: string; uf: string; metaMrr: number; metaNrr: number; execs: string[] }[] = [
-  // Território 01 — RS · SC · PR
-  { sigla: 'RS', nome: 'Rio Grande do Sul', uf: 'RS', metaMrr: 62000, metaNrr: 380000, execs: ['Ana Ribeiro', 'Caio Mendes', 'Lívia Prado'] },
-  { sigla: 'SC', nome: 'Santa Catarina', uf: 'SC', metaMrr: 38000, metaNrr: 240000, execs: ['Rafael Teles', 'Bianca Sousa'] },
-  { sigla: 'PR', nome: 'Paraná', uf: 'PR', metaMrr: 44000, metaNrr: 280000, execs: ['Diego Arantes', 'Paula Serrano'] },
-  // Território 02 — MT + MS · DF · GO / TO
-  { sigla: 'MT', nome: 'Mato Grosso', uf: 'MT', metaMrr: 52000, metaNrr: 340000, execs: ['Tiago Farias', 'Marina Couto', 'Eduardo Leme', 'Sofia Rangel'] },
-  { sigla: 'MS', nome: 'Mato Grosso do Sul', uf: 'MS', metaMrr: 30000, metaNrr: 190000, execs: ['Paulo Viana', 'Renata Lobo'] },
-  { sigla: 'DF', nome: 'Distrito Federal', uf: 'DF', metaMrr: 42000, metaNrr: 260000, execs: ['Camila Duarte', 'Bruno Salgado'] },
-  { sigla: 'GO', nome: 'Goiás', uf: 'GO', metaMrr: 48000, metaNrr: 300000, execs: ['Wagner Pinto', 'Helena Vasques'] },
+  // Território 01 — RS · SC · PR (Sul)
+  { sigla: 'RS', nome: 'Rio Grande do Sul', uf: 'RS', metaMrr: 62000, metaNrr: 380000, execs: ['Hermínio Gastaldi', 'Raíssa Delamora'] },
+  { sigla: 'SC', nome: 'Santa Catarina', uf: 'SC', metaMrr: 38000, metaNrr: 240000, execs: ['Mario Borges'] },
+  { sigla: 'PR', nome: 'Paraná', uf: 'PR', metaMrr: 44000, metaNrr: 280000, execs: ['Alexandre Kahler'] },
+  // Território 02 — MT + MS · DF · GO / TO (Centro-Oeste)
+  { sigla: 'MT', nome: 'Mato Grosso', uf: 'MT', metaMrr: 52000, metaNrr: 340000, execs: ['Vitor Diego', 'Daniel Augusto'] },
+  { sigla: 'MS', nome: 'Mato Grosso do Sul', uf: 'MS', metaMrr: 30000, metaNrr: 190000, execs: ['Gabriele Nayara Dias Correa'] },
+  { sigla: 'DF', nome: 'Distrito Federal', uf: 'DF', metaMrr: 42000, metaNrr: 260000, execs: ['José Tavares', 'Sabrina Bowens'] },
+  { sigla: 'GO', nome: 'Goiás', uf: 'GO', metaMrr: 48000, metaNrr: 300000, execs: ['Carina Baldissera'] },
   // Território 03 — São Paulo Capital · Interior
-  { sigla: 'SP', nome: 'São Paulo', uf: 'SP', metaMrr: 96000, metaNrr: 620000, execs: ['Marcos Aurélio', 'Tatiana Reis', 'Gustavo Lima', 'Renata Alvarez'] },
+  { sigla: 'SP', nome: 'São Paulo', uf: 'SP', metaMrr: 96000, metaNrr: 620000, execs: ['Raíssa Delamora', 'Alexandre Kahler', 'Vitor Diego'] },
   // Território 04 — Nordeste · MG · RJ / ES
-  { sigla: 'MG', nome: 'Minas Gerais', uf: 'MG', metaMrr: 56000, metaNrr: 330000, execs: ['Otávio Braga', 'Simone Castro'] },
-  { sigla: 'BA', nome: 'Bahia', uf: 'BA', metaMrr: 34000, metaNrr: 210000, execs: ['Igor Menezes', 'Larissa Prado'] },
-  { sigla: 'PE', nome: 'Pernambuco', uf: 'PE', metaMrr: 26000, metaNrr: 165000, execs: ['Vitória Andrade'] },
+  { sigla: 'MG', nome: 'Minas Gerais', uf: 'MG', metaMrr: 56000, metaNrr: 330000, execs: ['Fernando Silva'] },
+  { sigla: 'BA', nome: 'Bahia', uf: 'BA', metaMrr: 34000, metaNrr: 210000, execs: ['Alessandra Di Sicco'] },
+  { sigla: 'PE', nome: 'Pernambuco', uf: 'PE', metaMrr: 26000, metaNrr: 165000, execs: ['Giovanne Farias'] },
   // Território 05 — Norte (novos negócios via canais)
-  { sigla: 'RO', nome: 'Rondônia', uf: 'RO', metaMrr: 16000, metaNrr: 110000, execs: ['Hugo Batista'] },
-  { sigla: 'TO', nome: 'Tocantins', uf: 'TO', metaMrr: 14000, metaNrr: 90000, execs: ['Clara Nunes', 'Vitor Assis'] },
+  { sigla: 'RO', nome: 'Rondônia', uf: 'RO', metaMrr: 16000, metaNrr: 110000, execs: ['Alexandre Mancini'] },
+  { sigla: 'TO', nome: 'Tocantins', uf: 'TO', metaMrr: 14000, metaNrr: 90000, execs: ['Marcos Paulo Malagola'] },
 ]
 
 /**
@@ -158,21 +163,21 @@ function gerar(): RegionalSnapshot {
 
   // Casos adversariais para a limpeza do forecast.
   const base = (over: Partial<RegionalOpp>): RegionalOpp => ({
-    id: String(seq++), filial: 'MT', exec: 'Tiago Farias', cliente: 'Cliente', novo: false, data: '2026-10-30', tier: 'B', pb: 0.2,
+    id: String(seq++), filial: 'MT', exec: 'Vitor Diego', cliente: 'Cliente', novo: false, data: '2026-10-30', tier: 'B', pb: 0.2,
     mrr: 2400, nrr: 30000, nota: 'Aguardando retorno do cliente.', proximaAcao: 'Ligação de follow-up', proximaAcaoData: '2026-10-29',
     atualizadaEm: '2026-10-22', status: 'Em andamento', congelada: true, ...over,
   })
   opps.push(
-    base({ cliente: 'Usina Boa Vista do Norte', exec: 'Tiago Farias', nota: 'Proposta de ERP com diretoria.', tier: 'B+', pb: 0.38, nrr: 85000, mrr: 6200 }),
-    base({ cliente: 'Usina Boa Vista do Norte', exec: 'Marina Couto', nota: 'Proposta de ERP com diretoria.', tier: 'B+', pb: 0.38, nrr: 85000, mrr: 6200 }),
-    base({ cliente: 'Cooperativa Alto Xingu', filial: 'MT', exec: 'Eduardo Leme', nota: 'Módulo fiscal em negociação.', tier: 'B', pb: 0.24, nrr: 22000, mrr: 1800 }),
-    base({ cliente: 'Cooperativa Alto Xingu', filial: 'MT', exec: 'Eduardo Leme', nota: 'Módulo de folha em negociação.', tier: 'B', pb: 0.24, nrr: 18000, mrr: 1400 }),
-    base({ cliente: 'Grupo Lago Sul', filial: 'DF', exec: 'Camila Duarte', nota: 'Cliente informou que perdemos para concorrente.', tier: 'B+', pb: 0.32, nrr: 64000, mrr: 4100 }),
-    base({ cliente: 'Transportes Cuiabá Rápido', filial: 'MT', exec: 'Sofia Rangel', nota: 'Empresa em recuperação judicial; aguardando crédito.', tier: 'B', pb: 0.2, nrr: 40000, mrr: 3000 }),
-    base({ cliente: 'Agro Campo Grande Sul', filial: 'MS', exec: 'Paulo Viana', nota: 'Cliente indica pagamento só em 2027.', tier: 'B+', pb: 0.38, nrr: 72000, mrr: 5200 }),
-    base({ cliente: 'Comercial Palmas Centro', filial: 'TO', exec: 'Clara Nunes', nota: 'Proposta enviada.', tier: 'C', pb: 0.1, mrr: 0, nrr: 0 }),
-    base({ cliente: 'Laticínios Ji-Paraná', filial: 'RO', exec: 'Hugo Batista', nota: 'Levantamento inicial.', tier: 'C', pb: 0.1, proximaAcao: null, proximaAcaoData: null, atualizadaEm: '2026-08-30', nrr: 26000, mrr: 1900 }),
-    base({ cliente: 'Sementes Rio Verde', filial: 'GO', exec: 'Wagner Pinto', nota: 'Contrato com assinatura agendada na segunda.', tier: 'A', pb: 0.62, nrr: 120000, mrr: 9800 }),
+    base({ cliente: 'Usina Boa Vista do Norte', exec: 'Vitor Diego', nota: 'Proposta de ERP com diretoria.', tier: 'B+', pb: 0.38, nrr: 85000, mrr: 6200 }),
+    base({ cliente: 'Usina Boa Vista do Norte', exec: 'Daniel Augusto', nota: 'Proposta de ERP com diretoria.', tier: 'B+', pb: 0.38, nrr: 85000, mrr: 6200 }),
+    base({ cliente: 'Cooperativa Alto Xingu', filial: 'MT', exec: 'Vitor Diego', nota: 'Módulo fiscal em negociação.', tier: 'B', pb: 0.24, nrr: 22000, mrr: 1800 }),
+    base({ cliente: 'Cooperativa Alto Xingu', filial: 'MT', exec: 'Vitor Diego', nota: 'Módulo de folha em negociação.', tier: 'B', pb: 0.24, nrr: 18000, mrr: 1400 }),
+    base({ cliente: 'Grupo Lago Sul', filial: 'DF', exec: 'Sabrina Bowens', nota: 'Cliente informou que perdemos para concorrente.', tier: 'B+', pb: 0.32, nrr: 64000, mrr: 4100 }),
+    base({ cliente: 'Transportes Cuiabá Rápido', filial: 'MT', exec: 'Daniel Augusto', nota: 'Empresa em recuperação judicial; aguardando crédito.', tier: 'B', pb: 0.2, nrr: 40000, mrr: 3000 }),
+    base({ cliente: 'Agro Campo Grande Sul', filial: 'MS', exec: 'Gabriele Nayara Dias Correa', nota: 'Cliente indica pagamento só em 2027.', tier: 'B+', pb: 0.38, nrr: 72000, mrr: 5200 }),
+    base({ cliente: 'Comercial Palmas Centro', filial: 'TO', exec: 'Alexandre Mancini', nota: 'Proposta enviada.', tier: 'C', pb: 0.1, mrr: 0, nrr: 0 }),
+    base({ cliente: 'Laticínios Ji-Paraná', filial: 'RO', exec: 'Hermínio Gastaldi', nota: 'Levantamento inicial.', tier: 'C', pb: 0.1, proximaAcao: null, proximaAcaoData: null, atualizadaEm: '2026-08-30', nrr: 26000, mrr: 1900 }),
+    base({ cliente: 'Sementes Rio Verde', filial: 'GO', exec: 'Carina Baldissera', nota: 'Contrato com assinatura agendada na segunda.', tier: 'A', pb: 0.62, nrr: 120000, mrr: 9800 }),
   )
 
   const filiais: RegionalFilial[] = FILIAIS.map(f => {

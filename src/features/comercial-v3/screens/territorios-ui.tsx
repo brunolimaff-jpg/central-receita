@@ -11,6 +11,7 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { formatarRealCompacto } from '../format'
+import { iniciais, slugPessoa } from '../org-2027'
 import { tomDoCalor, type CelulaCalor, type Farol, type GrupoCalor, type TomCalor } from '../regional/regional-model'
 
 export const R = (v: number) => formatarRealCompacto(Math.round(v))
@@ -78,6 +79,8 @@ export function CartaoNivel({
   farol,
   rodape,
   selo,
+  cor,
+  numero,
 }: {
   href: string
   titulo: string
@@ -89,17 +92,32 @@ export function CartaoNivel({
   rodape?: string
   /** Marca o nível aberto agora, para o cartão dizer onde a pessoa está. */
   selo?: boolean
+  /** Cor do território no organograma. É o que distingue um cartão do outro na Home. */
+  cor?: string
+  /** Número do território, no selo redondo que a Home usa. */
+  numero?: number
 }) {
+  const tom = cor ?? '#086b6b'
   return (
     <Link
       href={href}
       aria-current={selo ? 'page' : undefined}
       className={`revenue-panel vidro group flex min-w-0 flex-col gap-2.5 p-3.5 transition-transform hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b] ${selo ? 'ring-2 ring-[#086b6b]/35' : ''}`}
+      style={cor ? { ['--tom' as string]: cor } : undefined}
     >
-      <div className="flex items-start gap-2">
+      <div className="flex items-start gap-2.5">
+        {numero !== undefined ? (
+          <span
+            aria-hidden
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[15px] font-bold text-white"
+            style={{ background: tom, boxShadow: `0 8px 18px -8px ${tom}` }}
+          >
+            {numero}
+          </span>
+        ) : null}
         <div className="min-w-0 flex-1">
           <p className="truncate text-[13.5px] font-bold text-[#0d2340]">{titulo}</p>
-          <p className="truncate text-[11px] text-[#63748a]">{subtitulo}</p>
+          <p className="truncate text-[11px]" style={cor ? { color: `color-mix(in srgb, ${tom} 70%, black)` } : undefined}>{subtitulo}</p>
         </div>
         <ArrowRight aria-hidden className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#b0bccb] transition-transform group-hover:translate-x-0.5 group-hover:text-[#086b6b]" />
       </div>
@@ -113,10 +131,40 @@ export function CartaoNivel({
         <Chip farol={farol}>{P(pct)}</Chip>
       </div>
 
-      <Barra pct={pct} cor={farol === 'verde' ? '#0a7a3a' : farol === 'amarelo' ? '#b07a00' : farol === 'vermelho' ? '#c0283b' : '#c9d4d2'} />
+      <Barra pct={pct} cor={cor ?? (farol === 'verde' ? '#0a7a3a' : farol === 'amarelo' ? '#b07a00' : farol === 'vermelho' ? '#c0283b' : '#c9d4d2')} />
       {rodape && <p className="text-[10.5px] leading-4 text-[#8a9a97]">{rodape}</p>}
       <span className="sr-only">Abrir {titulo} e ver o nível abaixo</span>
     </Link>
+  )
+}
+
+/**
+ * Foto oficial da pessoa, no mesmo caminho e mesma versão de cache que a Home
+ * usa (`components/diretorias-section.tsx`). A foto é fundo do avatar; quem não
+ * tem arquivo mostra as iniciais, porque a imagem simplesmente não cobre.
+ *
+ * O `?v=` existe porque o navegador guarda o 404 da primeira tentativa: sem ele,
+ * foto que entra depois continua invisível.
+ */
+const VERSAO_FOTO = '3'
+export const fotoPessoa = (nome: string) => `/pessoas/${slugPessoa(nome)}.jpg?v=${VERSAO_FOTO}`
+
+/** Avatar com foto e iniciais por baixo. `aria-hidden`: o nome já está no texto. */
+export function AvatarPessoa({ nome, tamanho = 32 }: { nome: string; tamanho?: number }) {
+  return (
+    <span
+      aria-hidden
+      className="relative grid shrink-0 place-items-center overflow-hidden rounded-full text-[11px] font-bold text-white"
+      style={{
+        width: tamanho,
+        height: tamanho,
+        background: 'linear-gradient(140deg, #2f9c93, #086b6b)',
+        border: '2px solid rgb(255 255 255 / 85%)',
+      }}
+    >
+      {iniciais(nome)}
+      <span className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${fotoPessoa(nome)})` }} />
+    </span>
   )
 }
 
