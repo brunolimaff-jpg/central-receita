@@ -1,26 +1,55 @@
 # Handoff — Central de Receita
 
-Atualizado: 2026-10-22. Estado publicado em checkpoint; PR em revisão, sem merge.
+## Estado atual — 29/10/2026
 
-## Trabalho local de 22/10 — sem commit/push
+Territórios está no ar na homologação: `?view=territorios&period=month&from=home` em https://central-receita-visual.brunolimaff.workers.dev. Branch `fix/regional-mapa-calor` @ `a19b386`, mesclada em `claude/gifted-mccarthy-odjru5`; deploy `success` nesse SHA. PR #22 MERGED.
+Navegação em três níveis por **cartões** (padrão da Carteira, não pílula): CSO mostra os 5 territórios com Base/meta/farol, território mostra as filiais com foto dos executivos.
+Gates: 353 testes PASS, typecheck e build PASS. Aceite visual de Bruno NAO VALIDADO.
+Pendente (parecer): M1 — filial sem meta infla o percentual do território (medido 75%→106%); M2 — "integrado no ERP" sem campo na carga.
+Vault: `Bruno Vault/Sessões/2026-10/2026-10-29T11-38-52-central-receita-territorios-cartoes-fotos-deploy.md`.
+Parecer e QA: `docs/regional/PARECER-TERRITORIOS-2026-10-28.md`, `docs/regional/QA-TERRITORIOS-2026-10-29.md`.
 
-- Bruno autorizou ajustes pontuais, revisão e validação, com DeepSeek 4.1 Flash implementando e supervisor revisando. Proibidos merge, push e deploy.
-- Leitura/navegação: copy de Previsto alinhada, razão heterogênea de New Name retirada, contexto mensal explícito e Ganhos → Forecast/Ganhou. Composição da Home preservada. Supervisor validou 198 testes, typecheck, build estático e app em aba limpa nesse primeiro delta.
-- Revisão dirigida encontrou e reproduziu dois P2: série C mistura competências; pedidos-only gera snapshot de oportunidades preservadas. Ambos corrigidos localmente. Dados históricos não foram migrados ou regravados. Snapshots antigos com referência válida, mas valor já contaminado, não podem ser atestados automaticamente.
-- Auditoria remota do planejador (somente leitura, sobre `4329ba8...b42cc2c`) apontou um terceiro P2: a série C usava horário UTC enquanto o histórico mostra `America/Cuiaba`. Corrigido localmente; horário inválido fica fora da curva e entra no aviso existente. Também corrigido o último rótulo do eixo, que mostrava a carga mais antiga do mesmo dia e estourava o SVG.
-- Gates finais supervisionados, execução única: 215/215 testes PASS, typecheck PASS, build estático PASS (3/3 páginas), saída zero, `next-env.d.ts` preservado. App verificado em origem isolada `qa-historico.localhost` com fixture inteiramente sintética: eixo `08/10`, `15/10`, `22/10 23:10` sem corte, setembro fora com aviso. Sem upload e sem D1.
-- Relatório e limites: `docs/reviews/2026-10-22-pr15-leitura-navegacao.md`. Nada foi commitado, enviado, mesclado ou publicado.
+## Histórico de 26/10 — não usar como estado atual
 
-## Checkpoint remoto anterior
+Homologação visual pública: https://central-receita-visual.brunolimaff.workers.dev — dados fictícios, sem API/D1/Access, publicação expressamente autorizada. Nenhum servidor local é necessário para testar.
+PR 19 continua OPEN/draft, head `36b81e3` (10 commits; checks verdes) — delta + CI pushados em 26/10 na branch `fix/p3-forecast-e-importacao` (fonte na worktree `.claude/worktrees/p3-forecast-import`), sem merge. Build remoto de homologação roda no GitHub Actions; versões publicadas: Central `f2e77b5a`, Atlas `eb0840be`. Não confundir deploy com fonte no GitHub.
+Gates locais finais: 255 testes PASS, tipos e build PASS. Home/Configurações/Jornada verificadas hospedadas; aceite visual de Bruno NAO VALIDADO.
+Handoff operacional completo: `.claude/worktrees/p3-forecast-import/HANDOFF_AI.md`; relatório: `docs/cloudflare-publicacao-visual.md` dentro dessa worktree.
+Vault: `C:/Users/bruno.ferreira/OneDrive - Senior Sistemas SA/Documentos/Bruno Vault/Sessões/2026-10/2026-10-26T11-13-59-central-receita-cloudflare-visual-publicada.md`.
+Preservar evidências locais (`.scratch/p3-20261023/`, 550 MB, não versionadas). Para retomar em outro computador: `git fetch` + `checkout fix/p3-forecast-e-importacao` recebe o delta e o CI. Os workflows exigem o secret `CLOUDFLARE_API_TOKEN` (configurado nos dois repos). Merge segue decisão do Bruno.
 
-- Branch: `feat/trajetoria-receita`; checkpoint `26ec8b5e659a28d865e11ae331350fe0a46e1415` (pai `08869cdb06f76cbf35bd7c3ab6c748ddb2105a8b`). Draft PR #15 contra `main`; CI hospedado observado 1 PASS/0 FAIL; sem auto-merge/autofix. Merge exige pedido explícito “MERGE”.
-- Checkpoint contém 21 arquivos de código/testes/documentação; 189/189 testes, typecheck e build estático exato pós-restauração passaram. `next-env.d.ts` permanece modificado após checkpoint; pastas `.claude/`, `.agents/`, `.scratch/` e backup temporário permanecem locais, fora do checkpoint.
-- Home restaurada à composição referenciada; build pós-restauração está validado no checkpoint. Revisão/aprovação visual pessoal de Bruno ainda pendente.
-- Riscos/limites: data histórica malformada em regime C, ambiguidade `savedAt`/`importedAt`, validação comercial dos gates #4/#7/#8, runtime D1 e fluxo Fabi→Giovanni não concluídos. Não declarar pronto para produção.
-- Performance: build estático do checkpoint exato pós-restauração e typecheck passaram; 189/189 testes. Separadamente, P0 de performance foi executado em snapshot derivado sintético, então não representa os dados reais nem o cenário final completo. Chrome externo 21–22/10: P1 5 cold + 5 warm; P2 6 traces aceitos com ressalvas, sem gargalo causal; P3 CSV sintético 100 (n=1) e 5.000 (n=3), fluxo local IndexedDB. Não foram medidos 50k, XLSX, heap/memória, D1 ou métricas de campo; sem extrapolação de escala/otimização. Relatório e hashes: `docs/performance/coleta-chrome-externo-2026-10-21.md`; diagnóstico inicial: `docs/performance/diagnostico-baseline-2026-10-21.md`; evidências permanecem privadas em `.scratch/`/AppData. Nenhuma otimização foi feita.
-- Preview temporário: issue #14 OPEN; Codespaces bloqueado por escopos ausentes (`codespace` para listar e `user` para billing), custo/saldo não verificados. Decisão humana: não ampliar acesso; nenhum ambiente foi criado nem snapshot enviado. Detalhes em `docs/performance/preview-temporario-2026-10-21.md`.
-- Issues/PR: [#11](https://github.com/brunolimaff-jpg/central-receita/issues/11) OPEN (Scout); [#12](https://github.com/brunolimaff-jpg/central-receita/issues/12) OPEN (diagnóstico de performance e lacunas); [#13](https://github.com/brunolimaff-jpg/central-receita/issues/13) OPEN (checkpoint publicado); [#14](https://github.com/brunolimaff-jpg/central-receita/issues/14) OPEN (preview bloqueado). [Draft PR #15](https://github.com/brunolimaff-jpg/central-receita/pull/15) contra `main`; checkpoint 26ec8b5e publicado; CI observado passou, sem merge. A API de deployments retornou 0 em consulta anterior; isso não prova ausência de deploy fora do GitHub.
-- Próximas decisões humanas: revisão visual de Bruno, gates comerciais #4/#7/#8 e deploy; merge apenas mediante pedido explícito “MERGE”. Commits/push autorizados do escopo atual não aguardam nova decisão. Preview segue bloqueado pela decisão de não ampliar escopos e por custo/cota não verificados.
-- Não descartar evidências nem `.scratch/executive-page.tsx.backup-20261021.tmp`.
+## Histórico de 23/10 — não usar como estado atual
 
-Narrativa e lição duráveis no Bruno Vault: `C:/Users/bruno.ferreira/OneDrive - Senior Sistemas SA/Documentos/Bruno Vault/Sessões/2026-10/2026-10-21T19-00-32-central-receita-scout-trajetoria-home.md`.
+Atualizado: 2026-10-23 18:24. Baseline `main` em `971a2cd`. **PR #19 em Draft, head `546eb20`, 6 commits, sem merge, sem deploy.**
+
+## Retomada (emergency — comece por aqui)
+
+1. `cd central-receita-sites/.claude/worktrees/p3-forecast-import` (worktree isolada da PR).
+2. `npm run dev` → http://localhost:3011.
+3. Fazer o **aceite visual** das telas que ficou NAO VALIDADO: home, Forecast Semana/Mês, New Name, Configurações, Sistema, Jornada, Contas, Cross.
+4. Passando o aceite: marcar a PR como **Ready for review** e pedir a decisão de **merge ao Bruno** (o merge é dele).
+5. Retomar o planner "Rev" no ChatGPT com o estado do `546eb20` — ele parou no `a1e39aa`.
+
+Gates no head: **253/253 testes**, typecheck limpo, build estático 3/3.
+
+## O que a PR #19 entrega
+
+- P3-a/P3-b da issue #18: rodapé do Forecast segue a janela Semana/Mês; "O que já está carregado" só mostra o estado persistido.
+- Três estados de carga (carregando / falha / vazio), com prazo de 15s por consulta (identificado por epoch) e mensagem própria no modo local.
+- Jornada, Sistema de Receita, Contas e Cross liberadas como versão preliminar: faixa no topo, ponto âmbar na sidebar e nome acessível no link.
+- Sistema de Receita etiqueta a origem dos números (snapshot demonstrativo × agregado real de setembro).
+- Sidebar recolhida sem vazamento; `.revenue-panel` com superfície de vidro padrão.
+
+## Pendências
+
+- Aceite visual das telas (NAO VALIDADO).
+- Planner ChatGPT sem o relatório do `546eb20`.
+- Prova de concorrência em modo shared (Worker/D1) fica para o ciclo do modo compartilhado.
+- Ativação corporativa: identidade Sites, allowlists reais, D1 real, retenção — decisões humanas.
+
+## Referências
+
+- Sessão curada: `C:/Users/bruno.ferreira/OneDrive - Senior Sistemas SA/Documentos/Bruno Vault/Sessões/2026-10/2026-10-23T18-23-59-central-receita-pr19-interface-e-handoff.md`
+- Lição: `Projetos/Central de Receita/Lições/interface/2026-10-23-tailwind-vence-css-do-estado.md`
+- Capturas: `.scratch/p3-20261023/capturas/`
+- Evidência da concorrência: `.scratch/p3-20261023/concorrencia-evidencia.md`
