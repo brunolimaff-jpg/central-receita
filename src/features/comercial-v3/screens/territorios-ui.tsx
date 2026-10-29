@@ -8,6 +8,8 @@
  * defeito que a issue #21 corrigiu. Ficam aqui, num lugar só.
  */
 import type { ReactNode } from 'react'
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
 import { formatarRealCompacto } from '../format'
 import { tomDoCalor, type CelulaCalor, type Farol, type GrupoCalor, type TomCalor } from '../regional/regional-model'
 
@@ -53,6 +55,69 @@ export function Barra({ pct, cor = '#086b6b' }: { pct: number | null; cor?: stri
   // Sem meta não há barra a preencher: o trilho fica vazio, não em zero.
   const largura = pct === null || !Number.isFinite(pct) ? 0 : Math.min(100, Math.max(0, pct * 100))
   return <div className="h-2 overflow-hidden rounded bg-[#ecf0ef]"><div className="h-full rounded" style={{ width: `${largura}%`, background: cor }} /></div>
+}
+
+/**
+ * Cartão de nível: a navegação de Territórios no padrão da Carteira.
+ *
+ * Na Carteira, "quem responde abaixo" são cartões que já mostram nome, cargo e
+ * número **antes** do clique — a pessoa vê para onde vai antes de ir. Aqui a
+ * mesma ideia vale para geografia: quem lê o CSO vê o território com base, meta
+ * e farol na mão; quem lê o território, a filial.
+ *
+ * Pílula de filtro esconde o número até depois do clique, e foi por isso que a
+ * tela pareceu vazia. O cartão carrega a informação que motiva a descida.
+ */
+export function CartaoNivel({
+  href,
+  titulo,
+  subtitulo,
+  base,
+  meta,
+  pct,
+  farol,
+  rodape,
+  selo,
+}: {
+  href: string
+  titulo: string
+  subtitulo: string
+  base: number
+  meta: number
+  pct: number | null
+  farol: Farol | null
+  rodape?: string
+  /** Marca o nível aberto agora, para o cartão dizer onde a pessoa está. */
+  selo?: boolean
+}) {
+  return (
+    <Link
+      href={href}
+      aria-current={selo ? 'page' : undefined}
+      className={`revenue-panel vidro group flex min-w-0 flex-col gap-2.5 p-3.5 transition-transform hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#086b6b] ${selo ? 'ring-2 ring-[#086b6b]/35' : ''}`}
+    >
+      <div className="flex items-start gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[13.5px] font-bold text-[#0d2340]">{titulo}</p>
+          <p className="truncate text-[11px] text-[#63748a]">{subtitulo}</p>
+        </div>
+        <ArrowRight aria-hidden className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#b0bccb] transition-transform group-hover:translate-x-0.5 group-hover:text-[#086b6b]" />
+      </div>
+
+      <div className="flex items-end justify-between gap-2 border-t border-[#eef2f6] pt-2">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#7b8ba1]">Base</p>
+          <p className="num text-[16px] font-bold tabular-nums text-[#0d2340]">{R(base)}</p>
+          <p className="mt-0.5 text-[10.5px] text-[#7b8ba1]">meta {meta > 0 ? R(meta) : 'sem meta'}</p>
+        </div>
+        <Chip farol={farol}>{P(pct)}</Chip>
+      </div>
+
+      <Barra pct={pct} cor={farol === 'verde' ? '#0a7a3a' : farol === 'amarelo' ? '#b07a00' : farol === 'vermelho' ? '#c0283b' : '#c9d4d2'} />
+      {rodape && <p className="text-[10.5px] leading-4 text-[#8a9a97]">{rodape}</p>}
+      <span className="sr-only">Abrir {titulo} e ver o nível abaixo</span>
+    </Link>
+  )
 }
 
 /**

@@ -26,8 +26,9 @@ import { ALL_FILTERS } from '../types'
 import { CsoScreen } from '../regional/cso-screen'
 import { FilialScreen } from '../regional/filial-screen'
 import { TerritorioScreen } from '../regional/territorio-screen'
-import { filialDoTerritorio, nivelDe, territorioPorId, TERRITORIOS } from '../regional/territorios-model'
-import type { Fluxo, RegionalSnapshot } from '../regional/regional-model'
+import { filialDoTerritorio, nivelDe, linhasDeTerritorio, recortarTerritorio, territorioPorId } from '../regional/territorios-model'
+import { forecastFluxo, resultadoFilial, type Fluxo, type RegionalSnapshot } from '../regional/regional-model'
+import { CartaoNivel } from './territorios-ui'
 
 export function TerritoriosScreen({
   snapshot,
@@ -45,6 +46,8 @@ export function TerritoriosScreen({
   const nivel = nivelDe(contexto.territorio, contexto.branch)
   const filial = nivel === 'filial' && territorio ? filialDoTerritorio(snapshot, territorio.id, contexto.branch) : null
   const origem = from ?? 'home'
+  const linhas = linhasDeTerritorio(snapshot, fluxo)
+  const filiaisDoTerritorio = territorio ? snapshot.filiais.filter(f => territorio.filiais.includes(f.sigla)) : []
 
   // Trilha sempre navegável: cada nível volta ao anterior pelo próprio nome.
   // Subir limpa a filial: sem `branch: ALL_FILTERS` o passo herdaria o branch do
@@ -92,69 +95,84 @@ export function TerritoriosScreen({
       </section>
 
       {/*
-        O seletor é a navegação, não um filtro à parte. Escolher território muda
-        o nível; escolher filial muda de novo. Assim não há estado em que o
-        filtro diga uma coisa e o título diga outra.
+        A navegação é a própria lista do nível de baixo, no padrão da Carteira
+        ("quem responde abaixo"): cada cartão já mostra Base, meta e farol antes
+        do clique. Pílula de filtro escondia o número até depois de navegar, e
+        era isso que fazia a tela parecer vazia.
       */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div role="group" aria-label="Território" className="flex flex-wrap gap-1 rounded-full bg-[#ecf0ef] p-1">
-          <Link
-            href={nav.href('territorios', { branch: ALL_FILTERS })}
-            aria-current={nivel === 'cso' ? 'page' : undefined}
-            className={`rounded-full px-3 py-1.5 text-[12.5px] font-semibold ${nivel === 'cso' ? 'bg-[#00544e] text-white' : 'text-[#3f5d59] hover:text-[#0d2340]'}`}
-          >
-            Todos · CSO
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        {nivel !== 'cso' ? (
+          <Link href={nav.href('territorios', { branch: ALL_FILTERS })} className="inline-flex items-center gap-1.5 rounded-full border border-[#dfe8ef] bg-white px-3 py-1 text-[12px] font-semibold text-[#33466c] hover:border-[#c9ded9]">
+            <span aria-hidden>←</span> Visão CSO
           </Link>
-          {TERRITORIOS.map(t => (
-            <Link
-              key={t.id}
-              href={nav.href('territorios', { territorio: t.id, branch: ALL_FILTERS })}
-              aria-current={territorio?.id === t.id ? 'page' : undefined}
-              className={`rounded-full px-3 py-1.5 text-[12.5px] font-semibold ${territorio?.id === t.id ? 'bg-[#00544e] text-white' : 'text-[#3f5d59] hover:text-[#0d2340]'}`}
+        ) : <span />}
+        <div className="flex gap-1 rounded-full bg-[#ecf0ef] p-1" role="group" aria-label="Fluxo">
+          {(['mrr', 'nrr'] as Fluxo[]).map(f => (
+            <button
+              key={f}
+              type="button"
+              aria-pressed={fluxo === f}
+              onClick={() => setFluxo(f)}
+              className={`rounded-full px-3 py-1 text-[12px] font-bold transition-none ${fluxo === f ? 'bg-white text-[#0d2340] shadow' : 'text-[#3f5d59]'}`}
             >
-              {t.nome}
-            </Link>
+              {f.toUpperCase()}
+            </button>
           ))}
         </div>
+      </div>
 
-        <div className="ml-auto flex flex-wrap items-center gap-2">
-          <div className="flex gap-1 rounded-full bg-[#ecf0ef] p-1" role="group" aria-label="Fluxo">
-            {(['mrr', 'nrr'] as Fluxo[]).map(f => (
-              <button
-                key={f}
-                type="button"
-                aria-pressed={fluxo === f}
-                onClick={() => setFluxo(f)}
-                className={`rounded-full px-3 py-1 text-[12px] font-bold transition-none ${fluxo === f ? 'bg-white text-[#0d2340] shadow' : 'text-[#3f5d59]'}`}
-              >
-                {f.toUpperCase()}
-              </button>
+      {/* CSO: quem responde abaixo são os territórios. */}
+      {nivel === 'cso' && (
+        <section aria-labelledby="territorios-abaixo" className="grid gap-2">
+          <h2 id="territorios-abaixo" className="px-1 text-[12px] font-bold uppercase tracking-[0.1em] text-[#50647d]">
+            Territórios · quem responde abaixo
+          </h2>
+          <div className="grid min-w-0 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+            {linhas.map(l => (
+              <CartaoNivel
+                key={l.territorio.id}
+                href={nav.href('territorios', { territorio: l.territorio.id, branch: ALL_FILTERS })}
+                titulo={l.territorio.nome}
+                subtitulo={l.territorio.ufs}
+                base={l.base}
+                meta={l.meta}
+                pct={l.pctBase}
+                farol={l.farolBase}
+                rodape={`${l.filiais} ${l.filiais === 1 ? 'filial' : 'filiais'}${l.piorFilial ? ` · pior: ${l.piorFilial.sigla}` : ''}`}
+              />
             ))}
           </div>
-          {territorio && (
-            <div role="group" aria-label="Filial" className="flex flex-wrap gap-1 rounded-full bg-[#ecf0ef] p-1">
-              <Link
-                href={nav.href('territorios', { territorio: territorio.id, branch: ALL_FILTERS })}
-                aria-current={nivel === 'territorio' ? 'page' : undefined}
-                className={`rounded-full px-3 py-1 text-[12px] font-bold ${nivel === 'territorio' ? 'bg-white text-[#0d2340] shadow' : 'text-[#3f5d59] hover:text-[#0d2340]'}`}
-              >
-                Todas
-              </Link>
-              {snapshot.filiais.filter(f => territorio.filiais.includes(f.sigla)).map(f => (
-                <Link
+        </section>
+      )}
+
+      {/* Território: quem responde abaixo são as filiais. */}
+      {nivel !== 'cso' && territorio && (
+        <section aria-labelledby="filiais-abaixo" className="grid gap-2">
+          <h2 id="filiais-abaixo" className="px-1 text-[12px] font-bold uppercase tracking-[0.1em] text-[#50647d]">
+            Filiais · quem responde abaixo
+          </h2>
+          <div className="grid min-w-0 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+            {filiaisDoTerritorio.map(f => {
+              const r = resultadoFilial(f, fluxo)
+              const ff = forecastFluxo(recortarTerritorio(snapshot, { ...territorio, filiais: [f.sigla] }), fluxo)
+              return (
+                <CartaoNivel
                   key={f.sigla}
                   href={nav.href('territorios', { territorio: territorio.id, branch: f.sigla })}
-                  aria-current={filial?.sigla === f.sigla ? 'page' : undefined}
-                  title={f.nome}
-                  className={`rounded-full px-3 py-1 text-[12px] font-bold ${filial?.sigla === f.sigla ? 'bg-white text-[#0d2340] shadow' : 'text-[#3f5d59] hover:text-[#0d2340]'}`}
-                >
-                  {f.sigla}
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+                  titulo={`${f.sigla} · ${f.nome}`}
+                  subtitulo={`${territorio.nome} · ${snapshot.execs.filter(e => e.filial === f.sigla).length} executivos`}
+                  base={ff.base}
+                  meta={r.meta}
+                  pct={ff.pctBase}
+                  farol={ff.farolBase}
+                  rodape={nivel === 'filial' && filial?.sigla === f.sigla ? 'Aberto agora' : undefined}
+                  selo={nivel === 'filial' && filial?.sigla === f.sigla}
+                />
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       {nivel === 'cso' && <CsoScreen snapshot={snapshot} fluxo={fluxo} nav={nav} />}
       {nivel === 'territorio' && territorio && <TerritorioScreen snapshot={snapshot} territorio={territorio} fluxo={fluxo} nav={nav} />}
