@@ -53,13 +53,18 @@ As três perguntas de produto seguem abertas:
 
 ## 6. M2 — mapa de evidência
 
-`VERIFICADO`: o estado de integração vem do **texto do status**, não de um evento datado. `new-name-model.ts:45-46` mapeia `INTEGRADO` e `INTEGRADO COM ERP` para o substatus `integrado`; `:84` casa por prefixo. `manual-import.ts:300` conta `integratedOrders` comparando o status com `INTEGRADO COM ERP`.
+`VERIFICADO` na fonte (`AP_Auditoria_Completa_2026-10-29.xlsx`, auditoria da exportação AP de 29/10):
 
-`NÃO ENCONTRADO`: campo de data do evento de integração no registro importado, no mapeamento de pedidos ou no modelo regional.
+- A exportação tem **42 campos** (`Dicionario_42`). O único campo ligado a integração é `W Status Pedido`; existe `Z Data Conferência`, mas **não existe campo de data de integração**.
+- A aba `Qualidade`, gate **Q07**, registra literalmente: *"O status de integração existe; a data dedicada não. Conferido não equivale a integrado."*
+- `Pedidos_estado`: 7.545 pedidos em "Integrado com ERP" e 272 em "Conferido" — estados sem equivalência automática.
+- `Fontes_e_metodo`: a **data de extração declarada é NÃO INFORMADA**.
 
-`INFERÊNCIA`: sem data, a tela pode dizer "integrado no ERP nesta competência" (`cso-screen.tsx:37`, `territorio-screen.tsx:70`), mas não pode afirmar **quando** o evento ocorreu — que é o que a apuração temporal exige.
+`VERIFICADO` no código: `new-name-model.ts:45-46` e `:84` traduzem `INTEGRADO`/`INTEGRADO COM ERP` em substatus; `manual-import.ts:300` conta comparando o texto do status.
 
-`NÃO VERIFICADO`: a planilha de origem. Ela não está neste repositório, então a existência de uma coluna de data de integração não pode ser confirmada nem descartada por aqui.
+`INFERÊNCIA`: sem data, a tela pode dizer "integrado", mas não pode afirmar em que competência o evento ocorreu.
+
+**Conclusão de M2**: não é falha de código nem de modelagem — é ausência no **dado de origem**. A correção exige outra extração, com a data de integração, não outro cálculo.
 
 ## 7. Próximo passo
 
