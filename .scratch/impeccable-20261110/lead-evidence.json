@@ -1,0 +1,59 @@
+{
+  "date": "2026-11-10",
+  "head": "f9fbff04a8a2903741521a37ebe0431c02c7ce55",
+  "runtime": "local static visual",
+  "cloudflareDecision": "unchanged temporarily per Bruno",
+  "uiCodeDiff": false,
+  "testsTargeted": {
+    "pass": 43,
+    "fail": 0
+  },
+  "lighthouseSnapshotMobile": {
+    "accessibility": 93,
+    "failedAudits": [
+      "color-contrast",
+      "target-size"
+    ],
+    "contrast": 2.35,
+    "targetSize": {
+      "width": 20,
+      "height": 20,
+      "minExpected": 24
+    }
+  },
+  "infoTip": {
+    "nestedInLink": 2,
+    "buttonsTotal": 9,
+    "mobileTap": {
+      "opacity": 0,
+      "left": -51.6,
+      "width": 224
+    },
+    "desktopFocusVisible": {
+      "opacityAfterSettling": 1,
+      "transientInitialOpacity": 0,
+      "note": "Keyboard tooltip works after settling; initial immediate read was transient and is not a defect."
+    }
+  },
+  "reducedMotion": {
+    "width": 390,
+    "runningAnimations": 0,
+    "overflow": false
+  },
+  "performance": {
+    "mode": "single local lab navigation, no CPU/network throttling, reduced motion",
+    "lcpMs": 2644,
+    "cls": 0.01,
+    "productionEvidence": false
+  },
+  "sourceBundle": {
+    "jsBytes": 1515625,
+    "totalBytes": 2620395
+  },
+  "notes": [
+    "No overlay or live server injected",
+    "No global skill or hooks installed",
+    "Browser tabs disappeared during parallel read-only review; own tabs recreated only",
+    "Not all controls below 24px violate WCAG because exceptions must be checked"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "allFiles": 117,
+  "scannableCandidates": 109,
+  "extensions": [
+    {
+      "Name": ".css",
+      "Count": 1
+    },
+    {
+      "Name": ".json",
+      "Count": 3
+    },
+    {
+      "Name": ".ts",
+      "Count": 42
+    },
+    {
+      "Name": ".tsx",
+      "Count": 66
+    },
+    {
+      "Name": ".txt",
+      "Count": 1
+    },
+    {
+      "Name": ".woff2",
+      "Count": 4
+    }
+  ]
+}

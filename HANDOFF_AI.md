@@ -1,5 +1,27 @@
 # Handoff — Central de Receita
 
+## Estado atual — auditoria de 10/11/2026
+
+- **Base a preservar:** Cloudflare, branch local `local/cloudflare-a19b386`, HEAD `f9fbff04a8a2903741521a37ebe0431c02c7ce55`, referência `a19b386`. As branches/heads nas seções antigas abaixo são históricas.
+- **PRECISA AJUSTES:** exposição pública confirmada de conteúdo de planejamento no JavaScript da homologação, apesar da classificação de pacote sintético. Fotos possuem autorização histórica específica; autorização dos valores de planejamento não comprovada nesta auditoria. Portaria local não é autenticação.
+- Relatório operacional completo: [auditoria de segurança, coerência e completude](docs/reviews/2026-11-10-auditoria-seguranca-coerencia.md). Ele corrige a conclusão ampla do retorno anterior; leia antes de prosseguir.
+- Validação atual: 353/353 testes, tipos e build visual PASS; 118 arquivos com hashes conferidos. Checker estático falha nas regras padrão; scanner interno mantém alertas de contraste. Não é prontidão de produção.
+- Bug reproduzido: trocar Mês por Trimestre dentro da filial perde território e volta ao CSO, ainda mostrando outubro. Proposta M1 não cobre total CSO; M2 tem risco de modelagem além da ausência na fonte; reconciliação do relatório anterior usa cenário errado.
+- M1 **não implementado**: aguarda Q1/Q2/Q3 do Bruno. Nenhum push, merge, deploy, migração ou envio ao Planejador nesta auditoria. Nenhum código de aplicação alterado.
+- **DECISÃO DO USUÁRIO, 10/11 às 17:57:** manter a Cloudflare publicada como está por enquanto e seguir com a revisão Impeccable. Isso não é certificação de segurança nem autorização de novo deploy. A contenção deixa de bloquear esta revisão local.
+- **Impeccable 4.8.2 aplicado** (audit + critique, sem hooks/init/live/overlay): placar **12/20** e Nielsen **25/40**. Relatório: [Impeccable](docs/reviews/2026-11-10-impeccable.md). Detector estático: 2 `side-tab`; renderizado: 12 warnings + 2 advisories, todos na portaria. Lighthouse mobile: a11y 93, falhas em `color-contrast` (2,35:1) e `target-size` (20×20 px).
+- Achados P1 de confiança no número: "Previsto" nomeia 14.000 no cartão e 7.500 na curva; cartão "Previsto" tem nota "Meta de outubro"; rosca mostra 46% mas inclui "Perdido" nas fatias; barra mobile esconde 6 destinos. Nada corrigido — o pedido era aplicar a revisão.
+- Próximo: `clarify` nos rótulos/denominador, `adapt` na navegação mobile e tooltip, depois re-medir. M1/M2 seguem seus gates. Restrição de acesso ou republicação exigem autorização textual. Não executar `npm run build`/Sites como substituto do build visual.
+- Vault e `.agents/memory/` não atualizados: nenhum pedido explícito de escrita no Vault; diretório de memória ausente, sem criação de estrutura preventiva.
+
+### O que NÃO funcionou
+
+- `scan` inicial examinou só a portaria, não as telas internas: repetido com pouso verificado. Onze alertas de imagens sumiram após aguardar carregamento e repetir; não são falhas persistentes confirmadas.
+- Escrita de relatório pelo MCP: `Access denied ... is not within any of the configured workspace roots`; evidências locais gravadas pelas ferramentas permitidas, sem escalada.
+- Mensagem a identificador de subagente: `active teammate ... not found`; não presumir entrega. Retornos originais foram recebidos e conferidos pelo Lead.
+
+## Histórico preservado — não usar como estado atual
+
 ## Estado em 27/10/2026 — esta worktree
 
 Narrativa completa no Vault: `Bruno Vault/Sessões/2026-10/2026-10-27T14-30-00-central-receita-fotos-organograma-tipografia.md`.
