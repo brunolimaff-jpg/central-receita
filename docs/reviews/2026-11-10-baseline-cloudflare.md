@@ -27,6 +27,7 @@ Commit `8243c4a` sobre `a19b386`: 3 arquivos, +36/−27.
 - **Carteira** em 1440 e 390 px: `h1` "Hermínio Gastaldi"; seções "Quem responde abaixo", "Fila de pedidos", "Maiores previstas desta cadeira", "Territórios"; sem rolagem horizontal.
 - **Territórios** em 1440 e 390 px: `h1` "Visão CSO · Outubro/2026"; seções "Territórios · quem responde abaixo", "Comparação entre territórios", "O que merece atenção hoje", "Para onde ir daqui" e "Escopo desta tela"; os quatro primeiros territórios aparecem; sem rolagem horizontal.
 - **Console**: zero erro e zero aviso nas telas visitadas.
+- **Drill CSO → território → filial** em 390 e 320 px: `?territorio=territorio-01` abre "Território 01 · Outubro/2026" com "Filiais · quem responde abaixo", "Filial por filial" e o mapa de calor; `&branch=RS` abre "RS · Rio Grande do Sul" com "Rubrica por rubrica" e "Continuar a análise". Os dois retornos ("← Visão CSO" e "← Voltar à visão executiva") estão presentes. Sem rolagem horizontal e com os 6 rótulos visíveis.
 
 ## 4. Limitações e regressões
 
