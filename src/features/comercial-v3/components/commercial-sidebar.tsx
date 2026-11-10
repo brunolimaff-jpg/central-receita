@@ -294,7 +294,7 @@ export function CommercialTopbar({
             suppressHydrationWarning
             onChange={(evento) => setBusca(evento.target.value)}
             placeholder={rotuloBusca}
-            className="h-9 w-full border-0 bg-transparent text-[13px] text-ink-strong outline-none placeholder:text-ink-subtle"
+            className="h-9 w-full border-0 bg-transparent text-[13px] text-ink-strong placeholder:text-ink-subtle"
           />
         </label>
         {busca.trim() !== '' && (
@@ -331,7 +331,7 @@ export function CommercialTopbar({
           <select
             value={branch}
             onChange={(evento) => nav.onBranch(evento.target.value)}
-            className="max-w-[168px] cursor-pointer border-0 bg-transparent text-[13px] font-semibold text-ink-strong outline-none"
+            className="max-w-[168px] cursor-pointer border-0 bg-transparent text-[13px] font-semibold text-ink-strong "
           >
             <option value={ALL_FILTERS}>Todas as filiais</option>
             {branches.map((item) => <option key={item} value={item}>{item}</option>)}

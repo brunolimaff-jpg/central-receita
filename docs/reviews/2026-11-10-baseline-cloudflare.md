@@ -86,6 +86,8 @@ Ressalva do parecer de 10/11: o status comprova o **estado**, não o **evento**.
 | Integridade de navegação | Configurações → voltar → Territórios → avançar → Configurações, com `period=month` preservado. Reload mantém a view e o contexto. |
 | Segurança da homologação | Pacote com 119 arquivos e 2,52 MB. `D1Database` 0 ocorrências; `Opp em andamento` e `Pedidos Outubro` 0; `INTEGRADO COM ERP` aparece 2× como constante de mapeamento de status, não como dado; `/api/` e `fetch(` só em runtime do Next. |
 | Reprodutibilidade | HEAD do código `f1947839…`, árvore limpa, `git diff --check` exit 0. |
+| Teclado e foco visível | 71 controles focáveis da Jornada: todos com indicador. Antes da correção, três estavam sem: busca, filtro de solução e filtro de filial. |
+| Responsividade abaixo de 320 px | 280 px: sem rolagem horizontal, 6 rótulos visíveis, barra inferior cabe. |
 
 ## 8. Reconciliando o número de M1
 
