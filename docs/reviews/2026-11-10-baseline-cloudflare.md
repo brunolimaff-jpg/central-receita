@@ -32,6 +32,7 @@ Commit `8243c4a` sobre `a19b386`: 3 arquivos, +36/−27.
 ## 4. Limitações e regressões
 
 - Rótulos quebram no meio da palavra em 320/390 px ("Configu rações"). Vem do `overflow-wrap: anywhere` portado; não corta nem estoura, mas é feio.
+- O critério "estados de avisos: carregado, vazio e indisponível" **não é aplicável** a esta base. Existe só o estado indisponível (`commercial-sidebar.tsx:340-342`, botão desabilitado). Não há funcionalidade de avisos, logo não há estados carregado nem vazio para testar; construí-la está fora do escopo desta recuperação.
 - Leitor de tela e aparelho físico **não verificados**.
 - Nenhuma tela do fluxo de importação foi exercitada nesta rodada.
 - Nenhuma regressão observada em Carteira, Diretorias e Territórios pela varredura visual das telas citadas.
