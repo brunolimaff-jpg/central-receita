@@ -76,6 +76,23 @@ As três perguntas de produto seguem abertas:
 
 **Conclusão de M2**: não é falha de código nem de modelagem — é ausência no **dado de origem**. A correção exige outra extração, com a data de integração, não outro cálculo.
 
-## 7. Próximo passo
+Ressalva do parecer de 10/11: o status comprova o **estado**, não o **evento**. Para métrica temporal faltam ainda a data efetiva da integração, a data de extração confiável do retrato e a prova do vínculo pedido ↔ oportunidade ↔ território. Por isso M2 fica como **evidência parcial**, não fechado.
 
-M1 depende de decisão do Bruno sobre as três perguntas acima. M2 depende de evidência da fonte. Nenhuma das duas foi implementada.
+## 7. Critérios adicionais (parecer de 10/11)
+
+| Critério | Resultado |
+| --- | --- |
+| Smoke test da sidebar | 7 telas por navegação real — Jornada, Sistema, Contas, Cross, Carteira, Territórios e Configurações. Todas renderizam, sem tela de erro, sem rolagem horizontal. |
+| Integridade de navegação | Configurações → voltar → Territórios → avançar → Configurações, com `period=month` preservado. Reload mantém a view e o contexto. |
+| Segurança da homologação | Pacote com 119 arquivos e 2,52 MB. `D1Database` 0 ocorrências; `Opp em andamento` e `Pedidos Outubro` 0; `INTEGRADO COM ERP` aparece 2× como constante de mapeamento de status, não como dado; `/api/` e `fetch(` só em runtime do Next. |
+| Reprodutibilidade | HEAD do código `f1947839…`, árvore limpa, `git diff --check` exit 0. |
+
+## 8. Reconciliando o número de M1
+
+O parecer apontou divergência entre os R$ 43.130 citados e a diferença de base (143.190 → 87.030 = R$ 54.670, no cenário comparável).
+
+`INFERÊNCIA` com os números da própria medição: os R$ 43.130 são só o **ganho** da filial sem meta. A diferença de R$ 54.670 é a contribuição dela à **base** inteira, ou seja, ganho mais esperado mais fora do congelado. Pelos valores medidos, esperado + fora da filial excluída somam R$ 11.540. Os dois números não são equivalentes e não devem ser tratados como tal.
+
+## 9. Próximo passo
+
+M1 aguarda a confirmação das três decisões do parecer. O restante está verificado. Nada foi mesclado, enviado ou publicado.
