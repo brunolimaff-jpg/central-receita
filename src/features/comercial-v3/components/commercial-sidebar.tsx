@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Bell, Building2, Gauge, ChevronDown, GitBranch, Layers, LayoutDashboard, List, MapPinned, Network, PackagePlus, PanelLeftClose, PanelLeftOpen, Search, Settings2, Target, TrendingUp, Users } from 'lucide-react'
+import { Bell, Building2, Gauge, GitBranch, Layers, LayoutDashboard, List, MapPinned, Network, PackagePlus, PanelLeftClose, PanelLeftOpen, Search, Settings2, Target, TrendingUp, Users } from 'lucide-react'
 import { FILTER_LABELS, VIEW_LABELS } from '../copy'
 import { sharedImportEnabled } from '../manual-import-client'
 import { sidebarViewFor, type CommercialNav } from '../nav'
@@ -337,17 +337,17 @@ export function CommercialTopbar({
             {branches.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
         </label>
-        <button type="button" aria-label="Avisos" className="revenue-control grid h-11 w-11 shrink-0 place-items-center rounded-[10px] text-ink-strong">
+        <button type="button" disabled title="Avisos indisponíveis" className="revenue-control flex h-11 shrink-0 cursor-not-allowed items-center gap-2 rounded-[10px] px-3 text-[12px] text-ink-muted">
           <Bell aria-hidden className="h-[19px] w-[19px]" strokeWidth={1.8} />
+          Avisos indisponíveis
         </button>
-        <button type="button" className="revenue-control flex h-12 shrink-0 items-center gap-2.5 rounded-[10px] py-1 pl-1.5 pr-3 text-left">
+        <div className="revenue-control pointer-events-none flex h-12 shrink-0 items-center gap-2.5 rounded-[10px] py-1 pl-1.5 pr-3 text-left">
           <span aria-hidden className="grid h-9 w-9 place-items-center rounded-full bg-[linear-gradient(135deg,var(--verde-escuro),var(--verde-medio))] text-[13px] font-bold text-white">G</span>
-          <span className="hidden leading-tight min-[1440px]:block">
+          <span className="sr-only leading-tight min-[1440px]:not-sr-only">
             <strong className="block text-[13px] font-semibold text-ink-strong">{process.env.NEXT_PUBLIC_VISUAL_PREVIEW === '1' ? 'Visitante' : 'Giovanni'}</strong>
             <small className="block text-[11px] text-ink-muted">Diretoria Comercial</small>
           </span>
-          <ChevronDown aria-hidden className="hidden h-4 w-4 text-ink-muted min-[1440px]:block" strokeWidth={1.8} />
-        </button>
+        </div>
       </div>
     </header>
   )

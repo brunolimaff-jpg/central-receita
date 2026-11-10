@@ -305,13 +305,15 @@
   }
 
   /*
-   * `!important` porque o `flex` do Tailwind no parágrafo da legenda vem
-   * depois desta camada e venceria o `display: none` — e a legenda quebra
-   * palavra por palavra na coluna de 72px (bug visto por Bruno).
+   * Só vale para a coluna: abaixo de 780px a sidebar é barra inferior e os
+   * rótulos precisam aparecer. `!important` porque o `flex` do Tailwind no
+   * parágrafo da legenda vem depois desta camada e venceria o `display: none`.
    */
-  .revenue-app[data-nav='recolhida'] .revenue-sidebar .revenue-nav-rotulo,
-  .revenue-app[data-nav='recolhida'] .revenue-sidebar .revenue-marca-texto {
-    display: none !important;
+  @media (min-width: 781px) {
+    .revenue-app[data-nav='recolhida'] .revenue-sidebar .revenue-nav-rotulo,
+    .revenue-app[data-nav='recolhida'] .revenue-sidebar .revenue-marca-texto {
+      display: none !important;
+    }
   }
 
   /* Recolhida, a marca é só o símbolo: o wordmark não cabe em 72px. */
@@ -1496,7 +1498,7 @@
     position: fixed;
     inset: auto 10px 10px;
     z-index: 30;
-    height: 62px;
+    height: auto;
     min-height: 0;
     flex-direction: row;
     align-items: center;
@@ -1534,7 +1536,9 @@
 
   .revenue-app .revenue-nav-item {
     justify-content: center;
-    min-height: 48px;
+    min-height: 68px;
+    flex-direction: column;
+    gap: 2px;
     padding: 0;
   }
 
@@ -1549,19 +1553,24 @@
   }
 
   /*
-   * Abaixo de 780px não há coluna: a sidebar é barra inferior de 62px, e a
-   * largura não existe nesse modo. A barra sempre foi ícone-só, então os
-   * rótulos continuam ocultos aqui mesmo com a coluna "expandida" — e o
-   * controle de expandir/recolher não se aplica, por isso some. O cartão de
-   * rótulo também não faz sentido numa barra horizontal.
+   * Abaixo de 780px a sidebar é barra inferior. Os rótulos continuam visíveis:
+   * barra de ícone-só obriga a pessoa a experimentar cada destino para saber
+   * onde vai. O cartão de rótulo da coluna recolhida e a dica de teclado não
+   * fazem sentido numa barra horizontal.
    */
-  /*
-   * Fora do estado recolhido o cartão de rótulo não existe (a regra base já o
-   * esconde), mas a barra inferior abaixo de 780px pode herdar `recolhida` de
-   * uma preferência gravada em tela larga — e aí o cartão apareceria numa barra
-   * horizontal. Por isso ele é ocultado aqui sem condição.
-   */
-  .revenue-app .revenue-sidebar .revenue-nav-rotulo,
+  .revenue-app .revenue-sidebar .revenue-nav-item > .revenue-nav-rotulo,
+  .revenue-app[data-nav='recolhida'] .revenue-sidebar .revenue-nav-item > .revenue-nav-rotulo {
+    display: block !important;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    text-align: center;
+    text-overflow: clip;
+    font-size: 12px;
+    line-height: 1.1;
+  }
+
+  /* Na barra inferior, os nomes ficam visíveis mesmo com a coluna recolhida. */
   .revenue-app .revenue-sidebar .revenue-marca-texto,
   .revenue-app .revenue-sidebar .revenue-nav-dica,
   .revenue-app .revenue-nav-toggle {

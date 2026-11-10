@@ -73,6 +73,6 @@ test('mesmo hash e mesma referência não duplicam o ponto', () => {
 test('sem oportunidades no workspace não há snapshot; null continua null', () => {
   assert.equal(trajectorySnapshotForWorkspace({ opportunities: null }, null), null)
   const prev = { opportunities: batch('opportunities', { referenceDate: '2026-10-20' }) }
-  const current = { opportunities: batch('opportunities', { hash: 'c', referenceDate: '2026-10-20', records: [rec({ predictedValue: null })] }) }
+  const current = { opportunities: batch('opportunities', { hash: 'c', referenceDate: '2026-10-20', records: [rec({ forecastDate: '2026-10-20', predictedValue: null })] }) }
   assert.equal(trajectorySnapshotForWorkspace(current, prev).forecastTotal, null)
 })
