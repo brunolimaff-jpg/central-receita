@@ -24,6 +24,9 @@ Commit `8243c4a` sobre `a19b386`: 3 arquivos, +36/−27.
 
 - **Mobile 320, 375 e 390 px**: 6 rótulos visíveis (Visão Executiva, Diretorias, Forecast, New Name, Oportunidades, Configurações), nenhum cortado, sem rolagem horizontal.
 - **1440 px na Jornada**: botão "Avisos indisponíveis" `disabled` com `title`; perfil deixou de ser botão.
+- **Carteira** em 1440 e 390 px: `h1` "Hermínio Gastaldi"; seções "Quem responde abaixo", "Fila de pedidos", "Maiores previstas desta cadeira", "Territórios"; sem rolagem horizontal.
+- **Territórios** em 1440 e 390 px: `h1` "Visão CSO · Outubro/2026"; seções "Territórios · quem responde abaixo", "Comparação entre territórios", "O que merece atenção hoje", "Para onde ir daqui" e "Escopo desta tela"; os quatro primeiros territórios aparecem; sem rolagem horizontal.
+- **Console**: zero erro e zero aviso nas telas visitadas.
 
 ## 4. Limitações e regressões
 
