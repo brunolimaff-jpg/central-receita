@@ -45,6 +45,16 @@ Commit `8243c4a` sobre `a19b386`: 3 arquivos, +36/−27.
 
 `VERIFICADO`: o modelo já expõe a cobertura. `LinhaTerritorio` carrega `filiaisComMeta` e `filiais` (`territorios-model.ts:184-201`), e a visão CSO lista "X de Y filiais sem meta cadastrada — não entram na comparação" (`:272-274`). Isso informa a cobertura; não corrige o percentual.
 
+**Impacto medido** (fixture `regional-mock`, território 02 — MT, MS, DF, GO; fluxo MRR; tirando a meta da filial MT):
+
+| Cenário | pctBase | base | meta | filiais com meta |
+| --- | --- | --- | --- | --- |
+| Original, 4 filiais com meta | 83,25% | 143.190 | 172.000 | 4/4 |
+| MT perde a meta (comportamento atual) | **118,08%** | 141.700 | 120.000 | 3/4 |
+| Só as 3 filiais comparáveis | 72,53% | 87.030 | 120.000 | 3/3 |
+
+`INFERÊNCIA`: a inflação medida é de **45,56 pontos percentuais**. O território sai de "abaixo da meta" (72,53%) para "acima da meta" (118,08%) só porque uma filial perdeu a meta — com R$ 43.130 de ganho entrando no numerador sem denominador correspondente.
+
 As três perguntas de produto seguem abertas:
 
 1. O percentual representa o território inteiro ou só as filiais comparáveis?
