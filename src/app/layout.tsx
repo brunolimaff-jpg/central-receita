@@ -17,7 +17,7 @@ const publicSans = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Central de Receita — Visão Comercial",
+  title: "Central de Vendas — Visão Comercial",
   description:
     "Leitura comercial demonstrativa, com oportunidades, ações, compromissos e contexto de relacionamento. A origem dos dados é identificada em cada leitura.",
   icons: { icon: "/favicon.svg" },

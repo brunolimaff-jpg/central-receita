@@ -33,6 +33,7 @@ import { ARVORE } from './carteira-arvore'
 import { coberturaDePara } from './carteira-de-para'
 import { montarCarteira } from './carteira-model'
 import { loadImportDraft, loadPreviousDraft, sharedImportEnabled, visualPreviewEnabled, type ImportDraft } from './manual-import-client'
+import { estadoDaHome } from './central-vendas-mrr'
 import { ExecutivePage } from './screens/executive-page'
 import { JourneyScreen } from './screens/journey-screen'
 import { NewNameScreen } from './screens/new-name-screen'
@@ -143,6 +144,13 @@ export function CommercialV3App() {
   const executiveView = view === 'home' || (PAGINA_CORRIDA.includes(view) && !demoRequested)
   const cargaNaPagina = executiveView && !demoRequested
   const dataCarga = importDraft?.opportunities?.referenceDate ?? importDraft?.orders?.referenceDate ?? null
+  /*
+   * O rodapé da lateral fala do estado real da carga, não da aba aberta.
+   * Fora das telas que leem a carga, mantém o rótulo de demonstração de antes.
+   */
+  const estadoLateral = view === 'config' || cargaNaPagina
+    ? estadoDaHome({ temCarga: Boolean(importDraft), carregando: importLoading, falha: importError || null })
+    : 'sem-carga'
 
   // Estado transitório do recorte: nenhum salvamento ou dado externo.
   const posicoes = useRef(new Map<string, {
@@ -238,7 +246,7 @@ export function CommercialV3App() {
       if (view === 'opportunity' && destino === (from ?? 'home') && !extra) return commercialReturnHref(contexto)
       const destination = buildCommercialHref(
         destino,
-        { period, solution, branch, query, busca, movement },
+        { period, solution, branch, query, busca, movement, segmento: contexto.segmento, corte: contexto.corte },
         {
           ...(destino === view && from ? { from } : {}),
           // Sair de Territórios para outra tela leva o território aberto, para o retorno cair no mesmo nível.
@@ -350,7 +358,7 @@ export function CommercialV3App() {
       branches={filiais}
       from={from}
       nav={nav}
-      importPreview={view === 'config' || cargaNaPagina}
+      estadoCarga={estadoLateral}
       executiveMode={executiveView}
       dataCarga={cargaNaPagina ? dataCarga : null}
     >
@@ -360,7 +368,7 @@ export function CommercialV3App() {
         <Link href={nav.href('config')} className="font-semibold text-[#086b6b] underline">Consultar cargas</Link>
       </div>}
       {view === 'config' && <ImportScreen draft={importDraft} canImport={canImport} onSaved={draft => { importEpoch.current++; setPreviousImportDraft(importDraft); setImportDraft(draft); setImportError('') }} loading={importLoading} loadError={importError} nav={nav} />}
-      {executiveView && <ExecutivePage opportunities={importDraft?.opportunities ?? null} orders={importDraft?.orders ?? null} previous={previousImportDraft} history={importDraft?.history ?? []} nav={nav} carregando={importLoading && !importDraft} falha={importError || null} />}
+      {executiveView && <ExecutivePage opportunities={importDraft?.opportunities ?? null} orders={importDraft?.orders ?? null} previous={previousImportDraft} history={importDraft?.history ?? []} nav={nav} home={home} posicao={COMMERCIAL_SNAPSHOT.asOf.slice(0, 10).split('-').reverse().join('/')} carregando={importLoading && !importDraft} falha={importError || null} />}
 
       {view === 'carteira' && (
         <CarteiraScreen

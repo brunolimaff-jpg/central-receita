@@ -89,7 +89,7 @@ function Resumo({ s, fluxo }: { s: RegionalSnapshot; fluxo: Fluxo }) {
         <Kpi rotulo="Conversão exigida do Best case" valor={ce.coberto ? 'Coberto' : ce.comFora === null ? 'Sem Best case' : P(Math.max(0, ce.comFora))} sub={ce.comFora === null ? 'Não há Best case no pipeline para converter' : `Modelo assume ${P(ce.assumida)} · alvo 70% da meta`} farol={ce.farol} />
       </div>
       <div className="grid gap-3 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-        <Card titulo="Mapa de calor · ganho por rubrica e cenário Base" hint="As três colunas de rubrica medem o ganho já integrado; as duas de fluxo medem o cenário Base — onde o mês vai aterrissar. Mesma escala do farol em todas: verde ≥ 100%, amarelo ≥ 70%, cinza = sem meta.">
+        <Card titulo="Mapa de calor · ganho por rubrica e cenário Base" hint="As três colunas de rubrica medem os Ganhos no CRM (não é receita nem pedido integrado); as duas de fluxo medem o cenário Base — onde o mês vai aterrissar. Mesma escala do farol em todas: verde ≥ 100%, amarelo ≥ 70%, cinza = sem meta.">
           <MapaCalor {...calor} modo="pct" />
         </Card>
         <Card titulo="O que os números dizem" hint="Leitura gerada a partir das regras do painel.">

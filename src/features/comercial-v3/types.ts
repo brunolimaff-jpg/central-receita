@@ -65,6 +65,13 @@ export type CommercialContext = {
    * permitiria "filial sem território".
    */
   territorio?: string
+  /**
+   * Recorte do painel de resultado (Home) que segue para Territórios:
+   * vertical (`demais`/`construcao`/`industria`/`agro`) e corte
+   * (`geral`/`base`/`novos`). Ausente = consolidado. A tela valida os valores.
+   */
+  segmento?: string
+  corte?: string
 }
 
 /** Recorte do contexto consumido pelos seletores puros (plano Task 2 Step 6, l.244-254). */
