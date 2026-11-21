@@ -21,8 +21,17 @@ const {
   normalizarSegmento,
   rotuloExport,
   referenciaPlanejamento,
+  filtrosMensaisDaHome,
 } = await import(new URL('../src/features/comercial-v3/home-raio-x.ts', import.meta.url).href)
 const { matrizMrr } = await import(new URL('../src/features/comercial-v3/central-vendas-mrr.ts', import.meta.url).href)
+
+test('a Home mantém o mês mesmo ao retornar de outro período', () => {
+  for (const period of ['month', 'quarter', 'rolling3']) {
+    const filtros = { period, branch: 'Filial Alfa', solution: 'ERP' }
+    assert.deepEqual(filtrosMensaisDaHome(filtros), { ...filtros, period: 'month' })
+    assert.equal(filtros.period, period)
+  }
+})
 
 test('o selo carrega origem, período e referência; teste não vira demo', () => {
   const teste = seloDoBloco('teste', 'outubro/2026', 'carga de 22/10/2026')

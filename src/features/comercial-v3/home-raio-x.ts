@@ -12,10 +12,15 @@ import { isClosedStage } from './forecast-month.ts'
 import { formatarMilhoes, formatarPercentualInteiro } from './format.ts'
 import type { ImportedRecord } from './manual-import.ts'
 import type { OrigemRealizado, SemanaRow } from './model'
+import type { CommercialFilters } from './types'
 import { VERTICAIS, type VerticalId } from './org-2027.ts'
 import { mesDaReferencia } from './trajectory-model.ts'
 
 export type OrigemBloco = 'demo' | 'teste' | 'planejamento' | 'export'
+
+export function filtrosMensaisDaHome(filtros: CommercialFilters): CommercialFilters {
+  return { ...filtros, period: 'month' }
+}
 
 export const ROTULO_ORIGEM: Record<OrigemBloco, string> = {
   demo: 'Demo',

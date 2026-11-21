@@ -34,6 +34,7 @@ import { coberturaDePara } from './carteira-de-para'
 import { montarCarteira, recortarPorFilial, temProbabilidade } from './carteira-model'
 import { loadImportDraft, loadPreviousDraft, sharedImportEnabled, visualPreviewEnabled, type ImportDraft } from './manual-import-client'
 import { estadoDaHome } from './central-vendas-mrr'
+import { filtrosMensaisDaHome } from './home-raio-x'
 import { ExecutivePage } from './screens/executive-page'
 import { ImportedForecastScreen } from './screens/import-forecast-screen'
 import { PipelineSection } from './components/pipeline-section'
@@ -201,6 +202,7 @@ export function CommercialV3App() {
     const model = selectHomeModel(COMMERCIAL_SNAPSHOT, filtros)
     return period === 'month' ? { ...model, filiais: realBranches(branch) } : model
   }, [filtros, period, branch])
+  const homeMensal = useMemo(() => selectHomeModel(COMMERCIAL_SNAPSHOT, filtrosMensaisDaHome(filtros)), [filtros])
   const briefing = useMemo(() => selectAgentBriefing(COMMERCIAL_SNAPSHOT, filtros), [filtros])
   const forecast = useMemo(() => selectForecastModel(COMMERCIAL_SNAPSHOT, filtros), [filtros])
   const detalhes = useMemo(() => selectOpportunityDetails(COMMERCIAL_SNAPSHOT, filtros), [filtros])
@@ -373,7 +375,7 @@ export function CommercialV3App() {
         <Link href={nav.href('config')} className="font-semibold text-[#086b6b] underline">Consultar cargas</Link>
       </div>}
       {view === 'config' && <ImportScreen draft={importDraft} canImport={canImport} onSaved={draft => { importEpoch.current++; setPreviousImportDraft(importDraft); setImportDraft(draft); setImportError('') }} loading={importLoading} loadError={importError} nav={nav} />}
-      {executiveView && <ExecutivePage opportunities={importDraft?.opportunities ?? null} orders={importDraft?.orders ?? null} previous={previousImportDraft} history={importDraft?.history ?? []} nav={nav} home={home} posicao={COMMERCIAL_SNAPSHOT.asOf.slice(0, 10).split('-').reverse().join('/')} carregando={importLoading && !importDraft} falha={importError || null} />}
+      {executiveView && <ExecutivePage opportunities={importDraft?.opportunities ?? null} orders={importDraft?.orders ?? null} previous={previousImportDraft} history={importDraft?.history ?? []} nav={nav} home={homeMensal} posicao={COMMERCIAL_SNAPSHOT.asOf.slice(0, 10).split('-').reverse().join('/')} carregando={importLoading && !importDraft} falha={importError || null} />}
 
       {view === 'carteira' && (
         <CarteiraScreen
