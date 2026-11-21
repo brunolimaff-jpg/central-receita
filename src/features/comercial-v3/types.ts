@@ -51,7 +51,7 @@ export type CommercialContext = {
    * Movimento selecionado no Forecast. O plano Task 7 (l.635) prevê o estado de
    * seleção de movimento na query como parâmetro opcional `movement`.
    */
-  movement?: ForecastMovement
+  movement?: ForecastMovementFilter
   /**
    * Nó da estrutura organizacional aberto na Carteira. Ausente = raiz (CSO).
    * Não há parâmetro de nível: o nível é derivado do nó, senão existiria o
@@ -105,6 +105,8 @@ export const COMMERCIAL_PERIODS = ['month', 'quarter', 'threeMonths'] as const
  */
 export const FORECAST_MOVEMENTS = ['Saiu', 'Postergou', 'Alterou valor', 'Entrou'] as const
 export type ForecastMovement = (typeof FORECAST_MOVEMENTS)[number]
+export const FORECAST_MOVEMENT_FILTERS = [...FORECAST_MOVEMENTS, 'Ganhou', 'Perdeu'] as const
+export type ForecastMovementFilter = (typeof FORECAST_MOVEMENT_FILTERS)[number]
 
 export const DEAL_ORIGINS = ['New Name', 'Cross'] as const
 export type DealOrigin = (typeof DEAL_ORIGINS)[number]

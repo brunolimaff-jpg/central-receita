@@ -3,18 +3,18 @@
  *
  * Fonte: 05_IMPLEMENTATION_PLAN_V3.md Task 1 Steps 1-4 (l.75-123).
  * Consome apenas `URLSearchParams`; não depende de `src/lib/domain/navigation.ts` (legado V2).
- * Todas as telas vivem na raiz (`/?view=...`), então nenhuma rota nova é criada em `src/app`.
+ * O Forecast tem rota própria; as demais telas usam `/?view=...`.
  */
 
 import {
   ALL_FILTERS,
   COMMERCIAL_PERIODS,
   COMMERCIAL_VIEWS,
-  FORECAST_MOVEMENTS,
+  FORECAST_MOVEMENT_FILTERS,
   type CommercialContext,
   type CommercialPeriod,
   type CommercialView,
-  type ForecastMovement,
+  type ForecastMovementFilter,
 } from './types.ts'
 
 /** Default exigido pelo plano (l.78-79): home / mês / todas as soluções / todas as filiais. */
@@ -58,7 +58,7 @@ export function parseCommercialContext(params: URLSearchParams): CommercialConte
   if (opportunityId !== '') contexto.opportunityId = opportunityId
 
   const movement = params.get('movement')
-  if (pertence(FORECAST_MOVEMENTS, movement)) contexto.movement = movement
+  if (pertence(FORECAST_MOVEMENT_FILTERS, movement)) contexto.movement = movement
 
   /*
    * Nó da estrutura na Carteira. Aceita qualquer identificador não vazio; quem
@@ -104,11 +104,11 @@ export function parseCommercialContext(params: URLSearchParams): CommercialConte
  */
 export function buildCommercialHref(
   view: CommercialView,
-  context: Pick<CommercialContext, 'period' | 'solution' | 'branch'> & { query?: string; busca?: string; movement?: ForecastMovement | null; segmento?: string; corte?: string },
-  extra?: { from?: CommercialView; opportunityId?: string; movement?: ForecastMovement | null; returnTo?: string; no?: string; territorio?: string; branch?: string },
+  context: Pick<CommercialContext, 'period' | 'solution' | 'branch'> & { query?: string; busca?: string; movement?: ForecastMovementFilter | null; segmento?: string; corte?: string },
+  extra?: { from?: CommercialView; opportunityId?: string; movement?: ForecastMovementFilter | null; returnTo?: string; no?: string; territorio?: string; branch?: string },
 ): string {
   const params = new URLSearchParams()
-  params.set('view', view)
+  if (view !== 'forecast') params.set('view', view)
   params.set('period', context.period)
   if (context.solution && context.solution !== ALL_FILTERS) params.set('solution', context.solution)
   const filial = extra?.branch ?? context.branch
@@ -127,13 +127,21 @@ export function buildCommercialHref(
   if (context.busca) params.set('busca', context.busca)
   const returnTo = retornoLocal(extra?.returnTo)
   if (returnTo) params.set('returnTo', returnTo)
-  return `/?${params.toString()}`
+  return `${view === 'forecast' ? '/forecast' : '/'}?${params.toString()}`
+}
+
+export function destinoForecastLegado(params: URLSearchParams): string | null {
+  if (params.get('view') !== 'forecast') return null
+  const consulta = new URLSearchParams(params)
+  consulta.delete('view')
+  return `/forecast${consulta.size ? `?${consulta}` : ''}`
 }
 
 /** Aceita apenas uma leitura local válida, sem retorno recursivo ao detalhe. */
 function retornoLocal(href: string | null | undefined): string | undefined {
-  if (!href?.startsWith('/?') || href.length > 3000) return undefined
-  const params = new URLSearchParams(href.slice(2))
+  if (!href || (!href.startsWith('/?') && !href.startsWith('/forecast?')) || href.length > 3000) return undefined
+  const params = new URLSearchParams(href.slice(href.indexOf('?') + 1))
+  if (href.startsWith('/forecast?')) return params.has('returnTo') ? undefined : href
   const view = params.get('view')
   if (!pertence(COMMERCIAL_VIEWS, view) || view === 'opportunity' || params.has('returnTo')) return undefined
   return href

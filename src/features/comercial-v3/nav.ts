@@ -6,7 +6,7 @@
  * `CommercialV3App` em vez de montarem hrefs ou chamarem o router.
  */
 
-import type { CommercialPeriod, CommercialView, ForecastMovement } from './types'
+import type { CommercialPeriod, CommercialView, ForecastMovement, ForecastMovementFilter } from './types'
 
 const SIDEBAR_VIEWS = ['home', 'journey', 'system', 'opportunities', 'accounts', 'new-name', 'cross', 'forecast', 'territorios', 'config'] as const
 type SidebarView = (typeof SIDEBAR_VIEWS)[number]
@@ -34,7 +34,7 @@ export function sidebarHref(view: CommercialView, paginaCorrida: boolean, href: 
 export type CommercialHrefExtra = {
   from?: CommercialView
   opportunityId?: string
-  movement?: ForecastMovement | null
+  movement?: ForecastMovementFilter | null
   returnTo?: string
   /** Território aberto em Territórios. Ausente = Visão CSO. */
   territorio?: string

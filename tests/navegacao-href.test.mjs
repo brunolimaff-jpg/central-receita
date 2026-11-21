@@ -12,23 +12,71 @@
 
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { buildCommercialHref, parseCommercialContext } from '../src/features/comercial-v3/context.ts'
+import { buildCommercialHref, destinoForecastLegado, parseCommercialContext } from '../src/features/comercial-v3/context.ts'
 import { nivelDe } from '../src/features/comercial-v3/regional/territorios-model.ts'
 import { ALL_FILTERS } from '../src/features/comercial-v3/types.ts'
 import { sidebarHref } from '../src/features/comercial-v3/nav.ts'
 
 test('atalhos da Home só usam âncoras das seções presentes', () => {
-  const href = view => `/?view=${view}`
+  const href = view => view === 'forecast' ? '/forecast?period=month' : `/?view=${view}`
   assert.equal(sidebarHref('home', true, href), '#home')
   assert.equal(sidebarHref('new-name', true, href), '#new-name')
-  assert.equal(sidebarHref('forecast', true, href), '/?view=forecast')
+  assert.equal(sidebarHref('forecast', true, href), '/forecast?period=month')
+  assert.equal(sidebarHref('forecast', false, href), '/forecast?period=month')
   assert.equal(sidebarHref('opportunities', true, href), '/?view=opportunities')
   assert.equal(sidebarHref('diretorias', true, href), '/?view=territorios#diretorias')
   assert.equal(sidebarHref('home', false, href), '/?view=home')
 })
 
 const ctx = (extra = {}) => ({ period: 'month', solution: ALL_FILTERS, branch: ALL_FILTERS, ...extra })
-const params = href => new URLSearchParams(href.slice(2))
+const params = href => new URL(href, 'http://localhost').searchParams
+
+test('Forecast tem rota própria sem view nem âncora e preserva filtros e movimento', () => {
+  const href = buildCommercialHref('forecast', ctx({ branch: 'Filial fictícia', solution: 'ERP' }), { from: 'home', movement: 'Entrou' })
+  assert.ok(href.startsWith('/forecast?'))
+  assert.equal(params(href).get('view'), null)
+  assert.equal(params(href).get('branch'), 'Filial fictícia')
+  assert.equal(params(href).get('solution'), 'ERP')
+  assert.equal(params(href).get('movement'), 'Entrou')
+  assert.equal(params(href).get('from'), 'home')
+  assert.equal(href.includes('#'), false)
+})
+
+test('redirecionamento legado remove somente view e preserva os demais parâmetros', () => {
+  const consulta = new URLSearchParams('view=forecast&period=quarter&solution=ERP&branch=Ficticia&from=home&movement=Saiu&demo=1&extra=a&extra=b')
+  const destino = destinoForecastLegado(consulta)
+  assert.ok(destino.startsWith('/forecast?'))
+  const esperado = new URLSearchParams(consulta)
+  esperado.delete('view')
+  assert.equal(params(destino).toString(), esperado.toString())
+  assert.equal(consulta.get('view'), 'forecast')
+  assert.equal(destinoForecastLegado(new URLSearchParams('view=forecast')), '/forecast')
+  assert.equal(destinoForecastLegado(new URLSearchParams('view=home')), null)
+})
+
+for (const movement of ['Ganhou', 'Perdeu']) {
+  test(`filtro ${movement} preserva seleção ao compartilhar e recarregar o Forecast`, () => {
+    const href = buildCommercialHref('forecast', ctx(), { movement })
+    assert.ok(href.startsWith('/forecast?'))
+    assert.equal(parseCommercialContext(params(href)).movement, movement)
+    const contexto = parseCommercialContext(params(href))
+    assert.equal(parseCommercialContext(params(buildCommercialHref('forecast', contexto))).movement, movement)
+  })
+}
+
+test('filtro desconhecido continua ausente e limpar filtro remove o parâmetro', () => {
+  assert.equal(parseCommercialContext(params('/forecast?movement=Inexistente')).movement, undefined)
+  const href = buildCommercialHref('forecast', ctx({ movement: 'Ganhou' }), { movement: null })
+  assert.equal(params(href).has('movement'), false)
+  assert.equal(parseCommercialContext(params(href)).movement, undefined)
+})
+
+test('sidebar usa a rota real de Forecast em ambos os modos', () => {
+  for (const corrida of [false, true]) {
+    const href = sidebarHref('forecast', corrida, (view, extra) => buildCommercialHref(view, ctx(), extra))
+    assert.equal(href, '/forecast?period=month&from=home')
+  }
+})
 
 test('troca de período preserva segmento e corte de Territórios', () => {
   const atual = parseCommercialContext(new URLSearchParams('view=territorios&segmento=agro&corte=novos'))

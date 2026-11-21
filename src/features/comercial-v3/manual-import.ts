@@ -30,6 +30,7 @@ export type ImportedRecord = {
   product: string; module: string; modality: string
   /** Chance de 0 a 1; ausente em cargas antigas ou quando a planilha não traz a coluna "Prob.". */
   probability?: number | null
+  proposalFlagged?: boolean | null
 }
 export type ImportBatch = {
   kind: ImportKind; records: ImportedRecord[]; issues: ImportIssue[]; errorCount: number; warningCount: number
