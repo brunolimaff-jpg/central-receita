@@ -24,6 +24,12 @@ export function globalSearchDestination(view: CommercialView): CommercialView {
   return 'opportunities'
 }
 
+export function sidebarHref(view: CommercialView, paginaCorrida: boolean, href: CommercialNav['href']): string {
+  if (paginaCorrida && (view === 'home' || view === 'new-name')) return `#${view}`
+  if (view === 'diretorias') return `${href('territorios', { from: 'home' })}#diretorias`
+  return href(view, { from: 'home' })
+}
+
 /** Destino extra de um href: origem da navegação, oportunidade e movimento do Forecast. */
 export type CommercialHrefExtra = {
   from?: CommercialView

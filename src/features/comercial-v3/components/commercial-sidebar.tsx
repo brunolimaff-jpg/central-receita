@@ -7,7 +7,7 @@ import { motion } from 'framer-motion'
 import { Bell, Building2, Gauge, GitBranch, Layers, LayoutDashboard, List, MapPinned, Network, PackagePlus, PanelLeftClose, PanelLeftOpen, Search, Settings2, Target, TrendingUp, Users } from 'lucide-react'
 import { FILTER_LABELS, VIEW_LABELS } from '../copy'
 import { sharedImportEnabled } from '../manual-import-client'
-import { sidebarViewFor, type CommercialNav } from '../nav'
+import { sidebarHref, sidebarViewFor, type CommercialNav } from '../nav'
 import type { NavCollapse } from '../nav-collapse'
 import type { EstadoHome } from '../central-vendas-mrr'
 import { rotuloDaLateral } from '../sidebar-status'
@@ -25,11 +25,6 @@ type ItemNav = {
   /** Tela existe e abre, mas o conteúdo ainda é preliminar. */
   preliminar?: boolean
 }
-
-/** Seções da página corrida, na ordem da sidebar. Cada uma tem âncora e marcação de visibilidade. */
-const SECOES = ['home', 'diretorias', 'forecast', 'new-name', 'opportunities'] as const
-type Secao = (typeof SECOES)[number]
-const pertenceAPagina = (view: CommercialView) => (SECOES as readonly string[]).includes(view)
 
 /**
  * Barra inferior (abaixo de 780px): cada destino tem ~57px e "Oportunidades"
@@ -190,7 +185,7 @@ export function CommercialSidebar({
             )}
             <Link
               data-preliminar={item.preliminar ? '' : undefined}
-              href={naPagina && view && (SECOES as readonly string[]).includes(view) ? `#${view}` : nav.href(view ?? 'home', { from: 'home' })}
+              href={sidebarHref(view ?? 'home', naPagina, nav.href)}
               aria-current={ativo ? (pageView === 'home' ? 'location' : 'page') : undefined}
               title={item.preliminar ? `${item.label} · versão preliminar` : item.label}
               className="revenue-nav-item"

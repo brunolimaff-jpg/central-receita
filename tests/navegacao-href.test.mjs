@@ -15,6 +15,17 @@ import assert from 'node:assert/strict'
 import { buildCommercialHref, parseCommercialContext } from '../src/features/comercial-v3/context.ts'
 import { nivelDe } from '../src/features/comercial-v3/regional/territorios-model.ts'
 import { ALL_FILTERS } from '../src/features/comercial-v3/types.ts'
+import { sidebarHref } from '../src/features/comercial-v3/nav.ts'
+
+test('atalhos da Home só usam âncoras das seções presentes', () => {
+  const href = view => `/?view=${view}`
+  assert.equal(sidebarHref('home', true, href), '#home')
+  assert.equal(sidebarHref('new-name', true, href), '#new-name')
+  assert.equal(sidebarHref('forecast', true, href), '/?view=forecast')
+  assert.equal(sidebarHref('opportunities', true, href), '/?view=opportunities')
+  assert.equal(sidebarHref('diretorias', true, href), '/?view=territorios#diretorias')
+  assert.equal(sidebarHref('home', false, href), '/?view=home')
+})
 
 const ctx = (extra = {}) => ({ period: 'month', solution: ALL_FILTERS, branch: ALL_FILTERS, ...extra })
 const params = href => new URLSearchParams(href.slice(2))
