@@ -303,7 +303,7 @@ export function CommercialV3App() {
     (parcial: Partial<CommercialFilters>) => {
       const destino = buildCommercialHref(
         view,
-        { period, solution, branch, ...parcial },
+        { period, solution, branch, segmento: contexto.segmento, corte: contexto.corte, ...parcial },
         {
           from,
           opportunityId,
@@ -319,7 +319,7 @@ export function CommercialV3App() {
       const sufixo = extras.toString()
       router.replace(sufixo === '' ? destino : `${destino}&${sufixo}`, { scroll: false })
     },
-    [router, view, period, solution, branch, from, opportunityId, movement, query, busca, contexto.returnTo, demoRequested],
+    [router, view, period, solution, branch, from, opportunityId, movement, query, busca, contexto, demoRequested],
   )
 
   const nav = useMemo<CommercialNav>(
