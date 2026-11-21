@@ -26,7 +26,7 @@ const {
 const { matrizMrr } = await import(new URL('../src/features/comercial-v3/central-vendas-mrr.ts', import.meta.url).href)
 
 test('a Home mantém o mês mesmo ao retornar de outro período', () => {
-  for (const period of ['month', 'quarter', 'rolling3']) {
+  for (const period of ['month', 'quarter', 'threeMonths']) {
     const filtros = { period, branch: 'Filial Alfa', solution: 'ERP' }
     assert.deepEqual(filtrosMensaisDaHome(filtros), { ...filtros, period: 'month' })
     assert.equal(filtros.period, period)

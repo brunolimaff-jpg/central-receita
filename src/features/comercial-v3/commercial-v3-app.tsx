@@ -144,6 +144,7 @@ export function CommercialV3App() {
   const demoRequested = !visualPreviewEnabled && !sharedImportEnabled && searchParams.get('demo') === '1'
   const sourceView = view === 'forecast' || view === 'new-name' || view === 'opportunities'
   const oportunidadesImportadas = !demoRequested ? importDraft?.opportunities : null
+  const referenciaOportunidades = oportunidadesImportadas?.referenceDate ?? importDraft?.orders?.referenceDate ?? ''
   // Página corrida: Visão Executiva e New Name numa rolagem só, com a carga real.
   // Com demo=1 cada tela volta ao cenário demonstrativo; a Visão Executiva (home) segue como antes.
   const executiveView = view === 'home' || (PAGINA_CORRIDA.includes(view) && !demoRequested)
@@ -413,11 +414,11 @@ export function CommercialV3App() {
       </section>}
       {sourceView && demoRequested && <Link href={nav.href(view).replace(/&demo=1(?:&|$)/, '&').replace(/&$/, '')} className="mb-4 inline-block text-sm font-semibold text-[#086b6b] underline">Voltar aos dados compartilhados</Link>}
       {view === 'forecast' && oportunidadesImportadas && (
-        <ImportedForecastScreen batch={oportunidadesImportadas} previousBatch={previousImportDraft?.opportunities ?? null} referenceDate={oportunidadesImportadas.referenceDate} />
+        <ImportedForecastScreen batch={oportunidadesImportadas} previousBatch={previousImportDraft?.opportunities ?? null} referenceDate={referenciaOportunidades} />
       )}
 
       {(view === 'forecast' || view === 'opportunities') && oportunidadesImportadas && (
-        <PipelineSection records={oportunidadesImportadas.records} previousRecords={previousImportDraft?.opportunities?.records ?? null} referenceDate={oportunidadesImportadas.referenceDate} />
+        <PipelineSection records={oportunidadesImportadas.records} previousRecords={previousImportDraft?.opportunities?.records ?? null} referenceDate={referenciaOportunidades} />
       )}
 
       {view === 'forecast' && !oportunidadesImportadas && (
