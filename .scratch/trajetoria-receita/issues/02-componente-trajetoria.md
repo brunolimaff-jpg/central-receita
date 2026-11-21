@@ -1,6 +1,6 @@
 # 02 — Componente de trajetória
 
-Status: pronto-pra-agente
+Status: ready-for-agent
 Bloqueia: 04, 05
 Bloqueado por: 01
 

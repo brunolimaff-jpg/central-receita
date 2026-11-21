@@ -1,6 +1,6 @@
 # 08 — Ícones de produto sempre com nome
 
-Status: pronto-pra-agente
+Status: ready-for-agent
 Bloqueia: —
 Bloqueado por: 07 (para o rótulo recolhido)
 

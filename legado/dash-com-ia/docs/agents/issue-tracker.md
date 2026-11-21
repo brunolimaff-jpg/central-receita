@@ -19,11 +19,11 @@ O estado usa os mesmos nomes das labels de triagem. Veja `triage-labels.md`.
 
 | Status | Quando usar |
 | --- | --- |
-| `pra-avaliar` | Ticket novo. Alguém precisa dar uma olhada antes de seguir |
-| `falta-info` | Falta informação de quem abriu |
-| `pronto-pra-agente` | Está tudo descrito. Um agente pode rodar sozinho |
-| `decisao-do-bruno` | Precisa de decisão ou ação do Bruno |
-| `deixado-de-lado` | Não vamos fazer. Fica registrado |
+| `needs-triage` | Ticket novo. Alguém precisa dar uma olhada antes de seguir |
+| `needs-info` | Falta informação de quem abriu |
+| `ready-for-agent` | Está tudo descrito. Um agente pode rodar sozinho |
+| `ready-for-human` | Precisa de decisão ou ação do Bruno |
+| `wontfix` | Não vamos fazer. Fica registrado |
 
 ## Quando uma skill disser "publicar no rastreador"
 

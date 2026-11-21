@@ -1,6 +1,6 @@
 # 06 — Série de três ou mais cargas
 
-Status: pronto-pra-agente
+Status: ready-for-agent
 Bloqueia: —
 Bloqueado por: 01, 03
 
