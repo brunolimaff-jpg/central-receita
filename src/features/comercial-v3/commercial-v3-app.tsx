@@ -58,7 +58,7 @@ import {
  * New Name também permitem revisar a prévia local importada, explicitamente separada.
  */
 /** Telas que compõem a página corrida com a carga real (sem demo=1). */
-const PAGINA_CORRIDA: CommercialView[] = ['home', 'forecast', 'new-name', 'opportunities']
+const PAGINA_CORRIDA: CommercialView[] = ['home', 'new-name', 'opportunities']
 
 export function CommercialV3App() {
   const router = useRouter()
@@ -140,7 +140,7 @@ export function CommercialV3App() {
    */
   const demoRequested = !visualPreviewEnabled && !sharedImportEnabled && searchParams.get('demo') === '1'
   const sourceView = view === 'forecast' || view === 'new-name'
-  // Página corrida: Visão Executiva, Forecast, New Name e Oportunidades numa rolagem só, com a carga real.
+  // Página corrida: Visão Executiva, New Name e Oportunidades numa rolagem só, com a carga real.
   // Com demo=1 cada tela volta ao cenário demonstrativo; a Visão Executiva (home) segue como antes.
   const executiveView = view === 'home' || (PAGINA_CORRIDA.includes(view) && !demoRequested)
   const cargaNaPagina = executiveView && !demoRequested
@@ -407,7 +407,7 @@ export function CommercialV3App() {
         </div>
       </section>}
       {sourceView && demoRequested && <Link href={nav.href(view).replace(/&demo=1(?:&|$)/, '&').replace(/&$/, '')} className="mb-4 inline-block text-sm font-semibold text-[#086b6b] underline">Voltar aos dados compartilhados</Link>}
-      {!executiveView && view === 'forecast' && (demoRequested || (!sharedImportEnabled && !importDraft?.opportunities && !importLoading && !importError)) && (
+      {view === 'forecast' && (
         <ForecastScreen
           model={forecast}
           meta={home.kpis.find((kpi) => kpi.key === 'meta')?.value ?? 0}
