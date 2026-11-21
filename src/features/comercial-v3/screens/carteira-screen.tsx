@@ -93,10 +93,12 @@ export function CarteiraScreen({ carteira, arvore, idNo, referenceDate, from, na
   const { raiz } = carteira
   const nome = raiz.no.nome ?? 'Vaga aberta'
   const cobertura = coberturaDoNivel(raiz.filhos)
-  const filhos = ordenarPorGap(raiz.filhos.filter(f => f.no.nome !== null))
+  const filhos = ordenarPorGap(raiz.filhos)
   const vagas = raiz.filhos.filter(f => f.no.nome === null)
   const temResiduo = raiz.residuo.quantidade > 0
-  const recorte = [branch !== ALL_FILTERS ? `filial: ${branch}` : '', solucao !== ALL_FILTERS ? `solução: ${solucao}` : ''].filter(Boolean)
+  const recorte = branch !== ALL_FILTERS ? `filial: ${branch}` : ''
+  // A carga de oportunidades não traz produto: o filtro de solução não recorta a Carteira.
+  const solucaoIgnorada = solucao !== ALL_FILTERS
 
   return (
     <div className="grid gap-3">
@@ -121,8 +123,11 @@ export function CarteiraScreen({ carteira, arvore, idNo, referenceDate, from, na
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-[11px] text-ink-muted">
-            {recorte.length > 0 && (
-              <span className="rounded-full bg-[#eef4f8] px-2.5 py-1 font-semibold text-[#33466c]">Recorte: {recorte.join(' · ')}</span>
+            {recorte && (
+              <span className="rounded-full bg-[#eef4f8] px-2.5 py-1 font-semibold text-[#33466c]">Recorte: {recorte}</span>
+            )}
+            {solucaoIgnorada && (
+              <span className="rounded-full bg-[#fff8e6] px-2.5 py-1 text-[#8a6100]">Solução {solucao} não se aplica: a carga não traz produto</span>
             )}
             {referenceDate && <span className="rounded-full bg-[#eef4f8] px-2.5 py-1">Carga de {referenceDate.split('-').reverse().join('/')}</span>}
           </div>
@@ -172,7 +177,7 @@ export function CarteiraScreen({ carteira, arvore, idNo, referenceDate, from, na
             <p className="text-[13px] font-bold text-[#0d2340]">
               {vagas.length} {vagas.length === 1 ? 'posição em aberto' : 'posições em aberto'}
             </p>
-            <p className="text-[12px] text-ink-muted">Sem dono, a carteira dessas cadeiras fica no resíduo até a contratação.</p>
+            <p className="text-[12px] text-ink-muted">A cadeira está sem dono; o número dela é o de quem responde abaixo.</p>
           </div>
           <span className="text-[11px] text-ink-muted">{vagas.map(v => v.no.cargo).join(' · ')}</span>
         </Card>
@@ -260,7 +265,7 @@ export function CarteiraScreen({ carteira, arvore, idNo, referenceDate, from, na
         <Card className="grid gap-2">
           <p className="text-[15px] font-bold text-ink-strong">Nenhuma oportunidade atribuída a esta cadeira.</p>
           <p className="text-[13px] leading-relaxed text-ink-muted">
-            Ou a carga não trouxe oportunidades com responsável desta cadeira, ou o recorte de filial e solução está estreito demais. A cadeira existe na estrutura; o número é que ainda não chegou.
+            Ou a carga não trouxe oportunidades com responsável desta cadeira, ou o recorte de filial está estreito demais. A cadeira existe na estrutura; o número é que ainda não chegou.
           </p>
         </Card>
       )}

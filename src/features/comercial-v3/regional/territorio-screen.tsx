@@ -50,7 +50,7 @@ export function TerritorioScreen({
   const mapa = (
     <Card
       titulo="Mapa de calor · ganho por rubrica e cenário Base"
-      hint="As três colunas de rubrica medem o ganho já integrado; as duas de fluxo medem o cenário Base — onde o mês vai aterrissar. Mesma escala do farol em todas: verde ≥ 100%, amarelo ≥ 70%, cinza = sem meta."
+      hint="As três colunas de rubrica medem os Ganhos no CRM (não é receita nem pedido integrado); as duas de fluxo medem o cenário Base — onde o mês vai aterrissar. Mesma escala do farol em todas: verde ≥ 100%, amarelo ≥ 70%, cinza = sem meta."
     >
       <MapaCalor {...calor} modo="pct" />
     </Card>
@@ -67,7 +67,7 @@ export function TerritorioScreen({
         <Card>
           <span className="text-[12px] font-semibold text-[#50647d]">Ganhos no CRM</span>
           <div className="mt-1 text-[24px] font-extrabold tracking-[-0.02em] text-[#0d2340]">{R(total.ganho)}</div>
-          <div className="mt-0.5 text-[12px] text-[#63748a]">integrado no ERP nesta competência</div>
+          <div className="mt-0.5 text-[12px] text-[#63748a]">Ganho no CRM — não é receita nem pedido integrado</div>
         </Card>
         <Card>
           <span className="text-[12px] font-semibold text-[#50647d]">Falta para 70%</span>

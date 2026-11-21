@@ -16,10 +16,9 @@ Issues e specs como arquivos markdown em `.scratch/<feature>/`, um arquivo por t
 
 ### Triage labels
 
-Cinco papéis de triagem, com o mesmo nome em todos os projetos do Bruno.
+Cinco papéis de triagem com os nomes oficiais de `mattpocock/skills`, iguais em todos os projetos do Bruno.
 Veja `docs/agents/triage-labels.md`.
 
 ### Domain docs
 
 Contexto único: glossário em `CONTEXT.md` na raiz e ADRs em `docs/adr/`.
-

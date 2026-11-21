@@ -1,6 +1,6 @@
 # 01 — Modelo da trajetória a partir da carga
 
-Status: pronto-pra-agente
+Status: ready-for-agent
 Bloqueia: 02, 04
 Bloqueado por: —
 

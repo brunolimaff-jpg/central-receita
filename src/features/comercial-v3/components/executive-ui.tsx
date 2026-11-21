@@ -53,11 +53,11 @@ export function MetricCard({ rotulo, valor, nota, info, tom = 'marca', href, onA
       <span aria-hidden className="revenue-metric-dot" />
       <div className="min-w-0">
         <span className="flex items-center justify-between gap-2">
-          <span className="revenue-metric-label block truncate">{rotulo}</span>
+          <span className="revenue-metric-label block break-words">{rotulo}</span>
           {info && <InfoTip texto={info} />}
         </span>
         <strong className="revenue-metric-value num block tabular-nums text-ink-strong">{valor}</strong>
-        {nota && <small className="revenue-metric-note block truncate">{nota}</small>}
+        {nota && <small className="revenue-metric-note block break-words">{nota}</small>}
       </div>
     </>
   )

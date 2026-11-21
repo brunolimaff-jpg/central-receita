@@ -34,7 +34,7 @@ export function CsoScreen({ snapshot, fluxo, nav }: { snapshot: RegionalSnapshot
         <Card>
           <span className="text-[12px] font-semibold text-[#50647d]">Ganhos no CRM</span>
           <div className="mt-1 text-[24px] font-extrabold tracking-[-0.02em] text-[#0d2340]">{R(cso.total.ganho)}</div>
-          <div className="mt-0.5 text-[12px] text-[#63748a]">já integrado no ERP nesta competência</div>
+          <div className="mt-0.5 text-[12px] text-[#63748a]">Ganho no CRM — não é receita nem pedido integrado</div>
         </Card>
         <Card>
           <span className="text-[12px] font-semibold text-[#50647d]">Territórios no alvo</span>
@@ -114,7 +114,7 @@ export function CsoScreen({ snapshot, fluxo, nav }: { snapshot: RegionalSnapshot
       </div>
 
       <p className="text-center text-[11.5px] text-[#63748a]">
-        {VIEW_LABELS.territorios} · Visão CSO · cenário demonstrativo, dados fictícios. Ganho = Ganhos no CRM integrados com ERP; MRR e NRR são lidos separadamente.
+        {VIEW_LABELS.territorios} · Visão CSO · cenário demonstrativo, dados fictícios. Ganho = Ganhos no CRM; pedido integrado no ERP é marco separado, não receita. MRR e NRR são lidos separadamente.
       </p>
     </div>
   )

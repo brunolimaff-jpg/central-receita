@@ -1,6 +1,6 @@
 # 07 — Coluna de navegação expansível
 
-Status: pronto-pra-agente
+Status: ready-for-agent
 Bloqueia: 08
 Bloqueado por: —
 

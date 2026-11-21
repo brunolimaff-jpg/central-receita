@@ -134,6 +134,12 @@ export type HomeModel = {
   kpis: Kpi[]
   movimentos: Movimentos
   origem: OrigemRealizado
+  /**
+   * Contas distintas com origem New Name entre os negócios realizados do
+   * recorte. É contagem, não R$: a tela mostra a unidade "contas" e nunca mistura
+   * essa quantidade com os valores da origem.
+   */
+  contasNovas: number
   top10: Top10Row[]
   filiais: FilialRow[]
   atencao: SinalAtencao[]
@@ -432,6 +438,7 @@ export function selectHomeModel(snapshot: CommercialSnapshot, f: CommercialFilte
     kpis: legendasKpis(meta, realizado, oficial, atual),
     movimentos: movimentosDe(oppss, oficial, atual),
     origem: origemDe(deals),
+    contasNovas: new Set(deals.filter((deal) => deal.origin === 'New Name').map((deal) => deal.account)).size,
     top10,
     filiais,
     atencao: atencaoDe(filiais),

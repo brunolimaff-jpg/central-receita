@@ -1,6 +1,6 @@
 # 05 — Ponte entre cargas
 
-Status: pronto-pra-agente
+Status: ready-for-agent
 Bloqueia: —
 Bloqueado por: 01, 02
 

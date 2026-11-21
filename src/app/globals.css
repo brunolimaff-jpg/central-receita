@@ -571,6 +571,34 @@
   }
 
   /*
+   * A navegação rola dentro da coluna, e o rodapé (estado da carga) fica
+   * sempre visível. O fio de rolagem fica à vista de propósito: sem ele, em
+   * 768–900px de altura, os últimos destinos sumiam sem aviso.
+   */
+  .revenue-app .revenue-sidebar nav {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-right: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 38%) transparent;
+  }
+
+  .revenue-app .revenue-sidebar nav::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .revenue-app .revenue-sidebar nav::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .revenue-app .revenue-sidebar nav::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgb(255 255 255 / 34%);
+  }
+
+  /*
    * Navegação sem a barra verde à esquerda.
    *
    * Aquele traço de 3px é o carimbo visual de "dashboard gerado": aparece em
@@ -1517,6 +1545,7 @@
     min-width: 0;
     gap: 4px;
     overflow: visible;
+    scrollbar-width: none;
   }
 
   .revenue-app .revenue-sidebar > div {
@@ -1562,12 +1591,17 @@
   .revenue-app[data-nav='recolhida'] .revenue-sidebar .revenue-nav-item > .revenue-nav-rotulo {
     display: block !important;
     overflow: visible;
-    overflow-wrap: anywhere;
+    /* Sem quebra no meio da palavra: a barra tem 5 colunas estreitas e
+       "Oportunid ades" era ilegível. Fonte fluida e hífen só se precisar. */
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: auto;
     white-space: normal;
     text-align: center;
     text-overflow: clip;
-    font-size: 12px;
-    line-height: 1.1;
+    font-size: clamp(10px, 2.6vw, 12px);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
   }
 
   /* Na barra inferior, os nomes ficam visíveis mesmo com a coluna recolhida. */
