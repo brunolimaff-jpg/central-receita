@@ -10,11 +10,11 @@ import {
   ALL_FILTERS,
   COMMERCIAL_PERIODS,
   COMMERCIAL_VIEWS,
-  FORECAST_MOVEMENTS,
+  FORECAST_MOVEMENT_FILTERS,
   type CommercialContext,
   type CommercialPeriod,
   type CommercialView,
-  type ForecastMovement,
+  type ForecastMovementFilter,
 } from './types.ts'
 
 /** Default exigido pelo plano (l.78-79): home / mês / todas as soluções / todas as filiais. */
@@ -58,7 +58,7 @@ export function parseCommercialContext(params: URLSearchParams): CommercialConte
   if (opportunityId !== '') contexto.opportunityId = opportunityId
 
   const movement = params.get('movement')
-  if (pertence(FORECAST_MOVEMENTS, movement)) contexto.movement = movement
+  if (pertence(FORECAST_MOVEMENT_FILTERS, movement)) contexto.movement = movement
 
   /*
    * Nó da estrutura na Carteira. Aceita qualquer identificador não vazio; quem
@@ -104,8 +104,8 @@ export function parseCommercialContext(params: URLSearchParams): CommercialConte
  */
 export function buildCommercialHref(
   view: CommercialView,
-  context: Pick<CommercialContext, 'period' | 'solution' | 'branch'> & { query?: string; busca?: string; movement?: ForecastMovement | null; segmento?: string; corte?: string },
-  extra?: { from?: CommercialView; opportunityId?: string; movement?: ForecastMovement | null; returnTo?: string; no?: string; territorio?: string; branch?: string },
+  context: Pick<CommercialContext, 'period' | 'solution' | 'branch'> & { query?: string; busca?: string; movement?: ForecastMovementFilter | null; segmento?: string; corte?: string },
+  extra?: { from?: CommercialView; opportunityId?: string; movement?: ForecastMovementFilter | null; returnTo?: string; no?: string; territorio?: string; branch?: string },
 ): string {
   const params = new URLSearchParams()
   if (view !== 'forecast') params.set('view', view)

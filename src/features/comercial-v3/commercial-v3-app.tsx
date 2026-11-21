@@ -435,7 +435,7 @@ export function CommercialV3App({ fixedView }: { fixedView?: CommercialView } = 
           model={forecast}
           meta={home.kpis.find((kpi) => kpi.key === 'meta')?.value ?? 0}
           mes={mes}
-          movement={movement}
+          movement={movement === 'Ganhou' || movement === 'Perdeu' ? null : movement}
           detalhes={detalhes}
           from={from}
           nav={nav}

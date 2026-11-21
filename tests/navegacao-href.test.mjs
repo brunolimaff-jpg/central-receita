@@ -54,6 +54,23 @@ test('redirecionamento legado remove somente view e preserva os demais parâmetr
   assert.equal(destinoForecastLegado(new URLSearchParams('view=home')), null)
 })
 
+for (const movement of ['Ganhou', 'Perdeu']) {
+  test(`filtro ${movement} preserva seleção ao compartilhar e recarregar o Forecast`, () => {
+    const href = buildCommercialHref('forecast', ctx(), { movement })
+    assert.ok(href.startsWith('/forecast?'))
+    assert.equal(parseCommercialContext(params(href)).movement, movement)
+    const contexto = parseCommercialContext(params(href))
+    assert.equal(parseCommercialContext(params(buildCommercialHref('forecast', contexto))).movement, movement)
+  })
+}
+
+test('filtro desconhecido continua ausente e limpar filtro remove o parâmetro', () => {
+  assert.equal(parseCommercialContext(params('/forecast?movement=Inexistente')).movement, undefined)
+  const href = buildCommercialHref('forecast', ctx({ movement: 'Ganhou' }), { movement: null })
+  assert.equal(params(href).has('movement'), false)
+  assert.equal(parseCommercialContext(params(href)).movement, undefined)
+})
+
 test('sidebar usa a rota real de Forecast em ambos os modos', () => {
   for (const corrida of [false, true]) {
     const href = sidebarHref('forecast', corrida, (view, extra) => buildCommercialHref(view, ctx(), extra))
