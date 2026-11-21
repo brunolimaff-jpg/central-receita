@@ -1,6 +1,6 @@
 # 03 — Snapshot no histórico (exige migração)
 
-Status: pronto-pra-agente
+Status: ready-for-agent
 Bloqueia: 06
 Bloqueado por: —
 
