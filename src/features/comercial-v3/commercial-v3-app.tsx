@@ -31,7 +31,7 @@ import { TerritoriosScreen } from './screens/territorios-screen'
 import { REGIONAL_SNAPSHOT } from './regional/regional-mock'
 import { ARVORE } from './carteira-arvore'
 import { coberturaDePara } from './carteira-de-para'
-import { montarCarteira } from './carteira-model'
+import { montarCarteira, recortarPorFilial } from './carteira-model'
 import { loadImportDraft, loadPreviousDraft, sharedImportEnabled, visualPreviewEnabled, type ImportDraft } from './manual-import-client'
 import { ExecutivePage } from './screens/executive-page'
 import { JourneyScreen } from './screens/journey-screen'
@@ -40,6 +40,7 @@ import { SystemScreen } from './screens/system-screen'
 import { OpportunitiesScreen } from './screens/opportunities-screen'
 import { OpportunityScreen } from './screens/opportunity-screen'
 import {
+  ALL_FILTERS,
   type CommercialFilters,
   type CommercialPeriod,
   type CommercialView,
@@ -199,12 +200,12 @@ export function CommercialV3App() {
    */
   const carteira = useMemo(() => {
     const idNoValidado = idNo && ARVORE.nos.has(idNo) ? idNo : ARVORE.raiz
-    const registros = importDraft?.opportunities?.records ?? []
+    const registros = recortarPorFilial(importDraft?.opportunities?.records ?? [], branch, ALL_FILTERS)
     const referencia = importDraft?.opportunities?.referenceDate ?? ''
     if (!referencia) return null
-    const pedidos = importDraft?.orders?.records ?? []
+    const pedidos = recortarPorFilial(importDraft?.orders?.records ?? [], branch, ALL_FILTERS)
     return montarCarteira(ARVORE, registros, idNoValidado, referencia, coberturaDePara(ARVORE), pedidos)
-  }, [idNo, importDraft])
+  }, [idNo, importDraft, branch])
   const solucoes = useMemo(() => selectSolutionOptions(COMMERCIAL_SNAPSHOT), [])
   const filiais = REAL_BRANCH_NAMES
   const mes = mesCurto(COMMERCIAL_SNAPSHOT.competence.month)

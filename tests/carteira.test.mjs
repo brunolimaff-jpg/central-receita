@@ -13,7 +13,7 @@ const carregar = nome => import(new URL(nome, raiz).href)
 
 const { ARVORE, filhosDe, subarvore, trilha, no } = await carregar('carteira-arvore.ts')
 const { atribuirResponsaveis, coberturaDePara, normalizarResponsavel, noDoResponsavel } = await carregar('carteira-de-para.ts')
-const { montarCarteira, reconciliar, ordenarPorGap, coberturaDoNivel, totalComResiduo } = await carregar('carteira-model.ts')
+const { montarCarteira, reconciliar, ordenarPorGap, coberturaDoNivel, totalComResiduo, recortarPorFilial } = await carregar('carteira-model.ts')
 
 /* ------------------------------------------------------------------ */
 /*  Árvore                                                             */
@@ -295,4 +295,31 @@ test('a lente avisa que o dado não vem da carga', () => {
   const lente = lenteTerritorios()
   assert.match(lente.aviso, /não medida na carga/)
   assert.match(lente.aviso, /não foi redistribuída/)
+})
+
+test('diretoria vaga mostra a carteira dos gerentes nomeados abaixo dela', () => {
+  const registros = [
+    registro({ opportunityId: 'A', executive: 'Vitor Diego', predictedValue: 400 }),
+    registro({ opportunityId: 'B', executive: 'Daniel Augusto', predictedValue: 100 }),
+  ]
+  const carteira = montarCarteira(ARVORE, registros, 'cso', '2026-10-28', cobertura)
+  const vaga = carteira.raiz.filhos.find(f => f.no.nome === null && subarvore(ARVORE, f.no.id).some(n => n.nome === 'Vitor Diego'))
+  assert.ok(vaga, 'a diretoria vaga continua entre os filhos do CSO')
+  assert.equal(vaga.metricas.previsto, 500)
+  assert.equal(reconciliar(carteira).fecha, true)
+})
+
+test('pedido de quem não tem oportunidade na carga entra na fila', () => {
+  const pedidos = [pedido({ orderId: 'PED-9', executive: 'Giovanne Farias' })]
+  const carteira = montarCarteira(ARVORE, [registro()], 'cso', '2026-10-28', cobertura, pedidos)
+  assert.equal(carteira.raiz.fila.pedidos, 1)
+})
+
+test('recorte de filial filtra a carga pela filial do registro', () => {
+  const registros = [
+    registro({ opportunityId: 'A', representative: 'Filial Alfa' }),
+    registro({ opportunityId: 'B', representative: 'Filial Beta' }),
+  ]
+  assert.deepEqual(recortarPorFilial(registros, 'filial alfa', 'Todos').map(r => r.opportunityId), ['A'])
+  assert.equal(recortarPorFilial(registros, 'Todos', 'Todos').length, 2)
 })
