@@ -26,6 +26,7 @@ import type { Arvore, NoOrganizacional } from './carteira-arvore.ts'
 import { filhosDe, subarvore } from './carteira-arvore.ts'
 import { atribuirResponsaveis, normalizarResponsavel, type ResultadoAtribuicao } from './carteira-de-para.ts'
 import { filaDaPessoa, type FilaPessoa } from './carteira-fila.ts'
+import { filialDe } from './forecast-towers.ts'
 
 /* ------------------------------------------------------------------ */
 /*  Tipos                                                              */
@@ -220,6 +221,19 @@ function residuoDe(arvore: Arvore, id: string, ctx: Contexto): Residuo {
   }
 }
 
+export const temProbabilidade = (registros: ImportedRecord[]) =>
+  registros.some(r => r.probability !== null && r.probability !== undefined)
+
+/**
+ * Recorte de filial aplicado à carga, pela mesma leitura de filial do
+ * Forecast (`filialDe`). Sem filial escolhida, a carga passa inteira.
+ */
+export function recortarPorFilial(registros: ImportedRecord[], filial: string, todas: string): ImportedRecord[] {
+  if (filial === todas) return registros
+  const alvo = normalizarResponsavel(filial)
+  return registros.filter(r => normalizarResponsavel(filialDe(r)) === alvo)
+}
+
 /* ------------------------------------------------------------------ */
 /*  Entrada principal                                                  */
 /* ------------------------------------------------------------------ */
@@ -237,12 +251,14 @@ export function montarCarteira(
   referenceDate: string,
   cobertura: { declarados: number; total: number; percentual: number },
   pedidos: ImportedRecord[] = [],
+  /** Da carga inteira, não do recorte: o corte de 75% não pode depender da filial escolhida. */
+  probabilidadeNaCarga?: boolean,
 ): Carteira | null {
   const alvo = arvore.nos.get(idNo)
   if (!alvo) return null
 
   const periodo = competencia(referenceDate)
-  const probabilidadeDisponivel = registros.some(r => r.probability !== null && r.probability !== undefined)
+  const probabilidadeDisponivel = probabilidadeNaCarga ?? temProbabilidade(registros)
 
   const atribuicao = atribuirResponsaveis(arvore, registros.map(r => r.executive ?? ''))
 
@@ -257,6 +273,9 @@ export function montarCarteira(
   }
 
   const ctx: Contexto = { porNo, residuo, atribuicao, periodo, referenceDate, probabilidadeDisponivel }
+  /* Quem só aparece nos pedidos também tem fila: o de-para dos pedidos é próprio. */
+  const atribuicaoPedidos = atribuirResponsaveis(arvore, pedidos.map(p => p.executive ?? ''))
+  const idsDaSubarvore = new Set(subarvore(arvore, idNo).map(n => n.id))
 
   const registrosDoNo = registrosDaSubarvore(arvore, idNo, ctx)
   const evidencias = [...registrosDoNo]
@@ -275,15 +294,14 @@ export function montarCarteira(
        */
       filhos: filhosDe(arvore, idNo).map(filho => ({
         no: filho,
-        metricas: metricasDos(filho.nome === null ? [] : registrosDaSubarvore(arvore, filho.id, ctx), ctx),
+        metricas: metricasDos(registrosDaSubarvore(arvore, filho.id, ctx), ctx),
       })),
       residuo: residuoDe(arvore, idNo, ctx),
       evidencias,
       fila: filaDaPessoa(pedidos.filter(pedido => {
         const chave = normalizarResponsavel(pedido.executive ?? '')
-        const alvo = chave === '' ? null : atribuicao.mapa.get(chave) ?? null
-        if (!alvo) return false
-        return new Set(subarvore(arvore, idNo).map(n => n.id)).has(alvo.id)
+        const alvo = chave === '' ? null : atribuicaoPedidos.mapa.get(chave) ?? null
+        return alvo !== null && idsDaSubarvore.has(alvo.id)
       })),
     },
     atribuicao,
