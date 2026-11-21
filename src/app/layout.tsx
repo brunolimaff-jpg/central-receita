@@ -3,8 +3,10 @@ import localFont from "next/font/local";
 import "./globals.css";
 
 // Public Sans licenciada (OFL), servida localmente nos pesos utilizados.
+// 27/10: teste com Manrope (commit e9f7014) leu "redonda demais"; voltamos —
+// é a família do DS Senior e a mesma do Scout 360 Next, a referência do Bruno.
 const publicSans = localFont({
-  variable: "--font-public-sans",
+  variable: "--font-app",
   display: "swap",
   src: [
     { path: "./fonts/public-sans/PublicSans-Regular.woff2", weight: "400", style: "normal" },

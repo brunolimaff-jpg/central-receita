@@ -1,0 +1,7 @@
+{
+  "exit": 2,
+  "target": "http://127.0.0.1:3013/",
+  "viewport": "1440x900",
+  "state": "fresh-browser portaria",
+  "cdp": false
+}

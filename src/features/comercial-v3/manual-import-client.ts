@@ -1,4 +1,5 @@
 import type { ImportBatch, ImportKind, ImportWorkspace } from './manual-import'
+import visualDraft from './visual-import.json'
 import { isValidImportReference, currentImportDate, isDuplicateImport, importRejectionMessage } from './manual-import'
 import { historyEntry, trajectorySnapshotForWorkspace } from './trajectory-snapshot'
 
@@ -25,7 +26,8 @@ export type ImportHistoryEntry = {
 export type ImportDraft = ImportWorkspace & { revision: string; history: ImportHistoryEntry[] }
 export type ImportAccess = { draft: ImportDraft | null; canImport: boolean }
 
-export const sharedImportEnabled = process.env.NEXT_PUBLIC_IMPORT_STORAGE === 'shared'
+export const visualPreviewEnabled = process.env.NEXT_PUBLIC_VISUAL_PREVIEW === '1'
+export const sharedImportEnabled = !visualPreviewEnabled && process.env.NEXT_PUBLIC_IMPORT_STORAGE === 'shared'
 
 async function sharedRequest(method: 'GET'): Promise<ImportAccess>
 async function sharedRequest(method: 'PUT', body: unknown): Promise<ImportDraft>
@@ -68,6 +70,7 @@ function openDraftDatabase(): Promise<IDBDatabase> {
 }
 
 export async function loadPreviousDraft(): Promise<ImportDraft | null> {
+  if (visualPreviewEnabled) return null
   if (sharedImportEnabled) {
     let response: Response
     try {
@@ -90,6 +93,7 @@ export async function loadPreviousDraft(): Promise<ImportDraft | null> {
 }
 
 export async function loadImportDraft(): Promise<ImportAccess> {
+  if (visualPreviewEnabled) return { draft: visualDraft as ImportDraft, canImport: false }
   if (sharedImportEnabled) return sharedRequest('GET')
   const database = await openDraftDatabase()
   const draft = await new Promise<ImportDraft | null>((resolve, reject) => {
@@ -106,6 +110,7 @@ export async function loadImportDraft(): Promise<ImportAccess> {
 }
 
 export async function saveImportDraft(workspace: ImportWorkspace, previous: ImportDraft | null, referenceDate: string): Promise<ImportDraft> {
+  if (visualPreviewEnabled) throw new Error('Importação desativada nesta homologação visual. Use apenas o cenário demonstrativo.')
   if (!isValidImportReference(referenceDate, currentImportDate())) throw new Error('Informe uma data de referência válida, até hoje.')
   if (sharedImportEnabled) {
     return sharedRequest('PUT', { workspace, previousRevision: previous?.revision ?? null, referenceDate })
@@ -146,6 +151,7 @@ export async function saveImportDraft(workspace: ImportWorkspace, previous: Impo
 }
 
 export async function readImportFile(kind: ImportKind, file: File, referenceDate: string): Promise<ImportBatch> {
+  if (visualPreviewEnabled) throw new Error('Importação desativada nesta homologação visual. Use apenas o cenário demonstrativo.')
   if (!isValidImportReference(referenceDate, currentImportDate())) throw new Error('Informe uma data de referência válida, até hoje, antes de selecionar o arquivo.')
   const isCsv = /\.csv$/i.test(file.name)
   const isXlsx = /\.xlsx$/i.test(file.name)

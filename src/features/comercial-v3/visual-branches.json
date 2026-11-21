@@ -1,0 +1,59 @@
+{
+  "source": "Cenário sintético de homologação",
+  "sheet": "Demonstração",
+  "period": "2026-09",
+  "unit": "millions BRL",
+  "realizadoMeaning": "Valor fictício",
+  "total": {
+    "branch": "Todas",
+    "meta": 12,
+    "realizado": 8.4,
+    "forecastOficial": 10,
+    "forecastAtual": 11,
+    "pipeline": 15,
+    "forecastAnterior": 9.5,
+    "realizadoAnterior": 7
+  },
+  "branches": [
+    {
+      "branch": "Filial Alfa",
+      "meta": 3,
+      "realizado": 2.1,
+      "forecastOficial": 2.5,
+      "forecastAtual": 2.75,
+      "pipeline": 3.75,
+      "forecastAnterior": 2.375,
+      "realizadoAnterior": 1.75
+    },
+    {
+      "branch": "Filial Beta",
+      "meta": 3,
+      "realizado": 2.1,
+      "forecastOficial": 2.5,
+      "forecastAtual": 2.75,
+      "pipeline": 3.75,
+      "forecastAnterior": 2.375,
+      "realizadoAnterior": 1.75
+    },
+    {
+      "branch": "Filial Gama",
+      "meta": 3,
+      "realizado": 2.1,
+      "forecastOficial": 2.5,
+      "forecastAtual": 2.75,
+      "pipeline": 3.75,
+      "forecastAnterior": 2.375,
+      "realizadoAnterior": 1.75
+    },
+    {
+      "branch": "Filial Delta",
+      "meta": 3,
+      "realizado": 2.1,
+      "forecastOficial": 2.5,
+      "forecastAtual": 2.75,
+      "pipeline": 3.75,
+      "forecastAnterior": 2.375,
+      "realizadoAnterior": 1.75
+    }
+  ]
+}

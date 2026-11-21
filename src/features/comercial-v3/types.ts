@@ -16,6 +16,7 @@
  */
 export type CommercialView =
   | 'home'
+  | 'diretorias'
   | 'agent'
   | 'journey'
   | 'system'
@@ -26,6 +27,14 @@ export type CommercialView =
   | 'cross'
   | 'branch'
   | 'opportunity'
+  | 'carteira'
+  /** Módulo de navegação da liderança comercial: CSO → território → filial. */
+  | 'territorios'
+  /**
+   * Nome anterior do módulo, mantido na URL para não quebrar link já enviado.
+   * `parseCommercialContext` traduz para `territorios`; nada novo gera este valor.
+   */
+  | 'regional'
   | 'config'
 export type CommercialPeriod = 'month' | 'quarter' | 'threeMonths'
 
@@ -43,6 +52,19 @@ export type CommercialContext = {
    * seleção de movimento na query como parâmetro opcional `movement`.
    */
   movement?: ForecastMovement
+  /**
+   * Nó da estrutura organizacional aberto na Carteira. Ausente = raiz (CSO).
+   * Não há parâmetro de nível: o nível é derivado do nó, senão existiria o
+   * estado inconsistente "nível=gerente com nó de diretor".
+   */
+  no?: string
+  /**
+   * Território aberto em Territórios. Ausente = consolidado (Visão CSO). O nível
+   * é derivado do que existe: com `territorio` e `branch`, é a filial; com
+   * `territorio` só, é o território; sem nada, é o CSO. Guardar o nível à parte
+   * permitiria "filial sem território".
+   */
+  territorio?: string
 }
 
 /** Recorte do contexto consumido pelos seletores puros (plano Task 2 Step 6, l.244-254). */
@@ -63,6 +85,9 @@ export const COMMERCIAL_VIEWS = [
   'cross',
   'branch',
   'opportunity',
+  'carteira',
+  'territorios',
+  'regional',
   'config',
 ] as const
 export const COMMERCIAL_PERIODS = ['month', 'quarter', 'threeMonths'] as const

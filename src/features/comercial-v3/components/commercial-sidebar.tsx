@@ -3,7 +3,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Bell, Building2, ChevronDown, GitBranch, Layers, LayoutDashboard, List, PackagePlus, PanelLeftClose, PanelLeftOpen, Search, Settings2, Target, TrendingUp, Users } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Bell, Building2, Gauge, GitBranch, Layers, LayoutDashboard, List, MapPinned, Network, PackagePlus, PanelLeftClose, PanelLeftOpen, Search, Settings2, Target, TrendingUp, Users } from 'lucide-react'
 import { FILTER_LABELS, VIEW_LABELS } from '../copy'
 import { sharedImportEnabled } from '../manual-import-client'
 import { sidebarViewFor, type CommercialNav } from '../nav'
@@ -19,26 +20,33 @@ type ItemNav = {
   label: string
   icon: typeof LayoutDashboard
   view?: CommercialView
+  /** Tela existe e abre, mas o conteúdo ainda é preliminar. */
+  preliminar?: boolean
 }
 
 /** Seções da página corrida, na ordem da sidebar. Cada uma tem âncora e marcação de visibilidade. */
-const SECOES = ['home', 'forecast', 'new-name', 'opportunities'] as const
+const SECOES = ['home', 'diretorias', 'forecast', 'new-name', 'opportunities'] as const
 type Secao = (typeof SECOES)[number]
 const pertenceAPagina = (view: CommercialView) => (SECOES as readonly string[]).includes(view)
 
-/** Jornada, Sistema de Receita, Contas e Cross ficam "Em breve", sem link (docs/PLANO-VISAO-EXECUTIVA.md §Navegação). */
+/**
+ * Jornada, Sistema de Receita, Contas e Cross já abrem. O conteúdo existe em
+ * rascunho, então cada tela leva o aviso de versão preliminar — o menu sinaliza
+ * a mesma condição em vez de esconder a área.
+ */
 const ITENS: ItemNav[] = [
   { key: 'home', label: VIEW_LABELS.home, icon: LayoutDashboard, view: 'home' },
+  { key: 'diretorias', label: VIEW_LABELS.diretorias, icon: Network, view: 'diretorias' },
+  { key: 'carteira', label: VIEW_LABELS.carteira, icon: Gauge, view: 'carteira', preliminar: true },
+  { key: 'territorios', label: VIEW_LABELS.territorios, icon: MapPinned, view: 'territorios', preliminar: true },
   { key: 'forecast', label: VIEW_LABELS.forecast, icon: TrendingUp, view: 'forecast' },
   { key: 'new-name', label: VIEW_LABELS['new-name'], icon: Target, view: 'new-name' },
   { key: 'opportunities', label: VIEW_LABELS.opportunities, icon: List, view: 'opportunities' },
-  { key: 'journey', label: VIEW_LABELS.journey, icon: GitBranch },
-  { key: 'system', label: VIEW_LABELS.system, icon: Layers },
-  { key: 'accounts', label: VIEW_LABELS.accounts, icon: Building2 },
-  { key: 'cross', label: VIEW_LABELS.cross, icon: PackagePlus },
+  { key: 'journey', label: VIEW_LABELS.journey, icon: GitBranch, view: 'journey', preliminar: true },
+  { key: 'system', label: VIEW_LABELS.system, icon: Layers, view: 'system', preliminar: true },
+  { key: 'accounts', label: VIEW_LABELS.accounts, icon: Building2, view: 'accounts', preliminar: true },
+  { key: 'cross', label: VIEW_LABELS.cross, icon: PackagePlus, view: 'cross', preliminar: true },
 ]
-
-const PENDENTE = 'Em breve'
 
 export function sectionAtOffset(blocos: Array<{ view: CommercialView; top: number }>): CommercialView {
   return blocos.filter((bloco) => bloco.top <= 120).at(-1)?.view ?? 'home'
@@ -129,9 +137,9 @@ export function CommercialSidebar({
         assinatura. Recolhida: só o símbolo "S", que a marca permite usar
         isolado como apoio — e é a única forma que cabe em 72px sem truncar.
       */}
-      <Link href={nav.href('home')} className="mb-5 flex flex-col items-center gap-1 px-3 pb-1 text-center">
+      <Link href={nav.href('home')} className="mb-4 flex flex-col items-center gap-1.5 border-b border-white/10 px-3 pb-3.5 text-center">
         <Image
-          src="/brand/senior-official-logos/slide-12-logo-01.svg"
+          src="/brand/senior-official-logos/slide-13-logo-01.svg"
           alt="Senior"
           width={112}
           height={36}
@@ -146,52 +154,50 @@ export function CommercialSidebar({
           priority
           className="revenue-marca-simbolo h-[34px] w-auto"
         />
-        <span className="revenue-marca-texto text-[11px] font-medium tracking-[0.02em] text-ink-muted">Central de Receita</span>
+        <span className="revenue-marca-texto revenue-marca-assinatura">Central de Receita</span>
       </Link>
 
       <nav id="revenue-navegacao" aria-label="Seções" className="grid gap-1">
-        {ITENS.map((item) => {
+        {ITENS.map((item, indice) => {
           const Icone = item.icon
+          const abreGrupo = indice === 0 || item.preliminar !== ITENS[indice - 1].preliminar
           const ativo = ativoNoMenu(item)
+          const view = item.view
 
-          if (!item.view) {
-            return (
-              <button
-                key={item.key}
-                type="button"
-                disabled
-                aria-disabled="true"
-                title={`${item.label} · ${PENDENTE}`}
-                className="revenue-nav-item cursor-not-allowed opacity-50"
-              >
-                <NavIcone icone={Icone} />
-                <span className="revenue-nav-rotulo truncate">{item.label}</span>
-                <span className="sr-only"> ({PENDENTE})</span>
-                <NavDica rotulo={`${item.label} · ${PENDENTE}`} />
-              </button>
-            )
-          }
+          /* Sem item pendente hoje: as quatro áreas "Em breve" viraram links
+           * preliminares. O ramo desabilitado volta quando existir área nova
+           * sem tela; `view` é obrigatório enquanto isso não acontecer. */
 
           return (
+            <div key={item.key} className="contents">
+            {abreGrupo && (
+              <p className="revenue-nav-grupo">
+                <span className="revenue-nav-rotulo">{item.preliminar ? 'Em prévia' : 'Receita'}</span>
+              </p>
+            )}
             <Link
-              key={item.key}
-              href={naPagina && (SECOES as readonly string[]).includes(item.view) ? `#${item.view}` : nav.href(item.view, { from: 'home' })}
+              data-preliminar={item.preliminar ? '' : undefined}
+              href={naPagina && view && (SECOES as readonly string[]).includes(view) ? `#${view}` : nav.href(view ?? 'home', { from: 'home' })}
               aria-current={ativo ? (pageView === 'home' ? 'location' : 'page') : undefined}
-              title={item.label}
+              title={item.preliminar ? `${item.label} · versão preliminar` : item.label}
               className="revenue-nav-item"
             >
+              {/* Um destaque só, que desliza de um item ao outro. */}
+              {ativo && <motion.span aria-hidden layoutId="revenue-nav-ativo" className="revenue-nav-pill" transition={{ type: 'spring', stiffness: 420, damping: 36 }} />}
               <NavIcone icone={Icone} />
               <span className="revenue-nav-rotulo truncate">{item.label}</span>
-              <NavDica rotulo={item.label} />
+              {/*
+                O ponto é decoração; o estado precisa chegar ao leitor de tela
+                pelo nome do link, não pelo `title` — que muitos leitores
+                ignoram e o teclado só mostra como dica visual.
+              */}
+              {item.preliminar && <span className="sr-only"> (versão preliminar)</span>}
+              <NavDica rotulo={item.preliminar ? `${item.label} · versão preliminar` : item.label} />
             </Link>
+            </div>
           )
         })}
       </nav>
-
-      {/* Os itens desabilitados ficam visíveis mas sem selo por item, que não cabe na largura da sidebar. */}
-      <p className="revenue-marca-texto mt-3 px-3 text-[11px] leading-4 text-ink-subtle">
-        Em breve: Jornada, Sistema de Receita, Contas e Cross.
-      </p>
 
       <div className="mt-auto grid gap-1 pt-4">
         {/*
@@ -216,13 +222,20 @@ export function CommercialSidebar({
           href={nav.href('config')}
           aria-current={configAtiva ? 'page' : undefined}
           title={VIEW_LABELS.config}
-          className="revenue-nav-item border-t border-hairline-suave pt-3"
+          className="revenue-nav-item"
         >
+          {configAtiva && <motion.span aria-hidden layoutId="revenue-nav-ativo" className="revenue-nav-pill" transition={{ type: 'spring', stiffness: 420, damping: 36 }} />}
           <NavIcone icone={Settings2} />
           <span className="revenue-nav-rotulo truncate">{VIEW_LABELS.config}</span>
           <NavDica rotulo={VIEW_LABELS.config} />
         </Link>
-        <p className="revenue-nav-rotulo px-3 pt-1 text-[11px] leading-4 text-ink-muted">{rodape}</p>
+        <p className="revenue-nav-rotulo revenue-nav-status">
+          <span aria-hidden className="revenue-nav-pulso" />
+          <span className="min-w-0">
+            <strong className="block font-semibold">{importPreview ? 'Dados carregados' : 'Demonstração'}</strong>
+            {rodape}
+          </span>
+        </p>
       </div>
     </aside>
   )
@@ -281,7 +294,7 @@ export function CommercialTopbar({
             suppressHydrationWarning
             onChange={(evento) => setBusca(evento.target.value)}
             placeholder={rotuloBusca}
-            className="h-9 w-full border-0 bg-transparent text-[13px] text-ink-strong outline-none placeholder:text-ink-subtle"
+            className="h-9 w-full border-0 bg-transparent text-[13px] text-ink-strong placeholder:text-ink-subtle"
           />
         </label>
         {busca.trim() !== '' && (
@@ -318,23 +331,23 @@ export function CommercialTopbar({
           <select
             value={branch}
             onChange={(evento) => nav.onBranch(evento.target.value)}
-            className="max-w-[168px] cursor-pointer border-0 bg-transparent text-[13px] font-semibold text-ink-strong outline-none"
+            className="max-w-[168px] cursor-pointer border-0 bg-transparent text-[13px] font-semibold text-ink-strong "
           >
             <option value={ALL_FILTERS}>Todas as filiais</option>
             {branches.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
         </label>
-        <button type="button" aria-label="Avisos" className="revenue-control grid h-11 w-11 shrink-0 place-items-center rounded-[10px] text-ink-strong">
+        <button type="button" disabled title="Avisos indisponíveis" className="revenue-control flex h-11 shrink-0 cursor-not-allowed items-center gap-2 rounded-[10px] px-3 text-[12px] text-ink-muted">
           <Bell aria-hidden className="h-[19px] w-[19px]" strokeWidth={1.8} />
+          Avisos indisponíveis
         </button>
-        <button type="button" className="revenue-control flex h-12 shrink-0 items-center gap-2.5 rounded-[10px] py-1 pl-1.5 pr-3 text-left">
+        <div className="revenue-control pointer-events-none flex h-12 shrink-0 items-center gap-2.5 rounded-[10px] py-1 pl-1.5 pr-3 text-left">
           <span aria-hidden className="grid h-9 w-9 place-items-center rounded-full bg-[linear-gradient(135deg,var(--verde-escuro),var(--verde-medio))] text-[13px] font-bold text-white">G</span>
-          <span className="hidden leading-tight min-[1440px]:block">
-            <strong className="block text-[13px] font-semibold text-ink-strong">Giovanni</strong>
+          <span className="sr-only leading-tight min-[1440px]:not-sr-only">
+            <strong className="block text-[13px] font-semibold text-ink-strong">{process.env.NEXT_PUBLIC_VISUAL_PREVIEW === '1' ? 'Visitante' : 'Giovanni'}</strong>
             <small className="block text-[11px] text-ink-muted">Diretoria Comercial</small>
           </span>
-          <ChevronDown aria-hidden className="hidden h-4 w-4 text-ink-muted min-[1440px]:block" strokeWidth={1.8} />
-        </button>
+        </div>
       </div>
     </header>
   )

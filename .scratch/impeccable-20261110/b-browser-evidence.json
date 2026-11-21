@@ -1,0 +1,30 @@
+{
+  "method": "MCP Chrome, only own isolatedContext assessment-b-20261110, pageId 10; page closed after measurements",
+  "url": "http://127.0.0.1:3013/",
+  "portaria": {
+    "viewport": [1444,754], "documentWidth": 1444, "scrollWidth": 1444,
+    "lang": "pt-BR", "inputLabel": true, "inputInvalid": "false", "inputFocus": true,
+    "programmaticFocusOutlineStyle": "none", "buttonSize": [340,52],
+    "fontFamily": "publicSans, publicSans Fallback, Segoe UI, ui-sans-serif, system-ui, sans-serif",
+    "resourceOrigins": ["http://127.0.0.1:3013"]
+  },
+  "localDemoRelease": {"key":"central-receita:bloqueio","value":"liberado-v1","storageScope":"own isolated browser context only"},
+  "internalDesktop": {
+    "viewport": [1440,754], "documentWidth":1425,"scrollWidth":1425,
+    "fontLoaded":true,"main":true,"h1Count":1,"visibleControls":59,"unnamedControls":[],"imagesWithoutAlt":0,
+    "nav":"expandida","sidebarPosition":"sticky",
+    "runningAnimationDurationsMs":[46000,58000,64000,72000,80000,2400],
+    "resourceOrigins":["http://127.0.0.1:3013"]
+  },
+  "internalMobileReducedMotion": {
+    "viewport":[375,812],"documentWidth":375,"scrollWidth":375,
+    "reducedMotion":true,"scrollBehavior":"auto","nav":"recolhida",
+    "sidebarPosition":"fixed","sidebarWidth":355.20001220703125,"sidebarBottom":801.9999923706055,
+    "visibleSidebarLinks":{"count":6,"namesPresent":true,"firstFiveSize":[55,70],"sixthSize":[48,68]},
+    "animations":[],
+    "tabFocus":{"tag":"A","accessibleNamePresent":true,"focusVisible":true,"outlineStyle":"solid","outlineWidth":"1.6px","outlineColor":"rgb(18, 247, 209)"},
+    "horizontalTableScrollContainers":[{"clientWidth":318,"scrollWidth":920,"tabIndex":-1,"role":null,"ariaLabel":false},{"clientWidth":318,"scrollWidth":920,"tabIndex":-1,"role":null,"ariaLabel":false}],
+    "note":"No root horizontal overflow; table content extends horizontally inside auto-scroll containers. Keyboard scrolling was not fully verified."
+  },
+  "limits":["No full accessibility audit","No rendered detector on internal screens","No screenshots/visual certification","No connection through --cdp","No existing tab was inspected or modified"]
+}
