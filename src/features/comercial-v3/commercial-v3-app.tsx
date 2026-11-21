@@ -72,6 +72,7 @@ export function CommercialV3App() {
   const [importLoading, setImportLoading] = useState(true)
   const [importError, setImportError] = useState('')
   const importEpoch = useRef(0)
+  const importTag = useRef<string | undefined>(undefined)
   /*
    * Bloqueio da demonstração. Estado inicialmente nulo porque o servidor não
    * conhece o armazenamento: um valor fixo aqui faria a árvore do HTML sair
@@ -120,8 +121,21 @@ export function CommercialV3App() {
     const refresh = () => {
       const epoch = ++importEpoch.current
       armarPrazo(epoch)
-      return Promise.all([loadImportDraft(), loadPreviousDraft()]).then(([access, previous]) => { if (active && epoch === importEpoch.current) { setImportDraft(access.draft); setPreviousImportDraft(previous); setCanImport(access.canImport); setImportError('') } })
-        .catch(error => { if (active && epoch === importEpoch.current) { setImportError(error instanceof Error ? error.message : 'Prévia local indisponível.'); if (sharedImportEnabled) { setCanImport(false); setImportDraft(null); setPreviousImportDraft(null) } } })
+      const knownTag = importTag.current
+      // Polling asks only whether the current revision changed; the previous one follows it.
+      const load = knownTag
+        ? loadImportDraft(knownTag).then(async access => access ? [access, await loadPreviousDraft()] as const : null)
+        : Promise.all([loadImportDraft(), loadPreviousDraft()])
+      return load.then(result => {
+        if (!active || epoch !== importEpoch.current) return
+        setImportError('')
+        if (!result) return
+        const [access, previous] = result
+        if (!access) return
+        importTag.current = access.tag
+        setImportDraft(access.draft); setPreviousImportDraft(previous); setCanImport(access.canImport)
+      })
+        .catch(error => { if (active && epoch === importEpoch.current) { importTag.current = undefined; setImportError(error instanceof Error ? error.message : 'Prévia local indisponível.'); if (sharedImportEnabled) { setCanImport(false); setImportDraft(null); setPreviousImportDraft(null) } } })
         .finally(() => { if (active && epoch === importEpoch.current) { window.clearTimeout(prazo); setImportLoading(false) } })
     }
     void refresh()
@@ -375,7 +389,7 @@ export function CommercialV3App() {
         <p><strong>Cenário demonstrativo.</strong> As cargas CSV/XLSX são consultadas em Forecast e New Name. Esta visão usa o cenário fixo, com agregados por filial identificados na tela.</p>
         <Link href={nav.href('config')} className="font-semibold text-[#086b6b] underline">Consultar cargas</Link>
       </div>}
-      {view === 'config' && <ImportScreen draft={importDraft} canImport={canImport} onSaved={draft => { importEpoch.current++; setPreviousImportDraft(importDraft); setImportDraft(draft); setImportError('') }} loading={importLoading} loadError={importError} nav={nav} />}
+      {view === 'config' && <ImportScreen draft={importDraft} canImport={canImport} onSaved={draft => { importEpoch.current++; importTag.current = undefined; setPreviousImportDraft(importDraft); setImportDraft(draft); setImportError('') }} loading={importLoading} loadError={importError} nav={nav} />}
       {executiveView && <ExecutivePage opportunities={importDraft?.opportunities ?? null} orders={importDraft?.orders ?? null} previous={previousImportDraft} history={importDraft?.history ?? []} nav={nav} home={homeMensal} posicao={COMMERCIAL_SNAPSHOT.asOf.slice(0, 10).split('-').reverse().join('/')} carregando={importLoading && !importDraft} falha={importError || null} />}
 
       {view === 'carteira' && (

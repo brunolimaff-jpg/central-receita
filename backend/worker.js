@@ -357,10 +357,41 @@ function parseAllowlist(value) {
   return new Set(typeof value === 'string' ? value.split(/[\s,]+/).filter(Boolean) : [])
 }
 
+const SECURITY_HEADERS = {
+  'x-content-type-options': 'nosniff',
+  'referrer-policy': 'strict-origin-when-cross-origin',
+  'permissions-policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
+}
+
 function json(data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data), { status, headers: {
-    'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...extraHeaders,
+    'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...SECURITY_HEADERS, ...extraHeaders,
   } })
+}
+
+// The tag covers the caller's capability too, so a role change is never answered with 304.
+function draftTag(revision, canImport) {
+  return `"${revision ?? 'empty'}.${canImport ? 'importer' : 'viewer'}"`
+}
+
+function notModified(etag) {
+  return new Response(null, { status: 304, headers: { etag, 'cache-control': 'no-store', ...SECURITY_HEADERS } })
+}
+
+async function readCurrentRevision(db) {
+  const row = await db.prepare('SELECT revision FROM import_current WHERE singleton_id = 1').first()
+  return row?.revision ?? null
+}
+
+async function assetResponse(request, env) {
+  const asset = await env.ASSETS.fetch(request)
+  const response = new Response(asset.body, asset)
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) response.headers.set(name, value)
+  // Next.js emits content-hashed file names under /_next/static/.
+  if (asset.ok && new URL(request.url).pathname.startsWith('/_next/static/')) {
+    response.headers.set('cache-control', 'public, max-age=31536000, immutable')
+  }
+  return response
 }
 
 function authenticate(request, env, write) {
@@ -493,10 +524,13 @@ async function api(request, env, previous = false) {
       if (!draft) throw new HttpError(404, 'no_previous')
       return json({ draft, canImport })
     }
-    if (request.method === 'GET') return json({
-      draft: await readCurrent(env.DB),
-      canImport,
-    })
+    if (request.method === 'GET') {
+      // Polling clients send the last tag; an unchanged revision skips reading every chunk.
+      const known = request.headers.get('if-none-match')
+      if (known && known === draftTag(await readCurrentRevision(env.DB), canImport)) return notModified(known)
+      const draft = await readCurrent(env.DB)
+      return json({ draft, canImport }, 200, { etag: draftTag(draft?.revision, canImport) })
+    }
     return await update(request, env, actorId)
   } catch (error) {
     if (error instanceof HttpError) return json({ error: error.code }, error.status)
@@ -510,7 +544,7 @@ export async function handleRequest(request, env) {
   if (pathname === PREVIOUS_API_PATH) return api(request, env, true)
   if (pathname.startsWith('/api/')) return json({ error: 'not_found' }, 404)
   if (!env.ASSETS) return new Response('Static assets are not configured.', { status: 503 })
-  return env.ASSETS.fetch(request)
+  return assetResponse(request, env)
 }
 
 export default { fetch: handleRequest }

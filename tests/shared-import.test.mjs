@@ -610,3 +610,44 @@ test('COR02: cargas do mesmo mês em dias diferentes continuam comparando (20/10
   assert.equal(snapshot.exited, 0)
   assert.equal(snapshot.changed, 200)
 })
+
+test('GET answers 304 for an unchanged revision and a full body once it changes', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  const empty = await handleRequest(req('GET', 'fabi-site-user'), env)
+  const emptyTag = empty.headers.get('etag')
+  assert.ok(emptyTag)
+  assert.equal((await handleRequest(req('GET', 'fabi-site-user', undefined, { 'if-none-match': emptyTag }), env)).status, 304)
+
+  const saved = await (await handleRequest(req('PUT', 'fabi-site-user', { workspace: workspace(), previousRevision: null, referenceDate: today }), env)).json()
+  const changed = await handleRequest(req('GET', 'fabi-site-user', undefined, { 'if-none-match': emptyTag }), env)
+  assert.equal(changed.status, 200)
+  assert.equal((await changed.json()).draft.revision, saved.revision)
+  const tag = changed.headers.get('etag')
+  assert.notEqual(tag, emptyTag)
+
+  const unchanged = await handleRequest(req('GET', 'fabi-site-user', undefined, { 'if-none-match': tag }), env)
+  assert.equal(unchanged.status, 304)
+  assert.equal(await unchanged.text(), '')
+  // The tag encodes the caller's role: a viewer presenting an importer's tag gets the full answer.
+  const viewer = await handleRequest(req('GET', 'giovanne-site-user', undefined, { 'if-none-match': tag }), env)
+  assert.equal(viewer.status, 200)
+  assert.equal((await viewer.json()).canImport, false)
+  assert.equal((await handleRequest(req('GET', null, undefined, { 'if-none-match': tag }), env)).status, 401)
+})
+
+test('responses carry security headers and hashed static assets are cached as immutable', async t => {
+  const env = makeEnv()
+  t.after(() => env.DB.close())
+  for (const response of [
+    await handleRequest(req('GET', 'fabi-site-user'), env),
+    await handleRequest(new Request('https://central.example/'), env),
+  ]) {
+    assert.equal(response.headers.get('x-content-type-options'), 'nosniff')
+    assert.equal(response.headers.get('referrer-policy'), 'strict-origin-when-cross-origin')
+  }
+  const hashed = await handleRequest(new Request('https://central.example/_next/static/chunks/main-abc.js'), env)
+  assert.equal(hashed.headers.get('cache-control'), 'public, max-age=31536000, immutable')
+  assert.equal(await hashed.text(), 'asset')
+  assert.equal((await handleRequest(new Request('https://central.example/'), env)).headers.get('cache-control'), null)
+})

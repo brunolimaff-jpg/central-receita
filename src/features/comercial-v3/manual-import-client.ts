@@ -24,25 +24,31 @@ export type ImportHistoryEntry = {
   snapshot?: TrajectorySnapshot
 }
 export type ImportDraft = ImportWorkspace & { revision: string; history: ImportHistoryEntry[] }
-export type ImportAccess = { draft: ImportDraft | null; canImport: boolean }
+export type ImportAccess = { draft: ImportDraft | null; canImport: boolean; tag?: string }
 
 export const visualPreviewEnabled = process.env.NEXT_PUBLIC_VISUAL_PREVIEW === '1'
 export const sharedImportEnabled = !visualPreviewEnabled && process.env.NEXT_PUBLIC_IMPORT_STORAGE === 'shared'
 
-async function sharedRequest(method: 'GET'): Promise<ImportAccess>
+async function sharedRequest(method: 'GET', body?: undefined, knownTag?: string): Promise<ImportAccess | null>
 async function sharedRequest(method: 'PUT', body: unknown): Promise<ImportDraft>
-async function sharedRequest(method: 'GET' | 'PUT', body?: unknown): Promise<ImportAccess | ImportDraft> {
+async function sharedRequest(method: 'GET' | 'PUT', body?: unknown, knownTag?: string): Promise<ImportAccess | ImportDraft | null> {
   let response: Response
+  const headers: Record<string, string> = {}
+  if (body) headers['Content-Type'] = 'application/json'
+  if (knownTag) headers['If-None-Match'] = knownTag
   try {
-    response = await fetch('/api/imports/current', { method, credentials: 'same-origin', cache: 'no-store',
-      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    response = await fetch('/api/imports/current', { method, credentials: 'same-origin', cache: 'no-store', headers,
       body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(45000) })
   } catch {
     throw new Error(method === 'PUT' ? 'Não foi possível confirmar a carga. Recarregue para conferir a versão atual antes de tentar novamente.' :
       'Não foi possível consultar os dados compartilhados. Tente novamente.')
   }
+  if (method === 'GET' && response.status === 304) return null
   if (!response.ok) throw new Error(await rejectionError(response, method))
-  return await response.json() as ImportAccess | ImportDraft
+  if (method === 'PUT') return await response.json() as ImportDraft
+  const access = await response.json() as ImportAccess
+  const tag = response.headers.get('etag')
+  return tag ? { ...access, tag } : access
 }
 
 async function rejectionError(response: Response, method: 'GET' | 'PUT'): Promise<string> {
@@ -92,9 +98,10 @@ export async function loadPreviousDraft(): Promise<ImportDraft | null> {
   })
 }
 
-export async function loadImportDraft(): Promise<ImportAccess> {
+/** Shared mode: `null` means the revision behind `knownTag` is still current, so nothing was downloaded. */
+export async function loadImportDraft(knownTag?: string): Promise<ImportAccess | null> {
   if (visualPreviewEnabled) return { draft: visualDraft as ImportDraft, canImport: false }
-  if (sharedImportEnabled) return sharedRequest('GET')
+  if (sharedImportEnabled) return sharedRequest('GET', undefined, knownTag)
   const database = await openDraftDatabase()
   const draft = await new Promise<ImportDraft | null>((resolve, reject) => {
     const transaction = database.transaction('drafts', 'readonly')
