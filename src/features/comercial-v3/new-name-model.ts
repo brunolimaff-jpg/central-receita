@@ -1,4 +1,5 @@
 import type { ImportedRecord } from './manual-import'
+import { cachedNormalizer } from './text-normalize.ts'
 
 /**
  * Modelo de New Name (docs/PLANO-VISAO-EXECUTIVA.md §New Name e docs/REGRAS-NEGOCIO.md §New Name).
@@ -53,13 +54,8 @@ export const DEFAULT_STATUS_MAPPING: Record<string, OrderSubstatus> = {
   CANCELADO: 'cancelado',
 }
 
-const normalize = (value: string | null | undefined): string =>
-  String(value ?? '')
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .trim()
-    .replace(/\s+/g, ' ')
-    .toUpperCase()
+const normalizeText = cachedNormalizer(value => value.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().replace(/\s+/g, ' ').toUpperCase())
+const normalize = (value: string | null | undefined): string => normalizeText(String(value ?? ''))
 
 /**
  * Resolve o substatus do pedido a partir do status bruto.

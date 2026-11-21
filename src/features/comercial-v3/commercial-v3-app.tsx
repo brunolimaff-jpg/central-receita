@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { CommercialShell } from './components/commercial-shell'
 import { TelaBloqueio } from './components/tela-bloqueio'
 import { CHAVE_BLOQUEIO, estaLiberado } from './tela-bloqueio'
@@ -20,14 +21,6 @@ import {
 } from './model'
 import { globalSearchDestination, type CommercialHrefExtra, type CommercialNav } from './nav'
 import { selectOpportunityDetails } from './opportunity-details'
-import { AgentScreen } from './screens/agent-screen'
-import { AccountsScreen } from './screens/accounts-screen'
-import { BranchScreen } from './screens/branch-screen'
-import { CrossScreen } from './screens/cross-screen'
-import { ForecastScreen } from './screens/forecast-screen'
-import { ImportScreen } from './screens/import-screen'
-import { CarteiraScreen } from './screens/carteira-screen'
-import { TerritoriosScreen } from './screens/territorios-screen'
 import { REGIONAL_SNAPSHOT } from './regional/regional-mock'
 import { ARVORE } from './carteira-arvore'
 import { coberturaDePara } from './carteira-de-para'
@@ -38,11 +31,6 @@ import { filtrosMensaisDaHome } from './home-raio-x'
 import { ExecutivePage } from './screens/executive-page'
 import { ImportedForecastScreen } from './screens/import-forecast-screen'
 import { PipelineSection } from './components/pipeline-section'
-import { JourneyScreen } from './screens/journey-screen'
-import { NewNameScreen } from './screens/new-name-screen'
-import { SystemScreen } from './screens/system-screen'
-import { OpportunitiesScreen } from './screens/opportunities-screen'
-import { OpportunityScreen } from './screens/opportunity-screen'
 import {
   ALL_FILTERS,
   type CommercialFilters,
@@ -60,6 +48,21 @@ import {
  * Métricas demonstrativas usam `COMMERCIAL_SNAPSHOT`. Configurações, Forecast e
  * New Name também permitem revisar a prévia local importada, explicitamente separada.
  */
+// A Visão Executiva é a entrada; as demais telas só baixam o próprio código quando abertas.
+const AgentScreen = dynamic(() => import('./screens/agent-screen').then(m => m.AgentScreen))
+const AccountsScreen = dynamic(() => import('./screens/accounts-screen').then(m => m.AccountsScreen))
+const BranchScreen = dynamic(() => import('./screens/branch-screen').then(m => m.BranchScreen))
+const CrossScreen = dynamic(() => import('./screens/cross-screen').then(m => m.CrossScreen))
+const ForecastScreen = dynamic(() => import('./screens/forecast-screen').then(m => m.ForecastScreen))
+const ImportScreen = dynamic(() => import('./screens/import-screen').then(m => m.ImportScreen))
+const JourneyScreen = dynamic(() => import('./screens/journey-screen').then(m => m.JourneyScreen))
+const NewNameScreen = dynamic(() => import('./screens/new-name-screen').then(m => m.NewNameScreen))
+const SystemScreen = dynamic(() => import('./screens/system-screen').then(m => m.SystemScreen))
+const OpportunitiesScreen = dynamic(() => import('./screens/opportunities-screen').then(m => m.OpportunitiesScreen))
+const OpportunityScreen = dynamic(() => import('./screens/opportunity-screen').then(m => m.OpportunityScreen))
+const CarteiraScreen = dynamic(() => import('./screens/carteira-screen').then(m => m.CarteiraScreen))
+const TerritoriosScreen = dynamic(() => import('./screens/territorios-screen').then(m => m.TerritoriosScreen))
+
 /** Telas que compõem a página corrida com a carga real (sem demo=1). */
 const PAGINA_CORRIDA: CommercialView[] = ['home', 'new-name']
 
