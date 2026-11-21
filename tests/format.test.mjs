@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { formatarMilhoes, formatarComSinal, formatarRealCompacto, formatarRealComSinal, formatarSaldo } from '../src/features/comercial-v3/format.ts'
+import { formatarMilhoes, formatarComSinal, formatarRealCompacto, formatarRealComSinal, formatarRealPreciso, formatarSaldo } from '../src/features/comercial-v3/format.ts'
 
 test('valor compacto preserva ausente, zero, milhares e milhões', () => {
   assert.equal(formatarRealCompacto(null), '—')
@@ -35,4 +35,16 @@ test('saldo abaixo de R$ 10 mil fica em reais para a conta fechar na tela', () =
   assert.equal(formatarSaldo(-1800), '−R$ 1.800')
   assert.equal(formatarSaldo(19000), '+R$ 19 mil')
   assert.equal(formatarSaldo(-1250000), '−R$ 1,3 mi')
+})
+
+test('valor preciso não arredonda milhar abaixo de R$ 10 mil e vira compacto depois', () => {
+  assert.equal(formatarRealPreciso(null), '—')
+  assert.equal(formatarRealPreciso(0), 'R$ 0')
+  assert.equal(formatarRealPreciso(999), 'R$ 999')
+  assert.equal(formatarRealPreciso(1500), 'R$ 1.500')
+  assert.equal(formatarRealPreciso(9999), 'R$ 9.999')
+  assert.equal(formatarRealPreciso(10_000), 'R$ 10 mil')
+  assert.equal(formatarRealPreciso(12_500), 'R$ 13 mil')
+  assert.equal(formatarRealPreciso(-1500), '−R$ 1.500')
+  assert.equal(formatarRealPreciso(1_200_000), 'R$ 1,2 mi')
 })

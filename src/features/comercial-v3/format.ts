@@ -83,6 +83,24 @@ export function formatarRealCompacto(valor: number | null): string {
 }
 
 /**
+ * Valor de carga em reais sem arredondar milhar abaixo de R$ 10 mil — a mesma
+ * regra de `formatarSaldo`, sem sinal. "R$ 2 mil" para 1.500 distorce 33% na
+ * leitura de um total que precisa fechar na tela. Acima do limiar o compacto
+ * arredonda para o milhar: logo acima de R$ 10 mil o erro chega a ~5% e só cai
+ * abaixo de 0,5% perto de R$ 100 mil.
+ */
+export function formatarRealPreciso(valor: number | null): string {
+  if (valor === null) return '—'
+  const abs = Math.abs(valor)
+  const sinal = valor < 0 ? '−' : ''
+  if (abs < 10_000) {
+    const bruto = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(abs)
+    return `${sinal}${bruto.split(ESPACO_NAO_SEPARAVEL).join(ESPACO_COMUM)}`
+  }
+  return `${sinal}${formatarRealCompacto(abs)}`
+}
+
+/**
  * Saldo de movimento, com sinal. Abaixo de R$ 10 mil fica em reais, sem
  * arredondar para milhar: o saldo existe para reconciliar com a curva, e
  * "−R$ 3 mil" no lugar de "−R$ 2.500" faria a conta não fechar na mesma tela.
