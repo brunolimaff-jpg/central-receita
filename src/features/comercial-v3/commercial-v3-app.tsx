@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { CommercialShell } from './components/commercial-shell'
 import { TelaBloqueio } from './components/tela-bloqueio'
 import { CHAVE_BLOQUEIO, estaLiberado } from './tela-bloqueio'
-import { buildCommercialHref, commercialReturnHref, parseCommercialContext } from './context'
+import { buildCommercialHref, commercialReturnHref, destinoForecastLegado, parseCommercialContext } from './context'
 import { selectOpportunityLife } from './opportunity-life'
 import { mesCurto } from './mock-data'
 import { TEST_SNAPSHOT as COMMERCIAL_SNAPSHOT, REAL_BRANCH_NAMES, realBranches } from './test-data'
@@ -37,6 +37,8 @@ import { estadoDaHome } from './central-vendas-mrr'
 import { filtrosMensaisDaHome } from './home-raio-x'
 import { ExecutivePage } from './screens/executive-page'
 import { ImportedForecastScreen } from './screens/import-forecast-screen'
+import { ResumoForecast } from './components/resumo-forecast'
+import { criarResumoForecast } from './forecast-screen-model'
 import { PipelineSection } from './components/pipeline-section'
 import { JourneyScreen } from './screens/journey-screen'
 import { NewNameScreen } from './screens/new-name-screen'
@@ -63,7 +65,7 @@ import {
 /** Telas que compõem a página corrida com a carga real (sem demo=1). */
 const PAGINA_CORRIDA: CommercialView[] = ['home', 'new-name']
 
-export function CommercialV3App() {
+export function CommercialV3App({ fixedView }: { fixedView?: CommercialView } = {}) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [importDraft, setImportDraft] = useState<ImportDraft | null>(null)
@@ -134,17 +136,22 @@ export function CommercialV3App() {
   }, [])
 
   const consulta = searchParams.toString()
-  const contexto = useMemo(() => parseCommercialContext(new URLSearchParams(consulta)), [consulta])
+  const contexto = useMemo(() => ({ ...parseCommercialContext(new URLSearchParams(consulta)), ...(fixedView ? { view: fixedView } : {}) }), [consulta, fixedView])
+  useEffect(() => {
+    const destino = destinoForecastLegado(new URLSearchParams(consulta))
+    if (!fixedView && destino) router.replace(destino)
+  }, [consulta, fixedView, router])
   const { view, period, solution, branch, from, opportunityId, no: idNo, territorio } = contexto
   /*
    * `?demo=1` existe para revisar o cenário fictício em desenvolvimento. Na
    * publicação, o painel mostra somente a carga confirmada: aceitar o parâmetro
    * ali expunha dados de demonstração no endereço do diretor.
    */
-  const demoRequested = !visualPreviewEnabled && !sharedImportEnabled && searchParams.get('demo') === '1'
+  const demoRequested = process.env.NODE_ENV === 'development' && !visualPreviewEnabled && !sharedImportEnabled && searchParams.get('demo') === '1'
   const sourceView = view === 'forecast' || view === 'new-name' || view === 'opportunities'
   const oportunidadesImportadas = !demoRequested ? importDraft?.opportunities : null
   const referenciaOportunidades = oportunidadesImportadas?.referenceDate ?? importDraft?.orders?.referenceDate ?? ''
+  const resumoForecast = useMemo(() => criarResumoForecast({ batch: oportunidadesImportadas ?? null, referenceDate: referenciaOportunidades, carregando: importLoading, erro: importError }), [oportunidadesImportadas, referenciaOportunidades, importLoading, importError])
   // Página corrida: Visão Executiva e New Name numa rolagem só, com a carga real.
   // Com demo=1 cada tela volta ao cenário demonstrativo; a Visão Executiva (home) segue como antes.
   const executiveView = view === 'home' || (PAGINA_CORRIDA.includes(view) && !demoRequested)
@@ -259,18 +266,19 @@ export function CommercialV3App() {
           ...(destino === view && from ? { from } : {}),
           // Sair de Territórios para outra tela leva o território aberto, para o retorno cair no mesmo nível.
           ...(destino !== 'territorios' && contexto.territorio ? { territorio: contexto.territorio } : {}),
-          ...(destino === 'opportunity' && view !== 'opportunity' ? { returnTo: `/?${consulta}` } : {}),
+          ...(destino === 'opportunity' && view !== 'opportunity' ? { returnTo: `${fixedView === 'forecast' ? '/forecast' : '/'}?${consulta}` } : {}),
           ...extra,
         },
       )
-      const params = new URLSearchParams(destination.slice(2))
+      const [caminho, consultaDestino] = destination.split('?')
+      const params = new URLSearchParams(consultaDestino)
       const current = new URLSearchParams(consulta)
       for (const key of ['importMonth', 'importRepresentative', 'importUnit', 'demo']) {
         if (current.has(key)) params.set(key, current.get(key)!)
       }
-      return `/?${params.toString()}`
+      return `${caminho}?${params.toString()}`
     },
-    [period, solution, branch, query, busca, movement, view, from, contexto, consulta],
+    [period, solution, branch, query, busca, movement, view, from, contexto, consulta, fixedView],
   )
 
   const movementHref = useCallback(
@@ -371,7 +379,7 @@ export function CommercialV3App() {
       dataCarga={cargaNaPagina ? dataCarga : null}
     >
       {visualPreviewEnabled && <p role="status" className="mb-3 inline-flex rounded-full bg-white/70 px-3 py-1 text-[12px] text-ink-muted">Homologação · dados fictícios</p>}
-      {sharedImportEnabled && view !== 'config' && view !== 'territorios' && !executiveView && !(sourceView && oportunidadesImportadas) && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#dfe8ef] bg-white px-4 py-3 text-sm text-[#33466c]">
+      {sharedImportEnabled && view !== 'forecast' && view !== 'config' && view !== 'territorios' && !executiveView && !(sourceView && oportunidadesImportadas) && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#dfe8ef] bg-white px-4 py-3 text-sm text-[#33466c]">
         <p><strong>Cenário demonstrativo.</strong> As cargas CSV/XLSX são consultadas em Forecast e New Name. Esta visão usa o cenário fixo, com agregados por filial identificados na tela.</p>
         <Link href={nav.href('config')} className="font-semibold text-[#086b6b] underline">Consultar cargas</Link>
       </div>}
@@ -405,7 +413,7 @@ export function CommercialV3App() {
         <SystemScreen model={home} filiaisReais={!visualPreviewEnabled && period === 'month'} nav={nav} />
       )}
 
-      {importError && view !== 'config' && <section className="rounded-xl border border-[#dfe8ef] bg-white p-6 text-sm text-[#33466c]">
+      {importError && view !== 'config' && view !== 'forecast' && <section className="rounded-xl border border-[#dfe8ef] bg-white p-6 text-sm text-[#33466c]">
         <p role="alert">{importError}</p>
         <div className="mt-4 flex flex-wrap gap-4">
           <button className="font-semibold underline" onClick={() => window.location.reload()}>Tentar novamente</button>
@@ -413,15 +421,16 @@ export function CommercialV3App() {
         </div>
       </section>}
       {sourceView && demoRequested && <Link href={nav.href(view).replace(/&demo=1(?:&|$)/, '&').replace(/&$/, '')} className="mb-4 inline-block text-sm font-semibold text-[#086b6b] underline">Voltar aos dados compartilhados</Link>}
-      {view === 'forecast' && oportunidadesImportadas && (
-        <ImportedForecastScreen batch={oportunidadesImportadas} previousBatch={previousImportDraft?.opportunities ?? null} referenceDate={referenciaOportunidades} />
+      {view === 'forecast' && !demoRequested && <ResumoForecast modelo={resumoForecast} consultarHref={nav.href('config')} />}
+      {view === 'forecast' && oportunidadesImportadas && 'resultado' in resumoForecast && (
+        <ImportedForecastScreen batch={oportunidadesImportadas} previousBatch={previousImportDraft?.opportunities ?? null} referenceDate={referenciaOportunidades} movement={movement} />
       )}
 
-      {(view === 'forecast' || view === 'opportunities') && oportunidadesImportadas && (
+      {(view === 'forecast' || view === 'opportunities') && oportunidadesImportadas && (view !== 'forecast' || 'resultado' in resumoForecast) && (
         <PipelineSection records={oportunidadesImportadas.records} previousRecords={previousImportDraft?.opportunities?.records ?? null} referenceDate={referenciaOportunidades} />
       )}
 
-      {view === 'forecast' && !oportunidadesImportadas && (
+      {view === 'forecast' && demoRequested && (
         <ForecastScreen
           model={forecast}
           meta={home.kpis.find((kpi) => kpi.key === 'meta')?.value ?? 0}

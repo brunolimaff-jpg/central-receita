@@ -71,8 +71,8 @@ export function ForecastTowersPanel({ modo, previstos, ganhos, periodo }: {
   const horizontais = agruparPor(previstos, ganhos, horizontalOuSem, HORIZONTAIS)
   return (
     <Panel
-      titulo={modo === 'agora' ? 'Forecast por filial' : 'Forecast por torre · 2027'}
-      subtitulo={`Previsto e ganhos ${periodo}.`}
+      titulo={modo === 'agora' ? 'Forecast estimado por filial' : 'Forecast estimado por torre · 2027'}
+      subtitulo={`Forecast estimado e ganhos ${periodo}.`}
       acao={<InfoTip texto={modo === 'agora'
         ? 'Filial é a unidade (representante) de cada oportunidade na carga.'
         : 'A torre vem das colunas produto, módulo e modalidade. Segmento: Demais Segmentos, Agronegócio, Construção ou Indústria. Horizontal: ERP (+ Senior Capital), HCM (+ GRS e Wiipo) ou Logística. As duas leituras somam o mesmo previsto.'} />}

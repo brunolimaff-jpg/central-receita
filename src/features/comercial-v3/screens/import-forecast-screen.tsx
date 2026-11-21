@@ -5,7 +5,7 @@ import type { ImportBatch, ImportedRecord } from '../manual-import'
 import { calculateForecastMonth, isClosedStage, isForecastStage, type ForecastPeriod } from '../forecast-month'
 import { ponteReconcilia } from '../trajectory-model'
 import { formatarOportunidades, formatarPercentualInteiro, formatarRealCompacto } from '../format'
-import { forecastFocusFromHash, forecastHashFor, HASH_FORECAST_GANHOU, type ForecastFocusMovement } from '../forecast-focus'
+import { forecastFocusFromHash, HASH_FORECAST_GANHOU, type ForecastFocusMovement } from '../forecast-focus'
 import { forecastMovementRows, groupMovements, type MovementLabel } from '../movement-rows'
 import { ImpactRing, InfoTip, MovementCard, Panel, PanelSection, type RingGroup } from '../components/executive-ui'
 import { ColumnChart, SeletorGranularidade, type Coluna } from '../components/charts'
@@ -62,10 +62,11 @@ export function SeletorPeriodo({ rotulo, valor, opcoes, onChange }: {
   )
 }
 
-export function ImportedForecastScreen({ batch, previousBatch, referenceDate, focus }: {
+export function ImportedForecastScreen({ batch, previousBatch, referenceDate, focus, movement }: {
   batch: ImportBatch
   previousBatch: ImportBatch | null
   referenceDate: string
+  movement?: string | null
   /** Pedido de foco da Home; `key` reaplica o recorte em cliques repetidos. */
   focus?: { movement: ForecastFocusMovement | null; key: number } | null
 }) {
@@ -103,11 +104,17 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
     setSelecionado(focus.movement)
   }, [focus])
 
+  useEffect(() => { setSelecionado(movement ?? null) }, [movement])
+
   /** Mantém a URL descrevendo a seleção sem criar entrada no histórico. */
   const marcarHash = (movement: string | null) => {
     try {
       // Preserva o estado do Next no histórico.
-      window.history.replaceState(window.history.state, '', forecastHashFor(movement, period))
+      const destino = new URL(window.location.href)
+      destino.hash = ''
+      if (movement) destino.searchParams.set('movement', movement)
+      else destino.searchParams.delete('movement')
+      window.history.replaceState(window.history.state, '', `${destino.pathname}${destino.search}`)
     } catch {
       // Histórico bloqueado: a seleção local continua valendo.
     }
@@ -118,7 +125,7 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
   const monthResult = useMemo(() => calculateForecastMonth(batch.records, previous, month, referenceDate, 'mês', competenciaAnterior), [batch.records, previous, month, referenceDate, competenciaAnterior])
   const { result, rows, grupos } = useMemo(() => selectForecastMovements(batch.records, previous, referenceDate, period, competenciaAnterior), [batch.records, previous, referenceDate, period, competenciaAnterior])
 
-  const linhas = selecionado ? rows.filter(row => CARTOES_FORECAST.find(cartao => cartao.key === selecionado)?.labels.includes(row.movement)) : rows
+  const linhas = selecionado ? rows.filter(row => CARTOES_FORECAST.find(cartao => cartao.key === selecionado)?.labels.includes(row.movement) || row.movement === selecionado) : rows
   const grupo = (key: string) => grupos.find(item => item.key === key)!
   /* Cargas de meses diferentes não se comparam: Entrou/Saiu ficam indisponíveis. */
   const comparavel = result.bridge?.comparavel ?? true
@@ -165,18 +172,18 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
   return (
     <PanelSection
       id="forecast"
-      titulo="Forecast"
-      contexto={`Previsto, ganhos no CRM e movimentação de ${mesLabel}.`}
+      titulo="Forecast estimado"
+      contexto={`Estimativa, ganhos no CRM e movimentação de ${mesLabel}.`}
       acao={
         <div className="flex flex-wrap items-center gap-2">
         <SeletorPeriodo
-          rotulo="Estrutura do forecast"
+          rotulo="Estrutura do Forecast estimado"
           valor={recorte}
           opcoes={[{ valor: 'agora', texto: 'Agora' }, { valor: '2027', texto: '2027' }]}
           onChange={valor => setRecorte(valor as ModoRecorte)}
         />
         <SeletorPeriodo
-          rotulo="Período do forecast"
+          rotulo="Período do Forecast estimado"
           valor={period}
           opcoes={[{ valor: 'semana', texto: 'Semana' }, { valor: 'mês', texto: 'Mês' }]}
           onChange={valor => { setPeriod(valor as ForecastPeriod); setSelecionado(null); marcarHash(null) }}
@@ -184,6 +191,7 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
         </div>
       }
     >
+      {!comparavel && <p role="note" className="rounded-xl bg-dado-atencao-suave p-4 text-sm text-dado-atencao"><strong>Comparação bloqueada.</strong> A carga anterior é de outra competência ({competenciaAnterior?.slice(0, 7) ?? 'não informada'}). Cargas de meses diferentes não se comparam.</p>}
       <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="grid min-w-0 gap-4">
           <Panel className="h-full" titulo={granGanhos === 'semana' ? 'Ganhos por dia' : granGanhos === 'mês' ? 'Ganhos por semana' : 'Ganhos por mês'} subtitulo={`Valor fechado como ganho ${recorteGanhos}.`} acao={<span className="flex items-center gap-1.5"><SeletorGranularidade rotulo="Agrupar ganhos por" valor={granGanhos} onChange={setGranGanhos} textos={{ semana: 'Dias', mês: 'Semanas', tri: 'Meses' }} /><InfoTip texto={monthResult.probabilityAvailable ? 'Entram no previsto as oportunidades em Proposta ou Negociação, com chance de 75% ou mais e previsão no mês.' : 'A carga não traz probabilidade: o critério de 75% não foi aplicado.'} /></span>}>
@@ -229,7 +237,7 @@ export function ImportedForecastScreen({ batch, previousBatch, referenceDate, fo
             })}
           </div>
 
-        <ImpactRing titulo={period === 'semana' ? 'Impacto no forecast da semana' : 'Impacto no forecast do mês'} legenda="Peso de cada movimento no saldo." grupos={anel} saldo={saldo} rotuloSaldo={period === 'semana' ? 'Saldo da semana' : 'Saldo no mês'} />
+        <ImpactRing titulo={period === 'semana' ? 'Impacto no Forecast estimado da semana' : 'Impacto no Forecast estimado do mês'} legenda="Peso de cada movimento no saldo." grupos={anel} saldo={saldo} rotuloSaldo={period === 'semana' ? 'Saldo da semana' : 'Saldo no mês'} />
         </div>
       </div>
 
