@@ -1,6 +1,6 @@
 # Spec — Trajetória da Receita e navegação expansível
 
-**Status:** pronto-pra-agente
+**Status:** ready-for-agent
 **Feature slug:** `trajetoria-receita`
 **Revisão:** 3 — corrigida após revisão adversarial contra o código
 **Decisões do Bruno:** coluna colapsável **e** ícones de produto com nome; preferência persistida no navegador; teste em módulo puro novo.
@@ -220,7 +220,7 @@ exatamente três campos. Além disso, `update()` valida o corpo com
 
 Isso é mudança de **schema em banco de produção compartilhado**. Pela regra do
 projeto, migração pede OK textual do Bruno antes de rodar. O ticket fica com
-status `decisao-do-bruno` até essa aprovação, não `pronto-pra-agente`.
+status `ready-for-human` até essa aprovação, não `ready-for-agent`.
 
 No modo local (IndexedDB), o campo entra direto em `saveImportDraft` — sem
 schema fixo, sem migração.
@@ -429,7 +429,7 @@ para dado. Ele não decora — ele explica de onde o total vem.
 |---|---|---|
 | `forecastDate` vazia em muitas linhas | curva concentrada no fim | traço de "restante" cobre a lacuna; rodapé informa a contagem |
 | `importedAt` ausente em cargas antigas | eixo de cargas sem base | cai para `savedAt`; sem ambos, esconde o eixo e mantém a ponte |
-| Campo novo no histórico | exige migração D1 | ticket 03 fica em `decisao-do-bruno`; regime C é opcional |
+| Campo novo no histórico | exige migração D1 | ticket 03 fica em `ready-for-human`; regime C é opcional |
 | Preferência de coluna gravada de outra versão | estado inválido na abertura | leitura valida o valor; inválido cai no padrão por largura |
 | Valor nulo em qualquer registro | total vira `null` e a ponte nunca publica | correto; o aviso explica. Não converter nulo em zero |
 
