@@ -1,6 +1,6 @@
 # 03 — Snapshot no histórico (exige migração)
 
-Status: pronto-pra-agente
+Status: ready-for-agent
 Bloqueia: 06
 Bloqueado por: —
 
@@ -33,7 +33,7 @@ Qualquer chave nova é rejeitada com `invalid_request`.
 
 É **migração de schema em banco D1 de produção compartilhada**. A regra do
 projeto é parar e pedir OK textual antes de migração. Este ticket fica em
-`decisao-do-bruno` até a aprovação.
+`ready-for-human` até a aprovação.
 
 ## O que a migração envolve
 

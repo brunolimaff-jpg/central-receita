@@ -1,0 +1,3 @@
+# Evidências sintéticas: guardar os bytes exatamente como foram importados nos testes.
+# Sem filtro de texto o SHA-256 de cada arquivo no repositório é o mesmo registrado no README.
+*.csv -text

@@ -24,10 +24,15 @@ import { selectOpportunityDetails } from './opportunity-details'
 import { REGIONAL_SNAPSHOT } from './regional/regional-mock'
 import { ARVORE } from './carteira-arvore'
 import { coberturaDePara } from './carteira-de-para'
-import { montarCarteira } from './carteira-model'
+import { montarCarteira, recortarPorFilial, temProbabilidade } from './carteira-model'
 import { loadImportDraft, loadPreviousDraft, sharedImportEnabled, visualPreviewEnabled, type ImportDraft } from './manual-import-client'
+import { estadoDaHome } from './central-vendas-mrr'
+import { filtrosMensaisDaHome } from './home-raio-x'
 import { ExecutivePage } from './screens/executive-page'
+import { ImportedForecastScreen } from './screens/import-forecast-screen'
+import { PipelineSection } from './components/pipeline-section'
 import {
+  ALL_FILTERS,
   type CommercialFilters,
   type CommercialPeriod,
   type CommercialView,
@@ -59,7 +64,7 @@ const CarteiraScreen = dynamic(() => import('./screens/carteira-screen').then(m 
 const TerritoriosScreen = dynamic(() => import('./screens/territorios-screen').then(m => m.TerritoriosScreen))
 
 /** Telas que compõem a página corrida com a carga real (sem demo=1). */
-const PAGINA_CORRIDA: CommercialView[] = ['home', 'forecast', 'new-name', 'opportunities']
+const PAGINA_CORRIDA: CommercialView[] = ['home', 'new-name']
 
 export function CommercialV3App() {
   const router = useRouter()
@@ -140,12 +145,21 @@ export function CommercialV3App() {
    * ali expunha dados de demonstração no endereço do diretor.
    */
   const demoRequested = !visualPreviewEnabled && !sharedImportEnabled && searchParams.get('demo') === '1'
-  const sourceView = view === 'forecast' || view === 'new-name'
-  // Página corrida: Visão Executiva, Forecast, New Name e Oportunidades numa rolagem só, com a carga real.
+  const sourceView = view === 'forecast' || view === 'new-name' || view === 'opportunities'
+  const oportunidadesImportadas = !demoRequested ? importDraft?.opportunities : null
+  const referenciaOportunidades = oportunidadesImportadas?.referenceDate ?? importDraft?.orders?.referenceDate ?? ''
+  // Página corrida: Visão Executiva e New Name numa rolagem só, com a carga real.
   // Com demo=1 cada tela volta ao cenário demonstrativo; a Visão Executiva (home) segue como antes.
   const executiveView = view === 'home' || (PAGINA_CORRIDA.includes(view) && !demoRequested)
   const cargaNaPagina = executiveView && !demoRequested
   const dataCarga = importDraft?.opportunities?.referenceDate ?? importDraft?.orders?.referenceDate ?? null
+  /*
+   * O rodapé da lateral fala do estado real da carga, não da aba aberta.
+   * Fora das telas que leem a carga, mantém o rótulo de demonstração de antes.
+   */
+  const estadoLateral = view === 'config' || cargaNaPagina
+    ? estadoDaHome({ temCarga: Boolean(importDraft), carregando: importLoading, falha: importError || null })
+    : 'sem-carga'
 
   // Estado transitório do recorte: nenhum salvamento ou dado externo.
   const posicoes = useRef(new Map<string, {
@@ -192,6 +206,7 @@ export function CommercialV3App() {
     const model = selectHomeModel(COMMERCIAL_SNAPSHOT, filtros)
     return period === 'month' ? { ...model, filiais: realBranches(branch) } : model
   }, [filtros, period, branch])
+  const homeMensal = useMemo(() => selectHomeModel(COMMERCIAL_SNAPSHOT, filtrosMensaisDaHome(filtros)), [filtros])
   const briefing = useMemo(() => selectAgentBriefing(COMMERCIAL_SNAPSHOT, filtros), [filtros])
   const forecast = useMemo(() => selectForecastModel(COMMERCIAL_SNAPSHOT, filtros), [filtros])
   const detalhes = useMemo(() => selectOpportunityDetails(COMMERCIAL_SNAPSHOT, filtros), [filtros])
@@ -202,12 +217,13 @@ export function CommercialV3App() {
    */
   const carteira = useMemo(() => {
     const idNoValidado = idNo && ARVORE.nos.has(idNo) ? idNo : ARVORE.raiz
-    const registros = importDraft?.opportunities?.records ?? []
+    const carga = importDraft?.opportunities?.records ?? []
+    const registros = recortarPorFilial(carga, branch, ALL_FILTERS)
     const referencia = importDraft?.opportunities?.referenceDate ?? ''
     if (!referencia) return null
-    const pedidos = importDraft?.orders?.records ?? []
-    return montarCarteira(ARVORE, registros, idNoValidado, referencia, coberturaDePara(ARVORE), pedidos)
-  }, [idNo, importDraft])
+    const pedidos = recortarPorFilial(importDraft?.orders?.records ?? [], branch, ALL_FILTERS)
+    return montarCarteira(ARVORE, registros, idNoValidado, referencia, coberturaDePara(ARVORE), pedidos, temProbabilidade(carga))
+  }, [idNo, importDraft, branch])
   const solucoes = useMemo(() => selectSolutionOptions(COMMERCIAL_SNAPSHOT), [])
   const filiais = REAL_BRANCH_NAMES
   const mes = mesCurto(COMMERCIAL_SNAPSHOT.competence.month)
@@ -241,7 +257,7 @@ export function CommercialV3App() {
       if (view === 'opportunity' && destino === (from ?? 'home') && !extra) return commercialReturnHref(contexto)
       const destination = buildCommercialHref(
         destino,
-        { period, solution, branch, query, busca, movement },
+        { period, solution, branch, query, busca, movement, segmento: contexto.segmento, corte: contexto.corte },
         {
           ...(destino === view && from ? { from } : {}),
           // Sair de Territórios para outra tela leva o território aberto, para o retorno cair no mesmo nível.
@@ -291,7 +307,7 @@ export function CommercialV3App() {
     (parcial: Partial<CommercialFilters>) => {
       const destino = buildCommercialHref(
         view,
-        { period, solution, branch, ...parcial },
+        { period, solution, branch, segmento: contexto.segmento, corte: contexto.corte, ...parcial },
         {
           from,
           opportunityId,
@@ -307,7 +323,7 @@ export function CommercialV3App() {
       const sufixo = extras.toString()
       router.replace(sufixo === '' ? destino : `${destino}&${sufixo}`, { scroll: false })
     },
-    [router, view, period, solution, branch, from, opportunityId, movement, query, busca, contexto.returnTo, demoRequested],
+    [router, view, period, solution, branch, from, opportunityId, movement, query, busca, contexto, demoRequested],
   )
 
   const nav = useMemo<CommercialNav>(
@@ -353,17 +369,17 @@ export function CommercialV3App() {
       branches={filiais}
       from={from}
       nav={nav}
-      importPreview={view === 'config' || cargaNaPagina}
+      estadoCarga={estadoLateral}
       executiveMode={executiveView}
       dataCarga={cargaNaPagina ? dataCarga : null}
     >
       {visualPreviewEnabled && <p role="status" className="mb-3 inline-flex rounded-full bg-white/70 px-3 py-1 text-[12px] text-ink-muted">Homologação · dados fictícios</p>}
-      {sharedImportEnabled && view !== 'config' && view !== 'territorios' && !executiveView && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#dfe8ef] bg-white px-4 py-3 text-sm text-[#33466c]">
+      {sharedImportEnabled && view !== 'config' && view !== 'territorios' && !executiveView && !(sourceView && oportunidadesImportadas) && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#dfe8ef] bg-white px-4 py-3 text-sm text-[#33466c]">
         <p><strong>Cenário demonstrativo.</strong> As cargas CSV/XLSX são consultadas em Forecast e New Name. Esta visão usa o cenário fixo, com agregados por filial identificados na tela.</p>
         <Link href={nav.href('config')} className="font-semibold text-[#086b6b] underline">Consultar cargas</Link>
       </div>}
       {view === 'config' && <ImportScreen draft={importDraft} canImport={canImport} onSaved={draft => { importEpoch.current++; setPreviousImportDraft(importDraft); setImportDraft(draft); setImportError('') }} loading={importLoading} loadError={importError} nav={nav} />}
-      {executiveView && <ExecutivePage opportunities={importDraft?.opportunities ?? null} orders={importDraft?.orders ?? null} previous={previousImportDraft} history={importDraft?.history ?? []} nav={nav} carregando={importLoading && !importDraft} falha={importError || null} />}
+      {executiveView && <ExecutivePage opportunities={importDraft?.opportunities ?? null} orders={importDraft?.orders ?? null} previous={previousImportDraft} history={importDraft?.history ?? []} nav={nav} home={homeMensal} posicao={COMMERCIAL_SNAPSHOT.asOf.slice(0, 10).split('-').reverse().join('/')} carregando={importLoading && !importDraft} falha={importError || null} />}
 
       {view === 'carteira' && (
         <CarteiraScreen
@@ -400,7 +416,15 @@ export function CommercialV3App() {
         </div>
       </section>}
       {sourceView && demoRequested && <Link href={nav.href(view).replace(/&demo=1(?:&|$)/, '&').replace(/&$/, '')} className="mb-4 inline-block text-sm font-semibold text-[#086b6b] underline">Voltar aos dados compartilhados</Link>}
-      {!executiveView && view === 'forecast' && (demoRequested || (!sharedImportEnabled && !importDraft?.opportunities && !importLoading && !importError)) && (
+      {view === 'forecast' && oportunidadesImportadas && (
+        <ImportedForecastScreen batch={oportunidadesImportadas} previousBatch={previousImportDraft?.opportunities ?? null} referenceDate={referenciaOportunidades} />
+      )}
+
+      {(view === 'forecast' || view === 'opportunities') && oportunidadesImportadas && (
+        <PipelineSection records={oportunidadesImportadas.records} previousRecords={previousImportDraft?.opportunities?.records ?? null} referenceDate={referenciaOportunidades} />
+      )}
+
+      {view === 'forecast' && !oportunidadesImportadas && (
         <ForecastScreen
           model={forecast}
           meta={home.kpis.find((kpi) => kpi.key === 'meta')?.value ?? 0}
@@ -413,7 +437,7 @@ export function CommercialV3App() {
         />
       )}
 
-      {!executiveView && view === 'opportunities' && (
+      {view === 'opportunities' && !oportunidadesImportadas && (
         <OpportunitiesScreen
           rows={forecast.oportunidades}
           detalhes={detalhes}
@@ -453,7 +477,7 @@ export function CommercialV3App() {
       {view === 'opportunity' && (
         <OpportunityScreen oportunidade={vida ? oportunidade : null} life={vida} from={from} nav={nav} />
       )}
-      {view !== 'config' && !executiveView && <details className="mt-3 px-1 text-[11px] leading-4 text-[#62748b]">
+      {view !== 'config' && !executiveView && !(sourceView && oportunidadesImportadas) && <details className="mt-3 px-1 text-[11px] leading-4 text-[#62748b]">
         <summary className="w-fit cursor-pointer rounded-sm underline decoration-dotted underline-offset-2 focus-visible:outline-2 focus-visible:outline-[#086b6b]">
           Cenário demonstrativo · escopo e origem dos dados
         </summary>

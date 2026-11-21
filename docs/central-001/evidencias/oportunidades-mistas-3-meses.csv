@@ -1,0 +1,9 @@
+Oportunidade ID,Conta ID,Conta,Etapa,Previsão de Fechamento,Efetivação do Fechamento,Valor Previsto,Valor Fechado,Representante,Pedido,Prob.
+201,21,Conta A,Fechada e Ganha,,14/10/2026,,4000,Unidade Sul,9101,
+202,22,Conta B,Fechada e Ganha,,30/09/2026,,9000,Unidade Sul,9102,
+203,23,Conta C,Fechada e Ganha,,,,700,Unidade Sul,,
+204,24,Conta D,Negociação,21/10/2026,,1500,,Unidade Sul,,
+205,25,Conta E,Negociação,02/11/2026,,2500,,Unidade Sul,,
+206,26,Conta F,Proposta,,,800,,Unidade Sul,,
+207,27,Conta G,Fechada e Ganha,,20/10/2026,,,Unidade Sul,9103,
+208,28,Conta H,Fechada e Perdida,,13/10/2026,,900,Unidade Sul,,

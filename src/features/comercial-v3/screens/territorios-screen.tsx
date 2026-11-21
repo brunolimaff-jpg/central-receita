@@ -29,6 +29,11 @@ import { TerritorioScreen } from '../regional/territorio-screen'
 import { filialDoTerritorio, nivelDe, linhasDeTerritorio, recortarTerritorio, territorioPorId } from '../regional/territorios-model'
 import { forecastFluxo, resultadoFilial, type Fluxo, type RegionalSnapshot } from '../regional/regional-model'
 import { CartaoNivel } from './territorios-ui'
+import { MatrizTerritoriosVerticais } from '../components/matriz-territorios-verticais'
+import { DiretoriasSection } from '../components/diretorias-section'
+import { SeloOrigem } from '../components/home-resultado'
+import { normalizarCorte, normalizarSegmento, referenciaPlanejamento, seloDoBloco } from '../home-raio-x'
+import { visualPreviewEnabled } from '../manual-import-client'
 
 export function TerritoriosScreen({
   snapshot,
@@ -46,6 +51,9 @@ export function TerritoriosScreen({
   const nivel = nivelDe(contexto.territorio, contexto.branch)
   const filial = nivel === 'filial' && territorio ? filialDoTerritorio(snapshot, territorio.id, contexto.branch) : null
   const origem = from ?? 'home'
+  const segmentoNormalizado = contexto.segmento ? normalizarSegmento(contexto.segmento) : 'todos'
+  const segmentoPainel = segmentoNormalizado === 'todos' ? undefined : segmentoNormalizado
+  const cortePainel = contexto.corte ? normalizarCorte(contexto.corte) : undefined
   const linhas = linhasDeTerritorio(snapshot, fluxo)
   const filiaisDoTerritorio = territorio ? snapshot.filiais.filter(f => territorio.filiais.includes(f.sigla)) : []
 
@@ -176,6 +184,22 @@ export function TerritoriosScreen({
               )
             })}
           </div>
+        </section>
+      )}
+
+      {/* CSO: a matriz cruza território e vertical e abre o território no clique. */}
+      {nivel === 'cso' && <MatrizTerritoriosVerticais nav={nav} segmentoInicial={segmentoPainel} corteInicial={cortePainel} />}
+
+      {nivel === 'cso' && (
+        <section className="grid gap-2">
+          <div className="flex flex-wrap items-start justify-between gap-2 px-1">
+            <div className="min-w-0">
+              <h2 className="text-[20px] font-bold tracking-[-0.03em] text-ink-strong">Planejamento 2027</h2>
+              <p className="mt-0.5 text-[12px] leading-4 text-ink-muted">Organograma e base declarada da estrutura proposta; não é realizado nem carga.</p>
+            </div>
+            <SeloOrigem selo={seloDoBloco('planejamento', '2027', referenciaPlanejamento(visualPreviewEnabled))} />
+          </div>
+          <DiretoriasSection />
         </section>
       )}
 

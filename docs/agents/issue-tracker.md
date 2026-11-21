@@ -9,7 +9,7 @@ Não abra ticket novo lá.
 
 ## Operações
 
-- **Criar:** `gh issue create --title "..." --body "..." --label pronto-pra-agente` (corpo longo via heredoc)
+- **Criar:** `gh issue create --title "..." --body "..." --label ready-for-agent` (corpo longo via heredoc)
 - **Ler:** `gh issue view <n> --comments`
 - **Listar:** `gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'`, com `--label` e `--state` quando precisar
 - **Comentar:** `gh issue comment <n> --body "..."`
@@ -30,7 +30,7 @@ Criar uma issue no GitHub.
 
 ## Spec e tickets
 
-- A spec é uma issue com a label `pronto-pra-agente` e o título começando por `Spec:`.
+- A spec é uma issue com a label `ready-for-agent` e o título começando por `Spec:`.
 - Cada ticket é uma issue própria, com `Parte de #<spec>` na primeira linha do corpo.
 - **Bloqueio:** dependência nativa do GitHub
   (`gh api --method POST repos/brunolimaff-jpg/central-receita/issues/<filho>/dependencies/blocked_by -F issue_id=<id-numérico-do-bloqueador>`,

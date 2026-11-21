@@ -1,6 +1,6 @@
 # 04 — Trajetória no corpo da Visão Executiva
 
-Status: pronto-pra-agente
+Status: ready-for-agent
 Bloqueia: —
 Bloqueado por: 01, 02
 
