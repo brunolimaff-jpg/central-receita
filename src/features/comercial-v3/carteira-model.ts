@@ -221,6 +221,9 @@ function residuoDe(arvore: Arvore, id: string, ctx: Contexto): Residuo {
   }
 }
 
+export const temProbabilidade = (registros: ImportedRecord[]) =>
+  registros.some(r => r.probability !== null && r.probability !== undefined)
+
 /**
  * Recorte de filial aplicado à carga, pela mesma leitura de filial do
  * Forecast (`filialDe`). Sem filial escolhida, a carga passa inteira.
@@ -248,12 +251,14 @@ export function montarCarteira(
   referenceDate: string,
   cobertura: { declarados: number; total: number; percentual: number },
   pedidos: ImportedRecord[] = [],
+  /** Da carga inteira, não do recorte: o corte de 75% não pode depender da filial escolhida. */
+  probabilidadeNaCarga?: boolean,
 ): Carteira | null {
   const alvo = arvore.nos.get(idNo)
   if (!alvo) return null
 
   const periodo = competencia(referenceDate)
-  const probabilidadeDisponivel = registros.some(r => r.probability !== null && r.probability !== undefined)
+  const probabilidadeDisponivel = probabilidadeNaCarga ?? temProbabilidade(registros)
 
   const atribuicao = atribuirResponsaveis(arvore, registros.map(r => r.executive ?? ''))
 

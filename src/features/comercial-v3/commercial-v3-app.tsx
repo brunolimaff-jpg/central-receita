@@ -31,7 +31,7 @@ import { TerritoriosScreen } from './screens/territorios-screen'
 import { REGIONAL_SNAPSHOT } from './regional/regional-mock'
 import { ARVORE } from './carteira-arvore'
 import { coberturaDePara } from './carteira-de-para'
-import { montarCarteira, recortarPorFilial } from './carteira-model'
+import { montarCarteira, recortarPorFilial, temProbabilidade } from './carteira-model'
 import { loadImportDraft, loadPreviousDraft, sharedImportEnabled, visualPreviewEnabled, type ImportDraft } from './manual-import-client'
 import { ExecutivePage } from './screens/executive-page'
 import { JourneyScreen } from './screens/journey-screen'
@@ -200,11 +200,12 @@ export function CommercialV3App() {
    */
   const carteira = useMemo(() => {
     const idNoValidado = idNo && ARVORE.nos.has(idNo) ? idNo : ARVORE.raiz
-    const registros = recortarPorFilial(importDraft?.opportunities?.records ?? [], branch, ALL_FILTERS)
+    const carga = importDraft?.opportunities?.records ?? []
+    const registros = recortarPorFilial(carga, branch, ALL_FILTERS)
     const referencia = importDraft?.opportunities?.referenceDate ?? ''
     if (!referencia) return null
     const pedidos = recortarPorFilial(importDraft?.orders?.records ?? [], branch, ALL_FILTERS)
-    return montarCarteira(ARVORE, registros, idNoValidado, referencia, coberturaDePara(ARVORE), pedidos)
+    return montarCarteira(ARVORE, registros, idNoValidado, referencia, coberturaDePara(ARVORE), pedidos, temProbabilidade(carga))
   }, [idNo, importDraft, branch])
   const solucoes = useMemo(() => selectSolutionOptions(COMMERCIAL_SNAPSHOT), [])
   const filiais = REAL_BRANCH_NAMES

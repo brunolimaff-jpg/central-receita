@@ -323,3 +323,14 @@ test('recorte de filial filtra a carga pela filial do registro', () => {
   assert.deepEqual(recortarPorFilial(registros, 'filial alfa', 'Todos').map(r => r.opportunityId), ['A'])
   assert.equal(recortarPorFilial(registros, 'Todos', 'Todos').length, 2)
 })
+
+test('o corte de 75% vem da carga inteira, não da filial recortada', () => {
+  const carga = [
+    registro({ opportunityId: 'A', representative: 'Filial Alfa', probability: 0.9 }),
+    registro({ opportunityId: 'B', representative: 'Filial Beta', probability: null, predictedValue: 700 }),
+  ]
+  const beta = recortarPorFilial(carga, 'Filial Beta', 'Todos')
+  const carteira = montarCarteira(ARVORE, beta, 'cso', '2026-10-28', cobertura, [], true)
+  assert.equal(carteira.probabilidadeDisponivel, true)
+  assert.equal(carteira.raiz.metricas.previsto, 0, 'sem probabilidade não passa no corte')
+})
