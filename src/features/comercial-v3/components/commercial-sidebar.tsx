@@ -7,8 +7,10 @@ import { motion } from 'framer-motion'
 import { Bell, Building2, Gauge, GitBranch, Layers, LayoutDashboard, List, MapPinned, Network, PackagePlus, PanelLeftClose, PanelLeftOpen, Search, Settings2, Target, TrendingUp, Users } from 'lucide-react'
 import { FILTER_LABELS, VIEW_LABELS } from '../copy'
 import { sharedImportEnabled } from '../manual-import-client'
-import { sidebarViewFor, type CommercialNav } from '../nav'
+import { sidebarHref, sidebarViewFor, type CommercialNav } from '../nav'
 import type { NavCollapse } from '../nav-collapse'
+import type { EstadoHome } from '../central-vendas-mrr'
+import { rotuloDaLateral } from '../sidebar-status'
 import { ALL_FILTERS, type CommercialPeriod, type CommercialView } from '../types'
 import { FilterSelect } from './filter-select'
 import { PeriodTabs } from './period-tabs'
@@ -24,10 +26,17 @@ type ItemNav = {
   preliminar?: boolean
 }
 
-/** Seções da página corrida, na ordem da sidebar. Cada uma tem âncora e marcação de visibilidade. */
-const SECOES = ['home', 'diretorias', 'forecast', 'new-name', 'opportunities'] as const
-type Secao = (typeof SECOES)[number]
-const pertenceAPagina = (view: CommercialView) => (SECOES as readonly string[]).includes(view)
+/**
+ * Barra inferior (abaixo de 780px): cada destino tem ~57px e "Oportunidades"
+ * não cabe numa linha — sem ponto de quebra ele vazava sobre o destino vizinho
+ * e "Configurações" saía da barra. O hífen suave (U+00AD) só aparece quando a
+ * palavra precisa quebrar; em tela larga fica invisível e o rótulo não muda.
+ */
+const ROTULO_COM_HIFEN: Record<string, string> = {
+  [VIEW_LABELS.opportunities]: 'Oportuni\u00addades',
+  [VIEW_LABELS.config]: 'Configu\u00adrações',
+}
+const rotuloDaBarra = (label: string) => ROTULO_COM_HIFEN[label] ?? label
 
 /**
  * Jornada, Sistema de Receita, Contas e Cross já abrem. O conteúdo existe em
@@ -74,7 +83,7 @@ export function CommercialSidebar({
   view,
   from,
   nav,
-  importPreview = false,
+  estadoCarga = 'sem-carga',
   dataCarga = null,
   paginaCorrida = false,
   navState,
@@ -83,7 +92,8 @@ export function CommercialSidebar({
   view: CommercialView
   from?: CommercialView
   nav: CommercialNav
-  importPreview?: boolean
+  /** Estado real da carga: o rótulo não pode dizer “Dados carregados” sem carga. */
+  estadoCarga?: EstadoHome
   /** Data de referência da carga (ISO); quando existe, o rodapé mostra "Carga de DD/MM/AAAA". */
   dataCarga?: string | null
   /**
@@ -119,9 +129,7 @@ export function CommercialSidebar({
   const menuView = sidebarViewFor(view, from)
   const pageView = naPagina ? 'home' : view
   const ativoNoMenu = (item: ItemNav) => pageView === 'home' ? item.view === secao : item.view === menuView
-  const rodape = importPreview
-    ? dataCarga ? `Carga de ${formatarDataCurta(dataCarga)}` : sharedImportEnabled ? 'Carga compartilhada' : 'Prévia local · importação'
-    : 'Cenário demonstrativo · set/2026'
+  const rotulo = rotuloDaLateral(estadoCarga, dataCarga ? formatarDataCurta(dataCarga) : null, sharedImportEnabled)
   const configAtiva = view === 'config'
   const expandida = navState === 'expandida'
 
@@ -154,7 +162,7 @@ export function CommercialSidebar({
           priority
           className="revenue-marca-simbolo h-[34px] w-auto"
         />
-        <span className="revenue-marca-texto revenue-marca-assinatura">Central de Receita</span>
+        <span className="revenue-marca-texto revenue-marca-assinatura">Central de Vendas</span>
       </Link>
 
       <nav id="revenue-navegacao" aria-label="Seções" className="grid gap-1">
@@ -177,7 +185,7 @@ export function CommercialSidebar({
             )}
             <Link
               data-preliminar={item.preliminar ? '' : undefined}
-              href={naPagina && view && (SECOES as readonly string[]).includes(view) ? `#${view}` : nav.href(view ?? 'home', { from: 'home' })}
+              href={sidebarHref(view ?? 'home', naPagina, nav.href)}
               aria-current={ativo ? (pageView === 'home' ? 'location' : 'page') : undefined}
               title={item.preliminar ? `${item.label} · versão preliminar` : item.label}
               className="revenue-nav-item"
@@ -185,7 +193,7 @@ export function CommercialSidebar({
               {/* Um destaque só, que desliza de um item ao outro. */}
               {ativo && <motion.span aria-hidden layoutId="revenue-nav-ativo" className="revenue-nav-pill" transition={{ type: 'spring', stiffness: 420, damping: 36 }} />}
               <NavIcone icone={Icone} />
-              <span className="revenue-nav-rotulo truncate">{item.label}</span>
+              <span className="revenue-nav-rotulo truncate">{rotuloDaBarra(item.label)}</span>
               {/*
                 O ponto é decoração; o estado precisa chegar ao leitor de tela
                 pelo nome do link, não pelo `title` — que muitos leitores
@@ -226,14 +234,14 @@ export function CommercialSidebar({
         >
           {configAtiva && <motion.span aria-hidden layoutId="revenue-nav-ativo" className="revenue-nav-pill" transition={{ type: 'spring', stiffness: 420, damping: 36 }} />}
           <NavIcone icone={Settings2} />
-          <span className="revenue-nav-rotulo truncate">{VIEW_LABELS.config}</span>
+          <span className="revenue-nav-rotulo truncate">{rotuloDaBarra(VIEW_LABELS.config)}</span>
           <NavDica rotulo={VIEW_LABELS.config} />
         </Link>
         <p className="revenue-nav-rotulo revenue-nav-status">
           <span aria-hidden className="revenue-nav-pulso" />
           <span className="min-w-0">
-            <strong className="block font-semibold">{importPreview ? 'Dados carregados' : 'Demonstração'}</strong>
-            {rodape}
+            <strong className="block font-semibold">{rotulo.titulo}</strong>
+            {rotulo.detalhe}
           </span>
         </p>
       </div>

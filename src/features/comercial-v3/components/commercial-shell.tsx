@@ -4,6 +4,7 @@ import { useCallback, useSyncExternalStore } from 'react'
 import { CommercialSidebar, CommercialTopbar } from './commercial-sidebar'
 import { MotionRoot } from './motion-primitives'
 import { sharedImportEnabled } from '../manual-import-client'
+import type { EstadoHome } from '../central-vendas-mrr'
 import { CHAVE_NAVEGACAO, collapseInicial, gravarPreferencia, lerPreferencia, type NavCollapse } from '../nav-collapse'
 import type { CommercialNav } from '../nav'
 import type { CommercialPeriod, CommercialView } from '../types'
@@ -57,7 +58,8 @@ type CommercialShellProps = {
   from?: CommercialView
   nav: CommercialNav
   children: React.ReactNode
-  importPreview?: boolean
+  /** Estado real da carga, para o rótulo da lateral não contradizer a tela. */
+  estadoCarga?: EstadoHome
   executiveMode?: boolean
   dataCarga?: string | null
 }
@@ -79,7 +81,7 @@ export function CommercialShell({
   from,
   nav,
   children,
-  importPreview = false,
+  estadoCarga = 'sem-carga',
   executiveMode = false,
   dataCarga = null,
 }: CommercialShellProps) {
@@ -104,7 +106,7 @@ export function CommercialShell({
           view={executiveMode ? 'home' : view}
           from={from}
           nav={nav}
-          importPreview={importPreview}
+          estadoCarga={estadoCarga}
           dataCarga={dataCarga}
           paginaCorrida={executiveMode}
           navState={navState}
@@ -129,7 +131,7 @@ export function CommercialShell({
               nav={nav}
             />
           )}
-          <main className="mx-auto w-full max-w-[1500px] min-w-0 pb-24 pt-4 lg:pb-10 lg:pt-[18px]">
+          <main className="mx-auto w-full max-w-[1500px] min-w-0 pb-32 pt-4 lg:pb-10 lg:pt-[18px]">
             {children}
           </main>
         </div>

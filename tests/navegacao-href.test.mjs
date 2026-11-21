@@ -15,9 +15,30 @@ import assert from 'node:assert/strict'
 import { buildCommercialHref, parseCommercialContext } from '../src/features/comercial-v3/context.ts'
 import { nivelDe } from '../src/features/comercial-v3/regional/territorios-model.ts'
 import { ALL_FILTERS } from '../src/features/comercial-v3/types.ts'
+import { sidebarHref } from '../src/features/comercial-v3/nav.ts'
+
+test('atalhos da Home só usam âncoras das seções presentes', () => {
+  const href = view => `/?view=${view}`
+  assert.equal(sidebarHref('home', true, href), '#home')
+  assert.equal(sidebarHref('new-name', true, href), '#new-name')
+  assert.equal(sidebarHref('forecast', true, href), '/?view=forecast')
+  assert.equal(sidebarHref('opportunities', true, href), '/?view=opportunities')
+  assert.equal(sidebarHref('diretorias', true, href), '/?view=territorios#diretorias')
+  assert.equal(sidebarHref('home', false, href), '/?view=home')
+})
 
 const ctx = (extra = {}) => ({ period: 'month', solution: ALL_FILTERS, branch: ALL_FILTERS, ...extra })
 const params = href => new URLSearchParams(href.slice(2))
+
+test('troca de período preserva segmento e corte de Territórios', () => {
+  const atual = parseCommercialContext(new URLSearchParams('view=territorios&segmento=agro&corte=novos'))
+  for (const period of ['month', 'quarter', 'threeMonths']) {
+    const destino = parseCommercialContext(params(buildCommercialHref('territorios', { ...atual, period })))
+    assert.equal(destino.period, period)
+    assert.equal(destino.segmento, 'agro')
+    assert.equal(destino.corte, 'novos')
+  }
+})
 
 /* ------------------------------------------------------------------ */
 /*  Descer: o clique na filial precisa chegar na filial                */

@@ -80,6 +80,13 @@ export function parseCommercialContext(params: URLSearchParams): CommercialConte
   const territorio = (params.get('territorio') ?? '').trim()
   if (territorio !== '') contexto.territorio = territorio
 
+  // Recorte do painel de resultado levado para Territórios. Quem valida os
+  // identificadores é a tela; aqui só não se perde o filtro pelo caminho.
+  const segmento = (params.get('segmento') ?? '').trim()
+  if (segmento !== '') contexto.segmento = segmento
+  const corte = (params.get('corte') ?? '').trim()
+  if (corte !== '') contexto.corte = corte
+
   const returnTo = retornoLocal(params.get('returnTo'))
   if (returnTo) contexto.returnTo = returnTo
 
@@ -97,7 +104,7 @@ export function parseCommercialContext(params: URLSearchParams): CommercialConte
  */
 export function buildCommercialHref(
   view: CommercialView,
-  context: Pick<CommercialContext, 'period' | 'solution' | 'branch'> & { query?: string; busca?: string; movement?: ForecastMovement | null },
+  context: Pick<CommercialContext, 'period' | 'solution' | 'branch'> & { query?: string; busca?: string; movement?: ForecastMovement | null; segmento?: string; corte?: string },
   extra?: { from?: CommercialView; opportunityId?: string; movement?: ForecastMovement | null; returnTo?: string; no?: string; territorio?: string; branch?: string },
 ): string {
   const params = new URLSearchParams()
@@ -106,6 +113,10 @@ export function buildCommercialHref(
   if (context.solution && context.solution !== ALL_FILTERS) params.set('solution', context.solution)
   const filial = extra?.branch ?? context.branch
   if (filial && filial !== ALL_FILTERS) params.set('branch', filial)
+  // O recorte do painel de resultado acompanha a navegação; a tela de destino
+  // valida os identificadores e ignora o que não conhece.
+  if (context.segmento && context.segmento !== ALL_FILTERS) params.set('segmento', context.segmento)
+  if (context.corte && context.corte !== ALL_FILTERS) params.set('corte', context.corte)
   if (extra?.opportunityId) params.set('op', extra.opportunityId)
   if (extra?.no) params.set('no', extra.no)
   if (extra?.territorio) params.set('territorio', extra.territorio)
