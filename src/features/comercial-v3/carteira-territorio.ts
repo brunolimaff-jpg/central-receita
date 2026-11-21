@@ -12,8 +12,8 @@
  *
  * O que este módulo faz, então, é limitado de propósito: mostra a **base
  * declarada no slide** de 2027 e diz, na tela, que ela não reconcilia com a
- * carga. A matriz de MRR por vertical e território soma R$ 77,377 mi contra
- * R$ 77,5 mi das margens — diferença de R$ 123 mil. Apresentar essa matriz
+ * carga. A matriz de MRR por vertical e território soma R$ 51,85 mi contra
+ * R$ 52 mi das margens — diferença de R$ 150 mil. Apresentar essa matriz
  * como se fosse dado medido seria pior que não mostrar nada.
  */
 
@@ -35,7 +35,7 @@ export type LenteTerritorio = {
     temBasePropria: boolean
     /**
      * O que a linha do slide declara menos o que a abertura por vertical soma.
-     * Não é zero: o Território 02 declara R$ 23 mil a mais e o 04, R$ 100 mil.
+     * Não é zero: o Território 02 declara R$ 50 mil a mais e o 04, R$ 100 mil.
      * Mostrado na tela como resíduo da matriz, nunca redistribuído.
      */
     diferencaDaMatriz: number
@@ -47,9 +47,9 @@ export type LenteTerritorio = {
    */
   aviso: string
   /**
-   * A soma das margens fecha com o total declarado (R$ 77,5 mi), mas a
+   * A soma das margens fecha com o total declarado (R$ 52 mi), mas a
    * **abertura por vertical** não fecha com nenhuma das duas margens: soma
-   * R$ 77,377 mi. A diferença de R$ 123 mil é o que proíbe tratar vertical e
+   * R$ 51,85 mi. A diferença de R$ 150 mil é o que proíbe tratar vertical e
    * território como dois cortes do mesmo total.
    */
   reconciliacao: {

@@ -23,6 +23,7 @@ const LOGO_MARCA: Record<string, string> = {
   'Senior Capital': '/brand/marcas/senior-capital.png',
 }
 const TOTAL_GRUPOS = VERTICAIS.reduce((soma, v) => soma + v.grupos, 0)
+const MAIOR_PARTICIPACAO = Math.max(...VERTICAIS.map(v => v.participacao))
 
 /**
  * UFs de cada território, na mesma leitura do campo `ufs` do organograma:
@@ -276,7 +277,7 @@ function ColunaVertical({ vertical, indice }: { vertical: Vertical; indice: numb
         <p className="num relative mt-3 text-[28px] font-bold leading-none tracking-[-0.03em]">{formatarRealCompacto(vertical.mrr)}</p>
         <p className="relative mt-1 text-[12px] text-white/85">MRR · {pct(vertical.participacao)} da base · {grupos(vertical.grupos)} grupos</p>
         <span aria-hidden className="relative mt-3 block h-1.5 overflow-hidden rounded-full bg-white/25">
-          <motion.span className="block h-full rounded-full bg-white" initial={{ width: 0 }} whileInView={{ width: pct(vertical.participacao / 0.49) }} viewport={{ once: true }} transition={{ type: 'spring', stiffness: 90, damping: 22, delay: 0.2 + indice * 0.07 }} />
+          <motion.span className="block h-full rounded-full bg-white" initial={{ width: 0 }} whileInView={{ width: pct(vertical.participacao / MAIOR_PARTICIPACAO) }} viewport={{ once: true }} transition={{ type: 'spring', stiffness: 90, damping: 22, delay: 0.2 + indice * 0.07 }} />
         </span>
       </header>
 

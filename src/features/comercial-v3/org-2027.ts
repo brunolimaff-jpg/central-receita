@@ -5,6 +5,11 @@
  * "Organograma" e "Geografia de atuação — Territórios". O modelo está em
  * construção, sujeito a revisão orçamentária e discussão com o CE — por isso
  * os números aqui são a base de MRR declarada nos slides, não cálculo da carga.
+ *
+ * VALORES FICTÍCIOS: o repositório é público, então MRR, participação e grupos
+ * (por vertical e por território) foram trocados por números inventados, com a
+ * mesma forma dos originais — inclusive o resíduo da matriz por vertical, que
+ * continua não fechando com o total. Os valores reais ficam fora do git.
  * Cinco territórios: o 05 (Norte) faz novos negócios via canais e tem a base
  * anexa ao Território 02, por isso não traz grupos nem MRR próprios.
  */
@@ -39,12 +44,12 @@ export type Horizontal = {
 
 export const CSO: Pessoa = { nome: 'Hermínio Gastaldi', cargo: 'CSO' }
 
-export const MRR_TOTAL = 77.5e6
+export const MRR_TOTAL = 52e6
 
 export const VERTICAIS: Vertical[] = [
   {
     id: 'demais', nome: 'Demais Segmentos', cor: '#6b4fbb', icone: null,
-    mrr: 38e6, participacao: 0.49, grupos: 1634,
+    mrr: 24e6, participacao: 0.46, grupos: 1180,
     diretor: { nome: 'Giovanne Farias', cargo: 'Diretor de segmento' },
     gerentes: [
       { nome: 'José Tavares', cargo: 'Gerente de Vendas Base', escopo: 'Negócios Públicos', lideres: [
@@ -64,7 +69,7 @@ export const VERTICAIS: Vertical[] = [
   },
   {
     id: 'construcao', nome: 'Construção', cor: '#e0882b', icone: 'construcao',
-    mrr: 15e6, participacao: 0.19, grupos: 1299,
+    mrr: 11e6, participacao: 0.21, grupos: 860,
     diretor: { nome: 'Marcos Paulo Malagola', cargo: 'Diretor de segmento' },
     gerentes: [
       { nome: 'Alexandre Kahler', cargo: 'Gerente de Vendas Base', lideres: [
@@ -80,7 +85,7 @@ export const VERTICAIS: Vertical[] = [
   },
   {
     id: 'industria', nome: 'Indústria', cor: '#2f6fc6', icone: 'industria',
-    mrr: 14.5e6, participacao: 0.19, grupos: 752,
+    mrr: 10e6, participacao: 0.19, grupos: 540,
     diretor: { nome: null, cargo: 'Diretor de segmento' },
     gerentes: [
       { nome: 'Vitor Diego', cargo: 'Gerente de Vendas Base', lideres: [
@@ -93,7 +98,7 @@ export const VERTICAIS: Vertical[] = [
   },
   {
     id: 'agro', nome: 'Agronegócio', cor: '#2e8b57', icone: 'agronegocio',
-    mrr: 10e6, participacao: 0.13, grupos: 407,
+    mrr: 7e6, participacao: 0.13, grupos: 320,
     diretor: { nome: 'Fernando Silva', cargo: 'Diretor de segmento' },
     gerentes: [
       { nome: 'Matheus Martins', cargo: 'Gerente de Vendas Base', lideres: [
@@ -138,14 +143,14 @@ export type Territorio = {
 }
 
 export const TERRITORIOS: Territorio[] = [
-  { numero: 1, nome: 'Território 01', ufs: 'RS · SC · PR', cor: '#12b5bf', grupos: 1104, mrr: 21.2e6,
-    porVertical: { agro: { grupos: 109, mrr: 2.7e6 }, construcao: { grupos: 153, mrr: 2.2e6 }, industria: { grupos: 275, mrr: 5.0e6 }, demais: { grupos: 567, mrr: 11.3e6 } } },
-  { numero: 2, nome: 'Território 02', ufs: 'MT + MS · DF · GO / TO', cor: '#ee8f3f', grupos: 731, mrr: 10.0e6,
-    porVertical: { agro: { grupos: 94, mrr: 2.1e6 }, construcao: { grupos: 450, mrr: 3.6e6 }, industria: { grupos: 37, mrr: 0.677e6 }, demais: { grupos: 150, mrr: 3.6e6 } } },
-  { numero: 3, nome: 'Território 03', ufs: 'São Paulo Capital · Interior', cor: '#8cc63f', grupos: 1374, mrr: 30.5e6,
-    porVertical: { agro: { grupos: 103, mrr: 2.9e6 }, construcao: { grupos: 352, mrr: 5.9e6 }, industria: { grupos: 323, mrr: 6.3e6 }, demais: { grupos: 596, mrr: 15.4e6 } } },
-  { numero: 4, nome: 'Território 04', ufs: 'Nordeste · MG · RJ / ES', cor: '#2fae6c', grupos: 882, mrr: 15.8e6,
-    porVertical: { agro: { grupos: 101, mrr: 2.2e6 }, construcao: { grupos: 344, mrr: 3.3e6 }, industria: { grupos: 117, mrr: 2.4e6 }, demais: { grupos: 320, mrr: 7.8e6 } } },
+  { numero: 1, nome: 'Território 01', ufs: 'RS · SC · PR', cor: '#12b5bf', grupos: 770, mrr: 13.7e6,
+    porVertical: { agro: { grupos: 70, mrr: 1.6e6 }, construcao: { grupos: 110, mrr: 1.5e6 }, industria: { grupos: 190, mrr: 3.4e6 }, demais: { grupos: 400, mrr: 7.2e6 } } },
+  { numero: 2, nome: 'Território 02', ufs: 'MT + MS · DF · GO / TO', cor: '#ee8f3f', grupos: 530, mrr: 7.2e6,
+    porVertical: { agro: { grupos: 90, mrr: 2.0e6 }, construcao: { grupos: 300, mrr: 2.4e6 }, industria: { grupos: 30, mrr: 0.45e6 }, demais: { grupos: 110, mrr: 2.3e6 } } },
+  { numero: 3, nome: 'Território 03', ufs: 'São Paulo Capital · Interior', cor: '#8cc63f', grupos: 960, mrr: 19.7e6,
+    porVertical: { agro: { grupos: 80, mrr: 1.8e6 }, construcao: { grupos: 240, mrr: 4.1e6 }, industria: { grupos: 220, mrr: 4.2e6 }, demais: { grupos: 420, mrr: 9.6e6 } } },
+  { numero: 4, nome: 'Território 04', ufs: 'Nordeste · MG · RJ / ES', cor: '#2fae6c', grupos: 640, mrr: 11.4e6,
+    porVertical: { agro: { grupos: 80, mrr: 1.5e6 }, construcao: { grupos: 210, mrr: 2.9e6 }, industria: { grupos: 100, mrr: 1.9e6 }, demais: { grupos: 250, mrr: 5.0e6 } } },
   { numero: 5, nome: 'Território 05', ufs: 'Norte', cor: '#f2a974', grupos: 0, mrr: 0, porVertical: null,
     nota: ['Novos negócios via canais', 'Base anexa ao Território 02'] },
 ]

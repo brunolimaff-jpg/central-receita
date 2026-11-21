@@ -279,9 +279,9 @@ test('valor ausente na fila propaga nulo, não vira zero', () => {
 test('a lente de território calcula a diferença da matriz em vez de afirmá-la', () => {
   const lente = lenteTerritorios()
   assert.equal(lente.territorios.length, 5)
-  // A abertura por vertical é R$ 123 mil menor que o total declarado.
-  assert.equal(Math.round(lente.reconciliacao.diferencaDaMatriz), 123_000)
-  assert.equal(lente.reconciliacao.totalDeclarado, 77_500_000)
+  // A abertura por vertical é R$ 150 mil menor que o total declarado.
+  assert.equal(Math.round(lente.reconciliacao.diferencaDaMatriz), 150_000)
+  assert.equal(lente.reconciliacao.totalDeclarado, 52_000_000)
 })
 
 test('território sem base própria não aparece como zero', () => {
