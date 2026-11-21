@@ -8,6 +8,8 @@
     "build": "node scripts/build-sites.mjs",
     "build:static": "next build --webpack",
     "build:sites": "npm run build",
+    "build:visual": "node scripts/build-visual.mjs",
+    "preview:visual": "node scripts/serve-visual.mjs",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate --name shared_import"

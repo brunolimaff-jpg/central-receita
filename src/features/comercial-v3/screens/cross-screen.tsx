@@ -1,6 +1,7 @@
 import { GitFork } from 'lucide-react'
 import { selectOriginExamples } from '../acquisition'
 import { AcquisitionExampleTable } from '../components/acquisition-example-table'
+import { AvisoPreliminar } from '../components/aviso-preliminar'
 import { ViewToolbar } from '../components/view-toolbar'
 import type { Top10Row } from '../model'
 import type { CommercialNav } from '../nav'
@@ -28,6 +29,7 @@ export function CrossScreen({ rows, detalhes, query, nav }: CrossScreenProps) {
         trilha={[{ label: 'Visão Executiva', href: nav.href('home') }, { label: 'Cross' }]}
         voltar={{ label: 'Voltar à visão executiva', href: nav.href('home') }}
       />
+      <AvisoPreliminar area="Cross" />
 
       <header className="px-1 pb-1">
         <h1 className="revenue-heading flex items-center gap-3 text-[26px] font-bold leading-tight tracking-[-.035em] text-[#0d2340]">

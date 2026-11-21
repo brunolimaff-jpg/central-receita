@@ -30,7 +30,7 @@ export function FilterSelect({ label, value, options, onChange, icone }: FilterS
         aria-label={label}
         value={value}
         onChange={(evento) => onChange(evento.target.value)}
-        className={`h-11 w-full min-w-[148px] appearance-none cursor-pointer rounded-[10px] border-0 bg-transparent pr-9 text-[13px] font-semibold text-ink-strong outline-none transition-premium hover:bg-surface-sunken ${icone ? 'pl-9' : 'pl-3.5'}`}
+        className={`h-11 w-full min-w-[148px] appearance-none cursor-pointer rounded-[10px] border-0 bg-transparent pr-9 text-[13px] font-semibold text-ink-strong transition-premium hover:bg-surface-sunken ${icone ? 'pl-9' : 'pl-3.5'}`}
       >
         {options.map((opcao) => (
           <option key={opcao.value} value={opcao.value}>
