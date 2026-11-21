@@ -34,6 +34,8 @@ Seções da página, nesta ordem, cada uma com âncora na sidebar:
 
 Configurações (importação) continua como tela separada. Jornada, Sistema de Receita, Contas e Cross ficam com "Em breve", sem link.
 
+> **Decisão posterior (23/10/2026 — DECISÃO DO USUÁRIO, Bruno):** as quatro áreas acima foram **liberadas** na navegação, ainda como versão preliminar. Cada tela leva a faixa "em versão preliminar" no topo e o item do menu leva um ponto âmbar com texto acessível. O conteúdo segue sem aceite: o snapshot é demonstrativo, e o Sistema de Receita identifica a origem de cada bloco (KPIs e movimentos no snapshot; rail de filiais no agregado real de setembro). O aviso sai quando cada área passar pelo aceite. Esta nota prevalece sobre a linha anterior.
+
 ## Seção Forecast — somente o mês corrente (DECISÃO DO USUÁRIO)
 
 Sai o gráfico "Previsão por data de fechamento" (escada acumulada de contagem).

@@ -15,7 +15,7 @@ import {
   type CommercialPeriod,
   type CommercialView,
   type ForecastMovement,
-} from './types'
+} from './types.ts'
 
 /** Default exigido pelo plano (l.78-79): home / mês / todas as soluções / todas as filiais. */
 export const DEFAULT_COMMERCIAL_CONTEXT: CommercialContext = {
@@ -60,6 +60,26 @@ export function parseCommercialContext(params: URLSearchParams): CommercialConte
   const movement = params.get('movement')
   if (pertence(FORECAST_MOVEMENTS, movement)) contexto.movement = movement
 
+  /*
+   * Nó da estrutura na Carteira. Aceita qualquer identificador não vazio; quem
+   * valida se o nó existe é a tela, que cai na raiz quando não reconhece — a
+   * URL nunca é o lugar de provar que um nó existe.
+   */
+  const idNo = (params.get('no') ?? '').trim()
+  if (idNo !== '') contexto.no = idNo
+
+  /*
+   * `view=regional` era o nome do módulo antes de virar Territórios. Traduzir
+   * aqui, e não numa rota de redirect, mantém o link antigo funcionando sem
+   * uma ida a mais ao servidor — e sem deixar a URL velha sobreviver na barra.
+   */
+  if (contexto.view === 'regional') contexto.view = 'territorios'
+  if (contexto.from === 'regional') contexto.from = 'territorios'
+
+  // Território aberto. Vazio é o consolidado; quem valida se existe é a tela.
+  const territorio = (params.get('territorio') ?? '').trim()
+  if (territorio !== '') contexto.territorio = territorio
+
   const returnTo = retornoLocal(params.get('returnTo'))
   if (returnTo) contexto.returnTo = returnTo
 
@@ -70,18 +90,25 @@ export function parseCommercialContext(params: URLSearchParams): CommercialConte
  * Monta o href da raiz preservando o contexto. `view` e `period` sempre aparecem;
  * solução e filial só aparecem quando filtram algo, o que mantém a URL curta sem perder estado.
  * `movement` só é serializado quando informado — o recorte de movimento pertence ao Forecast.
+ *
+ * `extra.branch` existe para quando o destino muda a filial em vez de herdá-la:
+ * descer para uma filial em Territórios e voltar para "Todas". Sem ele, o href
+ * só repetia o branch atual e o nível não mudava; `ALL_FILTERS` limpa o parâmetro.
  */
 export function buildCommercialHref(
   view: CommercialView,
   context: Pick<CommercialContext, 'period' | 'solution' | 'branch'> & { query?: string; busca?: string; movement?: ForecastMovement | null },
-  extra?: { from?: CommercialView; opportunityId?: string; movement?: ForecastMovement | null; returnTo?: string },
+  extra?: { from?: CommercialView; opportunityId?: string; movement?: ForecastMovement | null; returnTo?: string; no?: string; territorio?: string; branch?: string },
 ): string {
   const params = new URLSearchParams()
   params.set('view', view)
   params.set('period', context.period)
   if (context.solution && context.solution !== ALL_FILTERS) params.set('solution', context.solution)
-  if (context.branch && context.branch !== ALL_FILTERS) params.set('branch', context.branch)
+  const filial = extra?.branch ?? context.branch
+  if (filial && filial !== ALL_FILTERS) params.set('branch', filial)
   if (extra?.opportunityId) params.set('op', extra.opportunityId)
+  if (extra?.no) params.set('no', extra.no)
+  if (extra?.territorio) params.set('territorio', extra.territorio)
   if (extra?.from) params.set('from', extra.from)
   const movement = extra?.movement === undefined ? context.movement : extra.movement
   if (movement) params.set('movement', movement)

@@ -7,8 +7,8 @@ import { avaliarArquivoSoltado, formatarTamanhoArquivo } from '../import-file'
 import { MetricDetail } from '../components/metric-detail'
 import { OpportunitiesForecastChart } from '../components/opportunities-forecast-chart'
 import type { ImportBatch, ImportIssue, ImportKind, ImportWorkspace, ImportedRecord } from '../manual-import'
-import { reconcileImports, groupForecastDates, isDuplicateImport, isValidImportReference, currentImportDate as localDate } from '../manual-import'
-import { readImportFile, saveImportDraft, sharedImportEnabled, type ImportDraft } from '../manual-import-client'
+import { fonteCarregada, reconcileImports, groupForecastDates, isDuplicateImport, isValidImportReference, currentImportDate as localDate } from '../manual-import'
+import { readImportFile, saveImportDraft, sharedImportEnabled, visualPreviewEnabled, type ImportDraft } from '../manual-import-client'
 import type { CommercialNav } from '../nav'
 
 const panel = 'rounded-[10px] border border-hairline bg-surface-raised p-5 shadow-[var(--sombra-painel)]'
@@ -220,6 +220,11 @@ export function ImportScreen({ draft, canImport, onSaved, loading, loadError, na
     opportunities: staged.opportunities ? { ...staged.opportunities, referenceDate } : draft?.opportunities ?? null,
     orders: staged.orders ? { ...staged.orders, referenceDate } : draft?.orders ?? null,
   }
+  /*
+   * O painel "O que já está carregado" fala só do que foi salvo. A leitura em
+   * curso aparece no cartão da fonte, onde está claro que ainda não entrou.
+   */
+  const carregadas = { opportunities: fonteCarregada(draft?.opportunities ?? null), orders: fonteCarregada(draft?.orders ?? null) }
   const reconciliation = reconcileImports(workspace.opportunities, workspace.orders)
   const changed = Boolean(staged.opportunities || staged.orders)
   const differentDates = Boolean(workspace.opportunities?.referenceDate && workspace.orders?.referenceDate && workspace.opportunities.referenceDate !== workspace.orders.referenceDate)
@@ -284,6 +289,11 @@ export function ImportScreen({ draft, canImport, onSaved, loading, loadError, na
     finally { setBusy(false) }
   }
 
+  if (visualPreviewEnabled) return <section className="revenue-page grid gap-4">
+    <h1 className="revenue-heading">Configurações</h1>
+    <p className="revenue-subtitle">Importação desativada na homologação visual. Navegue pelas telas com os dados fictícios; nenhum arquivo é lido ou armazenado.</p>
+  </section>
+
   if (sharedImportEnabled && !canImport) return <div className="revenue-page grid gap-4">
     <header>
       <h1 className="revenue-heading flex items-center gap-2"><Settings2 aria-hidden size={22} />Configurações</h1>
@@ -320,23 +330,22 @@ export function ImportScreen({ draft, canImport, onSaved, loading, loadError, na
     </section>
 
     {/* Cada fonte guarda seu próprio horário: dá para atualizar uma sem a outra. */}
-    {(workspace.opportunities || workspace.orders) ? (
+    {(carregadas.opportunities || carregadas.orders) ? (
       <section className={`${panel} grid gap-2`} aria-label="Horário de cada arquivo">
         <h2 className="text-[15px] font-bold text-ink-strong">O que já está carregado</h2>
         <ul className="grid gap-1.5 text-[13px] text-ink-muted">
           {(['opportunities', 'orders'] as const).map(kind => {
-            const fonte = workspace[kind]
+            const fonte = carregadas[kind]
             if (!fonte) return <li key={kind}><strong className="font-semibold text-ink-strong">{names[kind]}:</strong> nenhum arquivo carregado ainda.</li>
-            const quando = fonte.savedAt ?? fonte.importedAt
-            const horario = quando && Number.isFinite(Date.parse(quando))
-              ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(quando))
+            const horario = fonte.quando
+              ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(fonte.quando))
               : 'horário indisponível'
             return <li key={kind}>
               <strong className="font-semibold text-ink-strong">{names[kind]}:</strong> atualizado em {horario} · referência {displayDate(fonte.referenceDate)} · {fonte.filename ?? 'arquivo sem nome'}
             </li>
           })}
         </ul>
-        {Boolean(workspace.opportunities) !== Boolean(workspace.orders) && (
+        {Boolean(carregadas.opportunities) !== Boolean(carregadas.orders) && (
           <p className="rounded-[8px] bg-dado-atencao-suave px-3 py-2 text-[13px] text-dado-atencao">
             Só uma das planilhas está carregada. Pode confirmar assim mesmo: a seção da outra continua com os números que já tinha.
           </p>

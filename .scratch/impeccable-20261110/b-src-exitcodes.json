@@ -1,0 +1,7 @@
+{
+  "rules": 0,
+  "src": 2,
+  "target": "src/",
+  "mode": "static",
+  "config": "--no-config"
+}

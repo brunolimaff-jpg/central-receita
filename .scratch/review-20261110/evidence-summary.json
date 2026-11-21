@@ -1,0 +1,219 @@
+{
+  "base": "a19b38627a8db5fc27ca53e89bc131f49f015a3d",
+  "head": "f9fbff04a8a2903741521a37ebe0431c02c7ce55",
+  "checker": "0.16.3",
+  "staticScope": "src",
+  "static": {
+    "errors": 897,
+    "warnings": 424,
+    "notes": 14
+  },
+  "runtime": [
+    {
+      "view": "home",
+      "width": 1440,
+      "gate": false,
+      "overflow": false,
+      "errors": 11,
+      "warnings": 42,
+      "notes": 34,
+      "rules": {
+        "no-tiny-text": 10,
+        "legible-contrast": 18,
+        "text-not-clipped": 1,
+        "no-all-caps-sentences": 2,
+        "no-announcement-pill": 1,
+        "no-middle-dot-lists": 9,
+        "no-nested-cards": 9,
+        "no-repeated-label": 3,
+        "no-border-and-wide-shadow": 2,
+        "no-radial-halo": 5,
+        "no-colored-shadow": 11,
+        "no-ai-gradients": 1,
+        "no-arrow-suffix": 3,
+        "pulse-for-live-only": 1,
+        "image-not-broken": 11
+      }
+    },
+    {
+      "view": "home",
+      "width": 390,
+      "gate": false,
+      "overflow": false,
+      "errors": 0,
+      "warnings": 54,
+      "notes": 38,
+      "rules": {
+        "legible-contrast": 18,
+        "no-tiny-text": 12,
+        "text-not-clipped": 7,
+        "text-off-viewport-edge": 5,
+        "no-all-caps-sentences": 2,
+        "no-straggler": 4,
+        "no-announcement-pill": 1,
+        "no-middle-dot-lists": 9,
+        "no-nested-cards": 8,
+        "no-repeated-label": 3,
+        "no-border-and-wide-shadow": 2,
+        "no-radial-halo": 5,
+        "no-colored-shadow": 11,
+        "no-ai-gradients": 1,
+        "no-arrow-suffix": 3,
+        "no-marquee": 1
+      }
+    },
+    {
+      "view": "journey",
+      "width": 1440,
+      "gate": false,
+      "overflow": false,
+      "errors": 0,
+      "warnings": 50,
+      "notes": 15,
+      "rules": {
+        "no-tiny-text": 10,
+        "legible-contrast": 34,
+        "readable-measure": 1,
+        "no-announcement-pill": 1,
+        "no-nested-cards": 4,
+        "no-repeated-label": 12,
+        "no-radial-halo": 1,
+        "no-colored-shadow": 1,
+        "pulse-for-live-only": 1
+      }
+    },
+    {
+      "view": "journey",
+      "width": 390,
+      "gate": false,
+      "overflow": false,
+      "errors": 0,
+      "warnings": 50,
+      "notes": 6,
+      "rules": {
+        "no-tiny-text": 12,
+        "legible-contrast": 34,
+        "no-straggler": 1,
+        "balanced-headings": 2,
+        "no-announcement-pill": 1,
+        "no-nested-cards": 3,
+        "no-repeated-label": 1,
+        "no-radial-halo": 1,
+        "no-marquee": 1
+      }
+    },
+    {
+      "view": "config",
+      "width": 1440,
+      "gate": false,
+      "overflow": false,
+      "errors": 0,
+      "warnings": 6,
+      "notes": 3,
+      "rules": {
+        "no-tiny-text": 5,
+        "no-announcement-pill": 1,
+        "no-radial-halo": 1,
+        "no-colored-shadow": 1,
+        "pulse-for-live-only": 1
+      }
+    },
+    {
+      "view": "config",
+      "width": 390,
+      "gate": false,
+      "overflow": false,
+      "errors": 0,
+      "warnings": 2,
+      "notes": 3,
+      "rules": {
+        "text-off-viewport-edge": 1,
+        "no-announcement-pill": 1,
+        "no-radial-halo": 1,
+        "no-colored-shadow": 1,
+        "no-marquee": 1
+      }
+    },
+    {
+      "view": "territorios",
+      "width": 1440,
+      "gate": false,
+      "overflow": false,
+      "errors": 0,
+      "warnings": 18,
+      "notes": 12,
+      "rules": {
+        "no-tiny-text": 10,
+        "no-all-caps-sentences": 1,
+        "legible-contrast": 4,
+        "readable-measure": 1,
+        "no-straggler": 1,
+        "no-eyebrow-label": 1,
+        "no-middle-dot-lists": 3,
+        "no-nested-cards": 1,
+        "no-radial-halo": 1,
+        "no-colored-shadow": 6,
+        "pulse-for-live-only": 1
+      }
+    },
+    {
+      "view": "territorios",
+      "width": 390,
+      "gate": false,
+      "overflow": false,
+      "errors": 0,
+      "warnings": 20,
+      "notes": 10,
+      "rules": {
+        "no-tiny-text": 11,
+        "no-all-caps-sentences": 1,
+        "legible-contrast": 4,
+        "text-off-viewport-edge": 1,
+        "no-eyebrow-label": 1,
+        "no-middle-dot-lists": 3,
+        "no-radial-halo": 1,
+        "no-colored-shadow": 5,
+        "no-side-stripe": 2,
+        "no-marquee": 1
+      }
+    }
+  ],
+  "imageRecheck": {
+    "broken": 0,
+    "errors": 0,
+    "contrastAlerts": 18
+  },
+  "tests": {
+    "pass": 353,
+    "fail": 0
+  },
+  "typecheckExit": 0,
+  "visualBuild": {
+    "files": 118,
+    "bytes": 2620395,
+    "hashMismatch": 0,
+    "photos": 16,
+    "apiMarkers": 0,
+    "d1Markers": 0,
+    "commercialBranchMarkers": 0
+  },
+  "publicRead": {
+    "htmlStatus": 200,
+    "appChunkStatus": 200,
+    "containsNames": true,
+    "containsPlanningLabels": true,
+    "containsPlanningMagnitude": true,
+    "samplePhotoStatus": 200,
+    "authenticated": false
+  },
+  "secretPatternScan": {
+    "textScanned": 595,
+    "skipped": 264,
+    "matches": 0
+  },
+  "remarks": [
+    "Raw initial runtime had 11 image loading alerts; after awaiting decode none remained.",
+    "Portaria-only scan is not validation of internal screens.",
+    "No credentials or commercial values copied into this summary."
+  ]
+}

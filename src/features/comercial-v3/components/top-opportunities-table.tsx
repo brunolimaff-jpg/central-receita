@@ -38,7 +38,7 @@ const COLUNAS = [
   'Executivo',
   'Filial',
   'Movimento',
-  'Δ valor',
+  'Variação',
   'Receita recorrente',
   'Valor atual',
   FORECAST_OFFICIAL_LABEL,

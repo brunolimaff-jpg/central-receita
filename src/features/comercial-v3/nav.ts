@@ -8,7 +8,7 @@
 
 import type { CommercialPeriod, CommercialView, ForecastMovement } from './types'
 
-const SIDEBAR_VIEWS = ['home', 'journey', 'system', 'opportunities', 'accounts', 'new-name', 'cross', 'forecast', 'config'] as const
+const SIDEBAR_VIEWS = ['home', 'journey', 'system', 'opportunities', 'accounts', 'new-name', 'cross', 'forecast', 'territorios', 'config'] as const
 type SidebarView = (typeof SIDEBAR_VIEWS)[number]
 
 /** Resolve a âncora visual do menu para as telas de drill-down. */
@@ -30,6 +30,14 @@ export type CommercialHrefExtra = {
   opportunityId?: string
   movement?: ForecastMovement | null
   returnTo?: string
+  /** Território aberto em Territórios. Ausente = Visão CSO. */
+  territorio?: string
+  /**
+   * Filial ativa em Territórios. Usa o mesmo parâmetro `branch` do resto do app,
+   * então o filtro de filial e o nível aberto são a mesma coisa — dois
+   * parâmetros permitiriam "filtro SP com filial DF aberta".
+   */
+  branch?: string
 }
 
 export type CommercialNav = {
@@ -37,6 +45,12 @@ export type CommercialNav = {
   href: (view: CommercialView, extra?: CommercialHrefExtra) => string
   /** Href para o Forecast com o movimento selecionado (plano Task 7 Step 1, l.650). */
   movementHref: (movement: ForecastMovement) => string
+  /**
+   * Href para a Carteira num nó da estrutura. `no` ausente ou igual à raiz
+   * devolve a URL sem o parâmetro, para o link do CSO ser o mesmo endereço da
+   * carteira inteira.
+   */
+  carteiraHref: (noId?: string | null) => string
   /** Href para a tela da filial, preservando período e solução e registrando a origem. */
   branchHref: (branch: string, from?: CommercialView) => string
   onPeriod: (period: CommercialPeriod) => void

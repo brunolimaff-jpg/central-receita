@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
-import { motion, useMotionValue, useReducedMotion, useSpring } from 'framer-motion'
+import { AnimatePresence, animate, motion, useMotionValue, useMotionTemplate, useReducedMotion, useSpring, useTransform } from 'framer-motion'
 import {
   dateChartPositions,
   escalaDeValores,
@@ -100,7 +100,34 @@ const ESQUERDA = 78
 const MARGEM_DIREITA = 24
 const TOPO = 18
 const ESPACO_ROTULOS_X = 40
-const DESENHO = { duration: 0.42, ease: [0.2, 0, 0, 1] as const }
+const DESENHO = { duration: 0.9, ease: [0.2, 0, 0, 1] as const }
+const MOLA_GUIA = { stiffness: 320, damping: 34, mass: 0.7 }
+
+/** Valor que rola do anterior ao novo ao trocar de ponto; nasce já no valor, sem contar de zero. */
+function ValorRolando({ valor }: { valor: number }) {
+  const alvo = useMotionValue(valor)
+  const mola = useSpring(alvo, { stiffness: 260, damping: 32, mass: 0.6 })
+  const texto = useTransform(mola, atual => formatarRealCompacto(atual))
+  useEffect(() => { alvo.set(valor) }, [valor, alvo])
+  return <motion.span className="tabular-nums">{texto}</motion.span>
+}
+
+/** Ponto que desliza entre colunas seguindo a série, com halo. */
+function CursorDaSerie({ x, y, cor }: { x: number; y: number; cor: string }) {
+  const alvoX = useMotionValue(x)
+  const alvoY = useMotionValue(y)
+  const mx = useSpring(alvoX, MOLA_GUIA)
+  const my = useSpring(alvoY, MOLA_GUIA)
+  useEffect(() => { alvoX.set(x); alvoY.set(y) }, [x, y, alvoX, alvoY])
+  return (
+    <motion.g aria-hidden pointerEvents="none" style={{ x: mx, y: my }}
+      initial={{ opacity: 0, scale: 0.4 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.4 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 26 }}>
+      <circle r="13" fill={cor} opacity="0.16" />
+      <circle r="6.5" fill={cor} stroke="white" strokeWidth="2.5" />
+    </motion.g>
+  )
+}
 
 const COR: Record<TrajectorySeries['kind'], string> = {
   previsto: 'var(--verde-institucional)',
@@ -185,8 +212,10 @@ export function TrajectoryChart({ model, altura = ALTURA }: { model: TrajectoryM
   const [indiceEscolhido, setIndiceEscolhido] = useState<number | null>(null)
   const [largura, setLargura] = useState(LARGURA_PADRAO)
   const areaRef = useRef<HTMLDivElement>(null)
-  const guiaMovel = useMotionValue(ESQUERDA)
-  const guia = useSpring(guiaMovel, { stiffness: 400, damping: 40 })
+  const guia = useMotionValue(ESQUERDA)
+  const larguraMovel = useMotionValue(LARGURA_PADRAO)
+  const percentualMovel = useTransform([guia, larguraMovel], ([gx, lw]: number[]) => Math.min(96, Math.max(4, gx / lw * 100)))
+  const leftCartao = useMotionTemplate`${percentualMovel}%`
   const transicao = reduzido ? { duration: 0 } : DESENHO
 
   /*
@@ -200,11 +229,13 @@ export function TrajectoryChart({ model, altura = ALTURA }: { model: TrajectoryM
     if (!elemento || typeof ResizeObserver === 'undefined') return
     const observador = new ResizeObserver(entradas => {
       const medida = entradas[0]?.contentRect.width
-      if (medida && medida > 0) setLargura(Math.round(medida))
+      if (medida && medida > 0) { setLargura(Math.round(medida)); larguraMovel.set(Math.round(medida)) }
     })
     observador.observe(elemento)
     return () => observador.disconnect()
-  }, [])
+    // O gráfico nasce vazio enquanto a carga chega: sem refazer a medida
+    // quando os dados aparecem, o SVG ficava em 960px encolhido na tela.
+  }, [model.regime === 'vazio'])
 
   const direita = Math.max(ESQUERDA + 120, largura - MARGEM_DIREITA)
   const base = altura - ESPACO_ROTULOS_X
@@ -223,6 +254,17 @@ export function TrajectoryChart({ model, altura = ALTURA }: { model: TrajectoryM
       .filter((valor): valor is number => valor !== null)
     return escalaDeValores(valores)
   }, [model.series])
+
+  /* Primeira entrada salta direto ao ponto; dali em diante a guia desliza. */
+  const alvoGuia = indicePointer ?? indiceFoco ?? indiceEscolhido
+  const xAtivo = alvoGuia !== null && alvoGuia < colunas.length ? (xPorColuna[alvoGuia] ?? ESQUERDA) : null
+  const estavaAtivo = useRef(false)
+  useEffect(() => {
+    if (xAtivo === null) { estavaAtivo.current = false; return }
+    if (!estavaAtivo.current) guia.jump(xAtivo)
+    else animate(guia, xAtivo, { type: 'spring', ...MOLA_GUIA })
+    estavaAtivo.current = true
+  }, [xAtivo, guia])
 
   if (model.regime === 'vazio') {
     return (
@@ -290,7 +332,6 @@ export function TrajectoryChart({ model, altura = ALTURA }: { model: TrajectoryM
   const colunaAtiva = indiceAtivo !== null ? colunas[indiceAtivo] : null
 
   const ativar = (indice: number) => {
-    guiaMovel.set(xPorColuna[indice] ?? ESQUERDA)
     setIndiceFoco(null)
     setIndiceEscolhido(indice)
     document.getElementById(`trajectory-ponto-${indice}`)?.focus()
@@ -319,7 +360,6 @@ export function TrajectoryChart({ model, altura = ALTURA }: { model: TrajectoryM
     const indice = nearestChartPoint(ponto.x, xPorColuna)
     if (indice < 0) return
     setIndicePointer(indice)
-    guiaMovel.set(xPorColuna[indice])
   }
 
   const percentualGuia = indiceAtivo !== null ? (xPorColuna[indiceAtivo] ?? ESQUERDA) / largura * 100 : 50
@@ -329,12 +369,22 @@ export function TrajectoryChart({ model, altura = ALTURA }: { model: TrajectoryM
   // do eixo continua presente, porque a primeira ocorrência dela é ela mesma.
   const marcas = (() => {
     const vistos = new Set<number>()
-    return thinAxisPositions(colunas.length).filter(indice => {
+    const unicas = thinAxisPositions(colunas.length).filter(indice => {
       const x = xPorColuna[indice]
       if (vistos.has(x)) return false
       vistos.add(x)
       return true
     })
+    // Datas a menos de 56px da anterior encavalam ("20/10 21/10"); a última
+    // data do eixo sempre fica, e quem sai é a vizinha.
+    const espacadas: number[] = []
+    unicas.forEach((indice, posicao) => {
+      const anterior = espacadas.at(-1)
+      const perto = anterior !== undefined && xPorColuna[indice] - xPorColuna[anterior] < 56
+      if (!perto) espacadas.push(indice)
+      else if (posicao === unicas.length - 1 && espacadas.length > 1) espacadas[espacadas.length - 1] = indice
+    })
+    return espacadas
   })()
   const ultimaMarca = marcas[marcas.length - 1]
   /*
@@ -412,14 +462,17 @@ export function TrajectoryChart({ model, altura = ALTURA }: { model: TrajectoryM
           {colunas.flatMap((coluna, indice) => coluna.valores.flatMap((valor, posicao) => {
             if (valor === null) return null
             return (
-              <circle
+              <motion.circle
                 key={`ponto-${indice}-${posicao}`}
                 cx={xPorColuna[indice]}
                 cy={y(valor)}
-                r={indice === indiceAtivo ? 6 : 4.5}
+                r={3.5}
                 fill={COR[model.series[posicao].kind]}
                 stroke="white"
-                strokeWidth="2"
+                strokeWidth="1.5"
+                initial={reduzido ? false : { opacity: 0 }}
+                animate={{ opacity: inspecionando && indice !== indiceAtivo ? 0.45 : 1 }}
+                transition={reduzido ? { duration: 0 } : { duration: 0.25, delay: inspecionando ? 0 : 0.6 + indice / Math.max(1, colunas.length) * 0.3 }}
               />
             )
           }))}
@@ -431,25 +484,11 @@ export function TrajectoryChart({ model, altura = ALTURA }: { model: TrajectoryM
             </motion.g>
           )}
 
-          {rotulos.map(rotulo => {
-            const ativo = rotulo.coluna === indiceAtivo
-            if (!rotulosVisiveis.has(rotulo.id) && !ativo) return null
-            const ancoradoFim = rotulo.x > direita - 130
-            const x = Math.min(Math.max(rotulo.x + (ancoradoFim ? -9 : 9), ESQUERDA + 4), direita - 4)
-            return (
-              <text
-                key={`rotulo-${rotulo.id}`}
-                x={x}
-                y={Math.max(rotulo.y - 10, TOPO + 10)}
-                textAnchor={ancoradoFim ? 'end' : 'start'}
-                fill={rotulo.cor}
-                fontSize="12"
-                fontWeight="700"
-              >
-                {rotulo.texto}
-              </text>
-            )
-          })}
+          <AnimatePresence>
+            {indiceAtivo !== null && colunas[indiceAtivo].valores.map((valor, posicao) => valor === null ? null : (
+              <CursorDaSerie key={`cursor-${posicao}`} x={xPorColuna[indiceAtivo] ?? ESQUERDA} y={y(valor)} cor={COR[model.series[posicao].kind]} />
+            ))}
+          </AnimatePresence>
 
           {marcas.map(indice => (
             <text
@@ -466,25 +505,29 @@ export function TrajectoryChart({ model, altura = ALTURA }: { model: TrajectoryM
           ))}
         </svg>
 
-        {inspecionando && colunaAtiva && leitura.length > 0 && (
-          <div
-            className="pointer-events-none absolute top-3 z-10 w-max max-w-[min(260px,85%)] rounded-lg border border-hairline bg-white/95 px-3 py-2 shadow-lg"
-            style={{
-              left: `clamp(4%, ${percentualGuia}%, 96%)`,
-              transform: cartaoADireita ? 'translateX(12px)' : 'translateX(calc(-100% - 12px))',
-            }}
-          >
-            <span className="block text-[11px] font-semibold text-ink-muted">{colunaAtiva.label}</span>
-            {leitura.map(item => (
-              <strong key={item.rotulo} className="num block text-[13px] font-bold" style={{ color: item.cor }}>
-                {item.rotulo} {formatarRealCompacto(item.valor)}
-              </strong>
-            ))}
-          </div>
-        )}
+        <AnimatePresence>
+          {inspecionando && colunaAtiva && leitura.length > 0 && (
+            <motion.div
+              key="cartao"
+              className="pointer-events-none absolute top-3 z-10 w-max max-w-[min(260px,85%)] rounded-xl border border-white/70 bg-white/80 px-3 py-2 shadow-lg backdrop-blur-md"
+              style={{ left: leftCartao }}
+              initial={{ opacity: 0, y: 6, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1, x: cartaoADireita ? 14 : 'calc(-100% - 14px)' }}
+              exit={{ opacity: 0, y: 6, scale: 0.96 }}
+              transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+            >
+              <span className="block text-[11px] font-semibold text-ink-muted">{colunaAtiva.label}</span>
+              {leitura.map(item => (
+                <strong key={item.rotulo} className="num block text-[13px] font-bold" style={{ color: item.cor }}>
+                  {item.rotulo} <ValorRolando valor={item.valor} />
+                </strong>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <div className="mt-1 flex min-w-0 gap-1 overflow-x-auto scroll-discreta" aria-label="Inspecionar datas da trajetória">
+      <div className="sr-only focus-within:not-sr-only focus-within:mt-1 focus-within:flex focus-within:min-w-0 focus-within:gap-1 focus-within:overflow-x-auto" aria-label="Inspecionar datas da trajetória">
         {colunas.map((coluna, indice) => {
           const resumo = lerColuna(indice).map(item => descrever(item.rotulo, item.valor)).join(', ')
           return (
@@ -494,9 +537,9 @@ export function TrajectoryChart({ model, altura = ALTURA }: { model: TrajectoryM
               type="button"
               aria-pressed={indiceEscolhido === indice}
               aria-label={`Inspecionar ${coluna.label}${resumo ? `: ${resumo}` : ''}`}
-              onPointerEnter={event => { if (event.pointerType !== 'touch') { setIndicePointer(indice); guiaMovel.set(xPorColuna[indice]) } }}
+              onPointerEnter={event => { if (event.pointerType !== 'touch') { setIndicePointer(indice); } }}
               onPointerLeave={event => { if (event.pointerType !== 'touch') setIndicePointer(null) }}
-              onFocus={() => { setIndicePointer(null); setIndiceFoco(indice); guiaMovel.set(xPorColuna[indice]) }}
+              onFocus={() => { setIndicePointer(null); setIndiceFoco(indice); }}
               onBlur={() => setIndiceFoco(null)}
               onClick={() => setIndiceEscolhido(indice)}
               onKeyDown={event => navegar(event, indice)}
@@ -508,10 +551,8 @@ export function TrajectoryChart({ model, altura = ALTURA }: { model: TrajectoryM
         })}
       </div>
 
-      <div role="status" aria-live="polite" className="mt-2 min-h-9 rounded-[8px] border border-hairline bg-white/75 px-3 py-2 text-[12px]">
-        {colunaAtiva && leitura.length > 0
-          ? <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1"><span className="text-ink-muted">{colunaAtiva.label}</span>{leitura.map(item => <strong key={item.rotulo} className="num font-bold" style={{ color: item.cor }}>{item.rotulo} {formatarRealCompacto(item.valor)}</strong>)}</span>
-          : <span className="text-ink-muted">Passe o mouse ou use Tab e as setas para inspecionar o acumulado de cada data.</span>}
+      <div role="status" aria-live="polite" className={colunaAtiva && leitura.length > 0 ? 'mt-2 rounded-[8px] border border-hairline bg-white/75 px-3 py-2 text-[12px]' : 'sr-only'}>
+        {colunaAtiva && leitura.length > 0 && <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1"><span className="text-ink-muted">{colunaAtiva.label}</span>{leitura.map(item => <strong key={item.rotulo} className="num font-bold" style={{ color: item.cor }}>{item.rotulo} {formatarRealCompacto(item.valor)}</strong>)}</span>}
       </div>
 
       <footer className="mt-3 flex flex-wrap items-baseline gap-x-6 gap-y-1 border-t border-hairline pt-3 text-[12px]">

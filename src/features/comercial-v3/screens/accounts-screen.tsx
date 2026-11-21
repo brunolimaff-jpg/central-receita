@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Building2, ChevronDown, Users } from 'lucide-react'
+import { AvisoPreliminar } from '../components/aviso-preliminar'
 import { formatarMilhoes, formatarOportunidades } from '../format'
 import type { Top10Row } from '../model'
 import type { CommercialNav } from '../nav'
@@ -31,10 +32,11 @@ export function AccountsScreen({ rows, detalhes, query, nav }: AccountsScreenPro
         <p className="revenue-subtitle mt-1 text-[15px] text-[#253b68]">
           Clientes, responsáveis e oportunidades disponíveis neste recorte.
         </p>
-        <p className="mt-2 rounded-[8px] bg-[#fff8e9] px-3 py-2 text-[12px] text-[#6d571f]">
-          Cenário simulado. A associação entre cliente e oportunidades segue o nome de conta do mock.
-        </p>
       </header>
+      <AvisoPreliminar area="Contas" />
+      <p className="rounded-[8px] bg-[#fff8e9] px-3 py-2 text-[12px] text-[#6d571f]">
+        Cenário simulado. A associação entre cliente e oportunidades segue o nome de conta do mock.
+      </p>
 
       <section aria-label="Clientes com oportunidades" className={panel}>
         <div className="flex flex-wrap items-start justify-between gap-3">

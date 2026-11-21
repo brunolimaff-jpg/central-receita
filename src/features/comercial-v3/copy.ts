@@ -14,7 +14,7 @@ import { AGENT_DEMO_FOOTER, AGENT_DEMO_SNAPSHOT } from './demo-display'
 export const HOME_COPY = {
   greeting: 'Visão Executiva',
   greetingEmoji: '👋',
-  briefingTitle: 'Briefing de hoje',
+  briefingTitle: 'Resumo de hoje',
   briefingSubtitle: 'Principais movimentos e sinais do período.',
   agentCta: 'Abrir agente comercial',
 } as const
@@ -29,6 +29,7 @@ export const KPI_LABELS: Record<KpiKey, string> = {
 
 export const VIEW_LABELS: Record<CommercialView, string> = {
   home: 'Visão Executiva',
+  diretorias: 'Diretorias',
   agent: 'Agente Comercial',
   journey: 'Jornada',
   system: 'Sistema de Receita',
@@ -39,6 +40,9 @@ export const VIEW_LABELS: Record<CommercialView, string> = {
   cross: 'Cross',
   branch: 'Filiais',
   opportunity: 'Oportunidade',
+  carteira: 'Carteira',
+  territorios: 'Territórios',
+  regional: 'Territórios',
   config: 'Configurações',
 }
 
@@ -54,6 +58,7 @@ export const PERIOD_LABELS: Record<CommercialPeriod, string> = {
  */
 export const VOLTAR_POR_ORIGEM: Record<CommercialView, string> = {
   home: 'Voltar à visão executiva',
+  diretorias: 'Voltar às diretorias',
   agent: 'Voltar ao agente',
   journey: 'Voltar à jornada',
   system: 'Voltar ao sistema de receita',
@@ -64,6 +69,9 @@ export const VOLTAR_POR_ORIGEM: Record<CommercialView, string> = {
   cross: 'Voltar ao Cross',
   branch: 'Voltar à filial',
   opportunity: 'Voltar à visão executiva',
+  carteira: 'Voltar à carteira',
+  territorios: 'Voltar aos Territórios',
+  regional: 'Voltar aos Territórios',
   config: 'Voltar às configurações',
 }
 

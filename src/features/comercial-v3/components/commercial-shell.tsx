@@ -96,6 +96,7 @@ export function CommercialShell({
           <div className="revenue-blob revenue-blob-2" />
           <div className="revenue-blob revenue-blob-3" />
           <div className="revenue-blob revenue-blob-4" />
+          <div className="revenue-blob revenue-blob-5" />
           <div className="revenue-grain" />
         </div>
         <div aria-hidden className="revenue-bg-faixa" />

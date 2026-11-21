@@ -33,7 +33,7 @@ export function MovementTable({ linhas, vazio, legenda, limite = 10 }: {
               <th scope="col">Conta</th>
               <th scope="col" title="Campo representative da carga; confirmar com a Fabi se é a filial">Representante / unidade</th>
               <th scope="col">Movimento</th>
-              <th scope="col" className="text-right">Δ valor</th>
+              <th scope="col" className="text-right">Variação</th>
               <th scope="col" className="text-right">Valor</th>
               <th scope="col" className="text-right">Previsão</th>
             </tr>
