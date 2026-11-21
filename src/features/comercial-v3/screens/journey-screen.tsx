@@ -1,5 +1,6 @@
 import { ArrowRight, BarChart3, Building2, ChevronRight, Clock3, Database, FileText, List, RefreshCw, Search, ShoppingCart, Target, TrendingUp, TriangleAlert, Trophy, Truck, UserPlus } from 'lucide-react'
 import { VOLTAR_POR_ORIGEM } from '../copy'
+import { AvisoPreliminar } from '../components/aviso-preliminar'
 import { TopOpportunitiesTable } from '../components/top-opportunities-table'
 import { MetricDetail } from '../components/metric-detail'
 import { filterOpportunityRows, type Top10Row } from '../model'
@@ -138,6 +139,7 @@ export function JourneyScreen({ rows, detalhes, query, nav, solucao }: JourneySc
   const buscando = query.trim() !== ''
   return <div className="revenue-page grid min-w-0 gap-3">
     <header className="relative px-1 pb-1"><a href={nav.href('home')} aria-label={VOLTAR_POR_ORIGEM.home} className="mb-1 inline-block text-[12px] text-[#526b98] hover:underline focus-visible:outline-2 focus-visible:outline-[#00968c]">← Visão Executiva</a><h2 className="revenue-heading flex items-center gap-3 text-[32px] font-bold leading-tight tracking-[-.035em] text-[#071648]">Da origem à retenção <TrendingUp className="text-[#00968c]" size={29}/></h2><p className="revenue-subtitle mt-1 text-[15px] text-[#253b68]">Acompanhe o fluxo da receita em toda a jornada, da demanda à retenção.</p><p className="mt-1 text-[12px] text-[#50647d]">Demonstrativo fixo: etapas, gráficos e eventos não são dados reais e não respondem aos filtros. O retrato V3 aparece abaixo.</p></header>
+    <AvisoPreliminar area="Jornada" />
     <section role="region" aria-label="Etapas conceituais demonstrativas da jornada" tabIndex={0} className="min-w-0 overflow-x-auto rounded-[10px] focus-visible:outline-2 focus-visible:outline-[#00968c]">
       <ol className="grid min-w-[1020px] grid-cols-11 gap-px">{ETAPAS_DEMO.map((stage,index)=>{const Icon=stage.icon;return <li key={stage.label} className="relative grid min-h-[137px] justify-items-center content-center gap-1 rounded-[10px] bg-white/95 px-1.5 py-2.5 text-center"><span className={'mb-1 grid h-10 w-12 place-items-center rounded-[10px] '+ICON_TONES[stage.tone as keyof typeof ICON_TONES]}><Icon size={23}/></span><strong className="text-[12px] text-[#071648]">{stage.label}</strong><span className="num text-[20px] font-bold text-[#071648]">{stage.value}</span><small className="text-[12px] font-bold text-[#009c80]">{stage.rate}</small><small className="text-[12px] text-[#667ca5]">{stage.detail}</small>{index<10&&<ChevronRight aria-hidden size={17} className="absolute -right-2 top-16 z-10 text-[#617aa4]"/>}</li>})}</ol>
     </section>

@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { CommercialShell } from './components/commercial-shell'
+import { TelaBloqueio } from './components/tela-bloqueio'
+import { CHAVE_BLOQUEIO, estaLiberado } from './tela-bloqueio'
 import { buildCommercialHref, commercialReturnHref, parseCommercialContext } from './context'
 import { selectOpportunityLife } from './opportunity-life'
 import { mesCurto } from './mock-data'
@@ -19,7 +21,11 @@ import {
 } from './model'
 import { globalSearchDestination, type CommercialHrefExtra, type CommercialNav } from './nav'
 import { selectOpportunityDetails } from './opportunity-details'
-import { loadImportDraft, loadPreviousDraft, sharedImportEnabled, type ImportDraft } from './manual-import-client'
+import { REGIONAL_SNAPSHOT } from './regional/regional-mock'
+import { ARVORE } from './carteira-arvore'
+import { coberturaDePara } from './carteira-de-para'
+import { montarCarteira } from './carteira-model'
+import { loadImportDraft, loadPreviousDraft, sharedImportEnabled, visualPreviewEnabled, type ImportDraft } from './manual-import-client'
 import { ExecutivePage } from './screens/executive-page'
 import {
   type CommercialFilters,
@@ -49,6 +55,8 @@ const NewNameScreen = dynamic(() => import('./screens/new-name-screen').then(m =
 const SystemScreen = dynamic(() => import('./screens/system-screen').then(m => m.SystemScreen))
 const OpportunitiesScreen = dynamic(() => import('./screens/opportunities-screen').then(m => m.OpportunitiesScreen))
 const OpportunityScreen = dynamic(() => import('./screens/opportunity-screen').then(m => m.OpportunityScreen))
+const CarteiraScreen = dynamic(() => import('./screens/carteira-screen').then(m => m.CarteiraScreen))
+const TerritoriosScreen = dynamic(() => import('./screens/territorios-screen').then(m => m.TerritoriosScreen))
 
 /** Telas que compõem a página corrida com a carga real (sem demo=1). */
 const PAGINA_CORRIDA: CommercialView[] = ['home', 'forecast', 'new-name', 'opportunities']
@@ -58,17 +66,61 @@ export function CommercialV3App() {
   const searchParams = useSearchParams()
   const [importDraft, setImportDraft] = useState<ImportDraft | null>(null)
   const [previousImportDraft, setPreviousImportDraft] = useState<ImportDraft | null>(null)
-  const [canImport, setCanImport] = useState(!sharedImportEnabled)
+  const [canImport, setCanImport] = useState(!sharedImportEnabled && !visualPreviewEnabled)
   const [importLoading, setImportLoading] = useState(true)
   const [importError, setImportError] = useState('')
   const importEpoch = useRef(0)
+  /*
+   * Bloqueio da demonstração. Estado inicialmente nulo porque o servidor não
+   * conhece o armazenamento: um valor fixo aqui faria a árvore do HTML sair
+   * diferente da hidratada. Na reconciliação o valor real é lido antes da
+   * pintura, então não há piscada de conteúdo liberado.
+   *
+   * Só a publicação visual é bloqueada. Em desenvolvimento a porta atrapalharia
+   * o trabalho, e o `build:visual` é o único pacote público.
+   */
+  const [liberado, setLiberado] = useState<boolean | null>(visualPreviewEnabled ? false : true)
+  useEffect(() => {
+    if (!visualPreviewEnabled) return
+    try {
+      setLiberado(estaLiberado(window.localStorage.getItem(CHAVE_BLOQUEIO)))
+    } catch {
+      setLiberado(false)
+    }
+  }, [])
   useEffect(() => {
     let active = true
+    let prazo: number | undefined
+    /*
+     * Prazo de segurança: se a leitura da carga não responder (IndexedDB
+     * travado por outra aba, armazenamento bloqueado), a tela não pode ficar
+     * em "Carregando a última carga…" para sempre.
+     *
+     * O prazo pertence à consulta vigente (identificada por epoch): uma
+     * consulta nova cancela o prazo da anterior e arma o seu, senão o prazo
+     * de uma consulta velha pode anunciar erro sobre dados que chegaram —
+     * ou ser limpo por uma consulta que terminou, deixando a nova sem rede.
+     *
+     * O prazo NÃO vira estado vazio: "não consegui consultar" e "não há
+     * carga" são fatos diferentes, e trocar um pelo outro esconde falha. O
+     * vazio só aparece quando a consulta respondeu que não há nada.
+     */
+    const armarPrazo = (epoch: number) => {
+      window.clearTimeout(prazo)
+      prazo = window.setTimeout(() => {
+        if (!active || epoch !== importEpoch.current) return
+        setImportLoading(false)
+        setImportError(atual => atual || (sharedImportEnabled
+          ? 'A consulta da última carga não terminou. Verifique a conexão e tente novamente.'
+          : 'A consulta da prévia local não terminou. Outra aba pode estar segurando o armazenamento; feche as outras abas da Central e tente novamente.'))
+      }, 15000)
+    }
     const refresh = () => {
       const epoch = ++importEpoch.current
+      armarPrazo(epoch)
       return Promise.all([loadImportDraft(), loadPreviousDraft()]).then(([access, previous]) => { if (active && epoch === importEpoch.current) { setImportDraft(access.draft); setPreviousImportDraft(previous); setCanImport(access.canImport); setImportError('') } })
         .catch(error => { if (active && epoch === importEpoch.current) { setImportError(error instanceof Error ? error.message : 'Prévia local indisponível.'); if (sharedImportEnabled) { setCanImport(false); setImportDraft(null); setPreviousImportDraft(null) } } })
-        .finally(() => { if (active && epoch === importEpoch.current) setImportLoading(false) })
+        .finally(() => { if (active && epoch === importEpoch.current) { window.clearTimeout(prazo); setImportLoading(false) } })
     }
     void refresh()
     // Do not replace the revision being reviewed while an import is being prepared.
@@ -76,18 +128,18 @@ export function CommercialV3App() {
     const onFocus = () => { if (canRefresh()) void refresh() }
     window.addEventListener('focus', onFocus)
     const timer = sharedImportEnabled ? window.setInterval(() => { if (canRefresh() && document.visibilityState === 'visible') void refresh() }, 60000) : undefined
-    return () => { active = false; window.removeEventListener('focus', onFocus); if (timer) window.clearInterval(timer) }
+    return () => { active = false; window.clearTimeout(prazo); window.removeEventListener('focus', onFocus); if (timer) window.clearInterval(timer) }
   }, [])
 
   const consulta = searchParams.toString()
   const contexto = useMemo(() => parseCommercialContext(new URLSearchParams(consulta)), [consulta])
-  const { view, period, solution, branch, from, opportunityId } = contexto
+  const { view, period, solution, branch, from, opportunityId, no: idNo, territorio } = contexto
   /*
    * `?demo=1` existe para revisar o cenário fictício em desenvolvimento. Na
    * publicação, o painel mostra somente a carga confirmada: aceitar o parâmetro
    * ali expunha dados de demonstração no endereço do diretor.
    */
-  const demoRequested = !sharedImportEnabled && searchParams.get('demo') === '1'
+  const demoRequested = !visualPreviewEnabled && !sharedImportEnabled && searchParams.get('demo') === '1'
   const sourceView = view === 'forecast' || view === 'new-name'
   // Página corrida: Visão Executiva, Forecast, New Name e Oportunidades numa rolagem só, com a carga real.
   // Com demo=1 cada tela volta ao cenário demonstrativo; a Visão Executiva (home) segue como antes.
@@ -143,6 +195,19 @@ export function CommercialV3App() {
   const briefing = useMemo(() => selectAgentBriefing(COMMERCIAL_SNAPSHOT, filtros), [filtros])
   const forecast = useMemo(() => selectForecastModel(COMMERCIAL_SNAPSHOT, filtros), [filtros])
   const detalhes = useMemo(() => selectOpportunityDetails(COMMERCIAL_SNAPSHOT, filtros), [filtros])
+  /*
+   * Carteira da estrutura. O nó vem da URL; quando o identificador não existe,
+   * cai na raiz em vez de quebrar — a URL nunca é o lugar de provar que um nó
+   * existe. O de-para é estático, então a cobertura também é.
+   */
+  const carteira = useMemo(() => {
+    const idNoValidado = idNo && ARVORE.nos.has(idNo) ? idNo : ARVORE.raiz
+    const registros = importDraft?.opportunities?.records ?? []
+    const referencia = importDraft?.opportunities?.referenceDate ?? ''
+    if (!referencia) return null
+    const pedidos = importDraft?.orders?.records ?? []
+    return montarCarteira(ARVORE, registros, idNoValidado, referencia, coberturaDePara(ARVORE), pedidos)
+  }, [idNo, importDraft])
   const solucoes = useMemo(() => selectSolutionOptions(COMMERCIAL_SNAPSHOT), [])
   const filiais = REAL_BRANCH_NAMES
   const mes = mesCurto(COMMERCIAL_SNAPSHOT.competence.month)
@@ -179,6 +244,8 @@ export function CommercialV3App() {
         { period, solution, branch, query, busca, movement },
         {
           ...(destino === view && from ? { from } : {}),
+          // Sair de Territórios para outra tela leva o território aberto, para o retorno cair no mesmo nível.
+          ...(destino !== 'territorios' && contexto.territorio ? { territorio: contexto.territorio } : {}),
           ...(destino === 'opportunity' && view !== 'opportunity' ? { returnTo: `/?${consulta}` } : {}),
           ...extra,
         },
@@ -209,6 +276,17 @@ export function CommercialV3App() {
     [period, solution, branch, query, busca, movement],
   )
 
+  /*
+   * Link para a Carteira num nó. O nó raiz não é serializado: a URL da
+   * carteira inteira é a mesma para todo mundo, e um `no=cso` explícito
+   * obriga quem compartilha o link a conhecer o identificador interno.
+   */
+  const carteiraHref = useCallback(
+    (noId?: string | null) =>
+      buildCommercialHref('carteira', { period, solution, branch }, noId && noId !== 'cso' ? { no: noId } : undefined),
+    [period, solution, branch],
+  )
+
   const trocarFiltros = useCallback(
     (parcial: Partial<CommercialFilters>) => {
       const destino = buildCommercialHref(
@@ -237,6 +315,7 @@ export function CommercialV3App() {
       href,
       movementHref,
       branchHref,
+      carteiraHref,
       onPeriod: (novoPeriodo: CommercialPeriod) => trocarFiltros({ period: novoPeriodo }),
       onSolution: (novaSolucao: string) => trocarFiltros({ solution: novaSolucao }),
       onBranch: (novaFilial: string) => trocarFiltros({ branch: novaFilial }),
@@ -251,8 +330,16 @@ export function CommercialV3App() {
         })
       },
     }),
-    [href, movementHref, branchHref, trocarFiltros, router, period, solution, branch, view, movement, from, demoRequested],
+    [href, movementHref, branchHref, carteiraHref, trocarFiltros, router, period, solution, branch, view, movement, from, demoRequested],
   )
+
+  /*
+   * A porta vem antes de tudo. Enquanto o valor é nulo a tela não decide nada:
+   * pintar a visão e depois cobri-la mostraria os números por um frame, e
+   * pintar o bloqueio e depois trocar faria piscar para quem já tem a senha.
+   */
+  if (liberado === false) return <TelaBloqueio onAbrir={() => setLiberado(true)} />
+  if (liberado === null) return <div className="min-h-dvh bg-[#f2fbf9]" aria-busy="true" />
 
   return (
     <CommercialShell
@@ -270,12 +357,30 @@ export function CommercialV3App() {
       executiveMode={executiveView}
       dataCarga={cargaNaPagina ? dataCarga : null}
     >
-      {sharedImportEnabled && view !== 'config' && !executiveView && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#dfe8ef] bg-white px-4 py-3 text-sm text-[#33466c]">
+      {visualPreviewEnabled && <p role="status" className="mb-3 inline-flex rounded-full bg-white/70 px-3 py-1 text-[12px] text-ink-muted">Homologação · dados fictícios</p>}
+      {sharedImportEnabled && view !== 'config' && view !== 'territorios' && !executiveView && <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#dfe8ef] bg-white px-4 py-3 text-sm text-[#33466c]">
         <p><strong>Cenário demonstrativo.</strong> As cargas CSV/XLSX são consultadas em Forecast e New Name. Esta visão usa o cenário fixo, com agregados por filial identificados na tela.</p>
         <Link href={nav.href('config')} className="font-semibold text-[#086b6b] underline">Consultar cargas</Link>
       </div>}
       {view === 'config' && <ImportScreen draft={importDraft} canImport={canImport} onSaved={draft => { importEpoch.current++; setPreviousImportDraft(importDraft); setImportDraft(draft); setImportError('') }} loading={importLoading} loadError={importError} nav={nav} />}
-      {executiveView && <ExecutivePage opportunities={importDraft?.opportunities ?? null} orders={importDraft?.orders ?? null} previous={previousImportDraft} history={importDraft?.history ?? []} nav={nav} carregando={importLoading && !importDraft} />}
+      {executiveView && <ExecutivePage opportunities={importDraft?.opportunities ?? null} orders={importDraft?.orders ?? null} previous={previousImportDraft} history={importDraft?.history ?? []} nav={nav} carregando={importLoading && !importDraft} falha={importError || null} />}
+
+      {view === 'carteira' && (
+        <CarteiraScreen
+          carteira={carteira}
+          arvore={ARVORE}
+          idNo={idNo && ARVORE.nos.has(idNo) ? idNo : ARVORE.raiz}
+          referenceDate={importDraft?.opportunities?.referenceDate ?? ''}
+          from={from}
+          nav={nav}
+          branch={branch}
+          solucao={solution}
+        />
+      )}
+
+      {view === 'territorios' && (
+        <TerritoriosScreen snapshot={REGIONAL_SNAPSHOT} contexto={contexto} nav={nav} from={from} />
+      )}
 
       {view === 'agent' && <AgentScreen briefing={briefing} from={from} nav={nav} />}
 
@@ -284,7 +389,7 @@ export function CommercialV3App() {
       )}
 
       {view === 'system' && (
-        <SystemScreen model={home} filiaisReais={period === 'month'} nav={nav} />
+        <SystemScreen model={home} filiaisReais={!visualPreviewEnabled && period === 'month'} nav={nav} />
       )}
 
       {importError && view !== 'config' && <section className="rounded-xl border border-[#dfe8ef] bg-white p-6 text-sm text-[#33466c]">

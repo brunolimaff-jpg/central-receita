@@ -1,0 +1,147 @@
+{
+  "count": 14,
+  "rules": [
+    {
+      "Name": "ai-color-palette",
+      "Count": 2
+    },
+    {
+      "Name": "dark-glow",
+      "Count": 1
+    },
+    {
+      "Name": "gray-on-color",
+      "Count": 1
+    },
+    {
+      "Name": "kicker-above-heading",
+      "Count": 1
+    },
+    {
+      "Name": "low-contrast",
+      "Count": 6
+    },
+    {
+      "Name": "repeating-stripes-gradient",
+      "Count": 1
+    },
+    {
+      "Name": "tiny-text",
+      "Count": 2
+    }
+  ],
+  "locations": [
+    {
+      "antipattern": "ai-color-palette",
+      "severity": "warning",
+      "category": "slop",
+      "file": "http://127.0.0.1:3013/",
+      "line": 0,
+      "selector": "div.pointer-events-none.absolute > div.absolute.inset-0:nth-of-type(1)"
+    },
+    {
+      "antipattern": "gray-on-color",
+      "severity": "warning",
+      "category": "quality",
+      "file": "http://127.0.0.1:3013/",
+      "line": 0,
+      "selector": "#_r_0_"
+    },
+    {
+      "antipattern": "low-contrast",
+      "severity": "advisory",
+      "category": "quality",
+      "file": "http://127.0.0.1:3013/",
+      "line": 0,
+      "selector": "#_r_0_"
+    },
+    {
+      "antipattern": "dark-glow",
+      "severity": "warning",
+      "category": "slop",
+      "file": "http://127.0.0.1:3013/",
+      "line": 0,
+      "selector": "button.revenue-porta-botao.group"
+    },
+    {
+      "antipattern": "ai-color-palette",
+      "severity": "warning",
+      "category": "slop",
+      "file": "http://127.0.0.1:3013/",
+      "line": 0,
+      "selector": "button.revenue-porta-botao.group"
+    },
+    {
+      "antipattern": "tiny-text",
+      "severity": "warning",
+      "category": "quality",
+      "file": "http://127.0.0.1:3013/",
+      "line": 0,
+      "selector": "p.mt-3.text-\\[11\\.5px\\]"
+    },
+    {
+      "antipattern": "low-contrast",
+      "severity": "warning",
+      "category": "quality",
+      "file": "http://127.0.0.1:3013/",
+      "line": 0,
+      "selector": "p.mt-1.text-\\[11px\\]"
+    },
+    {
+      "antipattern": "tiny-text",
+      "severity": "warning",
+      "category": "quality",
+      "file": "http://127.0.0.1:3013/",
+      "line": 0,
+      "selector": "p.mt-1.text-\\[11px\\]"
+    },
+    {
+      "antipattern": "low-contrast",
+      "severity": "warning",
+      "category": "quality",
+      "file": "http://127.0.0.1:3013/",
+      "line": 0,
+      "selector": "div.text-center:nth-of-type(1) > p.mt-0\\.5.text-\\[10px\\]"
+    },
+    {
+      "antipattern": "kicker-above-heading",
+      "severity": "warning",
+      "category": "slop",
+      "file": "http://127.0.0.1:3013/",
+      "line": 0,
+      "selector": "p.mt-4.text-\\[11px\\]"
+    },
+    {
+      "antipattern": "repeating-stripes-gradient",
+      "severity": "advisory",
+      "category": "slop",
+      "file": "http://127.0.0.1:3013/",
+      "line": 0,
+      "selector": "body"
+    },
+    {
+      "antipattern": "low-contrast",
+      "severity": "warning",
+      "category": "quality",
+      "file": "http://127.0.0.1:3013/",
+      "line": 0,
+      "selector": "p.mt-4.text-\\[11px\\]"
+    },
+    {
+      "antipattern": "low-contrast",
+      "severity": "warning",
+      "category": "quality",
+      "file": "http://127.0.0.1:3013/",
+      "line": 0,
+      "selector": "p.mt-3.max-w-\\[430px\\]"
+    },
+    {
+      "antipattern": "low-contrast",
+      "severity": "warning",
+      "category": "quality",
+      "file": "http://127.0.0.1:3013/",
+      "line": 0,
+      "selector": "p.mt-3.text-\\[11\\.5px\\]"
+    }
+  ]
+}

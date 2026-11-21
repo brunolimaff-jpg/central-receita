@@ -46,7 +46,7 @@ export function OpportunitySummary({ model }: { model: OpportunityModel }) {
     },
     {
       chave: 'delta',
-      rotulo: 'Δ valor',
+      rotulo: 'Variação',
       valor: formatarValorOportunidade(model.delta),
       negativo: model.delta < 0,
     },

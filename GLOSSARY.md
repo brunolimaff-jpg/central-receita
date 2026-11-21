@@ -190,3 +190,49 @@ Divergências entre o Dash (e ADRs antigos) e as decisões de 20/10/2026, penden
 4. **Filial: unidade de negócio versus conta.** O Dash derivava a filial da conta; o projeto novo usa `UNIDADE NEGOCIO OPORTUNIDADE`. Confirmar com a Fabi (issue #8).
 5. **Naturezas Base/C4L.** O Dash tinha as quatro naturezas do CRM Integrado MG com estados de mapeamento; o projeto novo ainda não as leu, e os valores reais de `CLASSIFICACAO DO PEDIDO` seguem por confirmar com a Fabi (issue #8).
 6. **Rubrica e competência do MRR elegível.** A meta individual em MRR é decisão do Bruno (issue #8); a rubrica elegível e a competência do atingimento não estão comprovadas, e `PRODUTO - VALOR MANUTENCAO` não é a regra oficial validada.
+
+## Visão Regional
+
+Regras completas em [docs/regional/REGRAS-E-CALCULOS.md](docs/regional/REGRAS-E-CALCULOS.md) (ADR-0006).
+
+### Commit / Best case / Pipeline
+Categorias do forecast por estágio: Commit = A, Best case = B+ e B, Pipeline = C. D é omitido.
+
+### Esperado
+Soma de valor × probabilidade calibrada (pb) das oportunidades em andamento. Em andamento não é previsão.
+
+### Cenário Base
+Ganho + Esperado + fechamento estimado fora do congelado.
+
+### Conversão exigida
+Fração do Best case que precisa virar Ganho para chegar a 70% da meta.
+
+### Nine box (regional)
+Matriz de executivos: atingimento (Y) × cobertura de pipeline (X), cada eixo em três níveis, com uma ação de liderança por quadrante.
+
+### Limpeza do forecast
+Pendências que distorcem o forecast (perdido, duplicidade, zerado, sem atualização, recuperação judicial, 2027, C sem próxima ação).
+
+## Territórios
+
+Módulo de navegação da liderança comercial, em três níveis: **CSO → território → filial**. Substitui a entrada "Visão Regional" no menu; `?view=regional` continua abrindo o módulo.
+
+### Visão CSO
+Nível consolidado. Compara territórios com a mesma régua dos níveis de baixo (cenário Base ÷ meta, por fluxo) e aponta o que merece atenção. Não repete a análise do Forecast.
+
+### Território
+Recorte **declarado de filiais**, não divisão corporativa. Nesta demonstração são dois — Centro-Oeste e Norte — e cada um carrega a própria `procedencia`. Centro-Oeste é o primeiro com desenho próprio (mapa de calor como leitor principal); os demais usam o desenho padrão até haver necessidade demonstrada.
+
+### Nível
+Derivado do que está aberto, nunca de um parâmetro: sem território é o CSO; com território, o território; com território e filial, a filial. Não existe "filial sem território".
+
+### Escopo
+O recorte por território é **só de interface**. Ainda não há identidade no servidor: qualquer pessoa com o endereço abre qualquer território. Escopo de gerente não é controle de acesso.
+
+### Onde fica cada capacidade
+| Capacidade | Onde vive |
+|---|---|
+| Comparação entre territórios, atenção do gestor, intervenção | **Territórios** |
+| Cenário, simulação, calibração, movimentos do mês | **Forecast** |
+| Saneamento, pendências, qualidade da carteira | **Oportunidades** |
+| A mesma pergunta por pessoa (CSO, diretor, gerente) | **Carteira** |

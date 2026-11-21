@@ -1,0 +1,10 @@
+{
+  "name": "central-receita-visual",
+  "account_id": "0f423033edd3b67f49db05ad5de691ee",
+  "compatibility_date": "2026-10-26",
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": "./dist/visual/2026-10-26T14-35-34-624Z/assets"
+  }
+}

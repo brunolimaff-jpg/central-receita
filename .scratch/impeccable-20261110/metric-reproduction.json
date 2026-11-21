@@ -1,0 +1,14 @@
+{
+  "syntheticOnly": true,
+  "cardPrevisto": 14000,
+  "trajectoryPrevisto": 7500,
+  "won": 6500,
+  "open": 7500,
+  "lost": 900,
+  "centerRatio": 0.4642857142857143,
+  "donutWonRatio": 0.436241610738255,
+  "notes": [
+    "Same term Previsto used for open-only curve and won+open card",
+    "Donut includes lost while center divides only won+open"
+  ]
+}
