@@ -9,6 +9,7 @@
  */
 import { matrizMrr, type CorteMrr, type LeituraCorte } from './central-vendas-mrr.ts'
 import { isClosedStage } from './forecast-month.ts'
+import { isOpenStage } from './pipeline-model.ts'
 import { formatarMilhoes, formatarPercentualInteiro } from './format.ts'
 import type { ImportedRecord } from './manual-import.ts'
 import type { OrigemRealizado, SemanaRow } from './model'
@@ -245,7 +246,7 @@ export function lerCargaTeste(registros: readonly ImportedRecord[], referenceDat
   if (mes === null) return resumo
   for (const registro of registros) {
     const ganha = isClosedStage(registro.stage) && /ganha/i.test(registro.stage)
-    if (!ganha && isClosedStage(registro.stage)) continue
+    if (!ganha && !isOpenStage(registro.stage)) continue
     const data = ganha ? registro.closingDate : registro.forecastDate
     const mesDoRegistro = mesDaReferencia(data)
     if (mesDoRegistro === null) { resumo.semData += 1; continue }

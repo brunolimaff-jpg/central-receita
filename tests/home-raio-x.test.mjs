@@ -129,6 +129,16 @@ test('a carga lê só a competência da referência e declara o que ficou fora',
   assert.equal(semReferencia.total, 9)
 })
 
+test('carga sem etapa não entra no total em aberto', () => {
+  const registro = { stage: '', forecastDate: '2026-10-21', predictedValue: 900, closingDate: null, closedValue: null }
+  for (const registros of [[], [registro], [{ ...registro, stage: '  ' }]]) {
+    const leitura = lerCargaTeste(registros, '2026-10-22')
+    assert.deepEqual(leitura.emAberto, { total: 0, quantidade: 0 })
+  }
+  const leitura = lerCargaTeste([registro, { ...registro, stage: 'Proposta', predictedValue: 100 }], '2026-10-22')
+  assert.deepEqual(leitura.emAberto, { total: 100, quantidade: 1 })
+})
+
 test('a contagem concorda no singular e no plural', () => {
   assert.equal(pluralizar(1, 'fechada e ganha', 'fechadas e ganhas'), '1 fechada e ganha')
   assert.equal(pluralizar(0, 'fechada e ganha', 'fechadas e ganhas'), '0 fechadas e ganhas')
