@@ -1,4 +1,5 @@
 import type { ImportedRecord } from './manual-import'
+import { cachedNormalizer } from './text-normalize.ts'
 
 /**
  * Pipeline (docs/REGRAS-NEGOCIO.md §Pipeline): quantidade e valor por etapa da
@@ -29,7 +30,7 @@ export type PipelineOverview = {
  */
 export const DEFAULT_CLOSED_STAGES = ['Fechada e Ganha', 'Fechada e Perdida']
 
-const normalize = (stage: string) => stage.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().replace(/\s+/g, ' ').toLocaleUpperCase('pt-BR')
+const normalize = cachedNormalizer(stage => stage.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().replace(/\s+/g, ' ').toLocaleUpperCase('pt-BR'))
 
 export function isOpenStage(stage: string, closedStages: string[] = DEFAULT_CLOSED_STAGES): boolean {
   const value = normalize(stage)

@@ -1,4 +1,5 @@
 import type { ImportedRecord } from './manual-import'
+import { cachedNormalizer } from './text-normalize.ts'
 
 export type ForecastPeriod = 'semana' | 'mês'
 type Movement = { count: number; value: number | null; records: ImportedRecord[] }
@@ -44,7 +45,7 @@ export type ForecastMonthResult = {
   bridge: ForecastBridge | null
 }
 
-const normalize = (stage: string) => stage.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().replace(/\s+/g, ' ').toLocaleUpperCase('pt-BR')
+const normalize = cachedNormalizer(stage => stage.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().replace(/\s+/g, ' ').toLocaleUpperCase('pt-BR'))
 /** Book PEX Filiais: Proposta ou Negociação com chance de 75% ou mais e previsão no mês. */
 export const FORECAST_MIN_PROBABILITY = 0.75
 /** Texto único do aviso, usado pelo Forecast e pela Visão Executiva. */
